@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>complexity.zone - Head-Up Cardboard</title>
+<link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
+<style>
+  body {
+    font-family: Calibri, Arial, helvetica, sans-serif;
+    font-size: 18px;
+    background-color: #222222;
+    color: #cccccc;
+    margin: 0px;
+    padding: 0px;
+  }
+  div
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    white-space: normal; 
+    text-align: left;
+  }
+  div span
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  a, a:link, a:visited, a:hover, a:active
+  {
+    text-decoration: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    background-color: inherit;
+    color: inherit;
+  }
+  .panel
+  {
+    display: inline-block;
+    position: relative;
+    vertical-align:top;
+    margin-top: 16px;
+    margin-left: 16px;
+    width: 700px; 
+    background-color: #333333;
+  }
+  .panelHeader
+  {
+    padding: 10px;
+  }
+  .panelContent
+  {
+    padding: 10px;
+  }
+</style>
+</head>
+<body>
+  <div id="menu" style="height: 70px; padding: 10px; padding-left: 20px; background-color: #333333; font-size: 36px;"><a href="../"><span style="color: #80cccc; margin-right: 50px;">complexity.zone</span></a> Head-up Cardboard</div>
+  <div id="content" style="background-color: #222222;">
+
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">Head-up Cardboard - A Google Cardboard inspired 3d head-up display</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>DIY stereoscopic holography</i></span><br />
+        <br />
+        <img src="./images/head_up_cardboard.jpg" width="600" title="Head-up Cardboard" /><br />
+        <br />
+        <span style="font-size: 18px; color: #ffffff;"><i>OK Cardboard</i></span><br />
+        <br />
+        By design, in VR you are not connected with the real world - you cannot see the real world and the VR world at the same time.
+        I made <a href="../cardboard_solarsystem/"><u>Solar System for Google Cardboard</u></a> to explore the possibilities 
+        applying AR or MR in Google Cardboard, mixing real world content with simulated content. It worked, but the image of the real world has no perceived variation 
+        in depth (only one camera). This is not a bad thing if you want your primary focus to be the 3d simulated world, but if you want
+        a good view of the real world then you would need two cameras. We already see the real world quite well 
+        without the use of camera and screen, so I thought about projecting 3d content directly into our view of the real world. 
+        Similar to what Google Glass does, except I wanted to use a phone and apply stereoscopic 3d.<br />
+        The result is the <b>Head-up Cardboard</b>.<br />
+        <br />
+        The idea is simple: just like Google Cardboard, except the stereoscopic images are reflected via semi-reflective / semi-transparent glass 
+        into your field of vision. You see the real world, mixed with holographic-like 3d content.<br />
+        <br />
+      </div>
+    </div>
+
+    
+    
+    
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">13th December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>Head-up Cardboard Prototype 1</i></span><br />
+        <br />
+        The purpose of this prototype is to simply confirm that a phone can be used for a stereoscopic head-up 
+        display, a proof of concept.<br />
+        <br />
+        <b>Instructions for making Prototype 1:</b><br />
+        <ol>
+          <li>
+            Items needed:
+            <ul>
+              <li>
+                A piece of cardboard.<br />
+              </li>
+              <li>
+                Two lenses.<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;The lenses I use are from a ColorCross VR headset.<br />
+              </li>
+              <li>
+                Some semi-reflective / semi-transparent material.<br />
+                Preferably very thin material.<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;I did not have such material. I used a CD-cover instead.<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;It's not perfect, but good enough for proof-of-concept.
+              </li>
+            </ul>
+            <br />
+            <img src="./images/head_up_cardboard_step1.jpg" width="600" title="How to make a Head-up Cardboard" /><br />
+            <br />
+          </li>
+          <li>
+            <ul>
+              <li>
+                Cut up the cardboard and make a hollow box (using Sellotape).
+              </li>
+              <li>
+                Cut holes in the cardboard and position the lenses. The distance between the centers of the holes should be something like 6 cm.
+              </li>
+              <li>
+                The height of the box depends on the focal length of the lenses. For my lenses it is 4 cm.
+                To determine the box height for your lenses, simply position the lens above some text and measure 
+                the distance between the lenses and the text when the text appears most clear.
+              </li>
+            </ul>
+            <br />
+            <span><img src="./images/head_up_cardboard_step2.jpg" width="300" title="How to make a Head-up Cardboard" /></span>
+            <span><img src="./images/head_up_cardboard_step3.jpg" width="300" title="How to make a Head-up Cardboard" /></span><br />
+            <br />
+          </li>
+          <li>
+            <ul>
+              <li>
+                Cut up the semi-reflective / semi-transparent material into pieces as shown in the photo.
+              </li>
+            </ul>
+            <br />
+            <img src="./images/head_up_cardboard_step4.jpg" width="600" title="How to make a Head-up Cardboard" /><br />
+            <br />
+          </li>
+          <li>
+            <ul>
+              <li>
+                Assemble the pieces as shown in the photo.
+              </li>
+              <li>
+                The angle of the 'window' should be 45 degrees.
+              </li>
+              <li>
+                Note: the photo shows the lenses inserted wrong way around.
+              </li>
+            </ul>
+            <br />
+            <img src="./images/head_up_cardboard_step5.jpg" width="600" title="How to make a Head-up Cardboard" /><br />
+            <br />
+          </li>
+        </ol>
+        <br />
+        <br />
+      </div>
+    </div>
+    
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">14th December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>Testing Prototype 1</i></span><br />
+        <br />
+        To test the proof-of-concept Prototype I made some apps with stereoscopic scenes and images. You can use this to test your own Head-up Cardboard.
+        Note that the scenes and images are flipped, reflected through the horizontal axis. This is necessary to correct for the reflected image.
+        <br />
+        <br />
+        Here is a web app showing a simple 3d scene (some orbiting planets) to test your Head-up Cardboard with your phone:<br />
+        <br />
+        <div style="margin-left: 20px;"><a href="./run/"><button style="width: 400px; height: 60px; font-size: 18px; cursor: pointer;">Run 3d test scene for Head-up Cardboard</button></a></div>
+        <br />
+        Looking through the Head-up Cardboard, with the app running on your phone, you should see something like this:<br />
+        <br />
+        <img src="./images/head_up_cardboard_prototype1_test_scene.jpg" width="480" title="Head-up Cardboard prototype test" /><br />
+        <br />
+        Here a static test image to test your prototype (click and maximize image):<br />
+        <br />
+        <a href="./images/testimage_prototype1.png"><img src="./images/testimage_prototype1.png" width="300" title="Head-up Cardboard prototype 1 test image" /></a><br />
+        <br />
+        Looking through the Head-up Cardboard, with the test-image full screen on your phone's display, you should see something like this:<br />
+        <br />
+        <img src="./images/head_up_cardboard_prototype1_test.jpg" width="640" title="Head-up Cardboard prototype test" /><br />
+        <br />
+        Through the Head-up Cardboard you will see the time and text to appear at slightly different distances, giving a 3d impression.<br />
+        <br />
+        <br />
+      </div>
+    </div>
+
+
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">14th December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>Evaluation of prototype 1 - the proof of concept</i></span><br />
+        <br />
+        My findings so far:<br />
+        <ul>
+          <li>
+            It sort of works! Using Three.js I made some orbiting objects, positioned in the center 20% of the screen. When aligned and 
+            focussed correctly, I got the stereoscopic 3d experience, while still being able to see the real world.
+          </li>
+          <li>
+            The lens choice is not quite ideal. I am looking into using different types of lenses / curved surfaces.
+          </li>
+          <li>
+            Compared to Google Cardboard, the FOV of the Head-up Cardboard is much narrower. This makes it difficult to find objects in 3d space 
+            when looking around. Fixed positioned content (independent of orientation or movement of the phone) seems to work well.
+            I am looking into different ways of increasing the FOV, possibly using a curved reflective surface.
+          </li>
+          <li>
+            The CD-cover that was used (see below) is not ideal. First of all it is not quite reflective enough for a good experience.
+            You need a dark background to see the content. A more suitable material would have a slightly higher degree of reflectivity.
+            Furthermore, the internal reflection creates a second slightly fainter ghost image.<br />
+          </li>
+          <li>
+            A light floor or ground will make the image fade, because light from the bottom reflects back off the phone into sight.
+            A dark casing on the bottom of the device will solve this.
+          </li>
+          <li>
+            The image seen through the device is a flipped version of what is on the phone's screen. So the app needs to flip the 
+            intended image. This is one of the disadvantages of this prototype, because it is not compatible with Google Cardboard apps.
+            I am also looking into possibilities of creating a double mirror setup such that the image is not a mirror image, so 
+            that the apps for this device can also be viewed with standard Google Cardboard.
+          </li>
+          <li>
+            The orientation of the device is different from Google Cardboard. So the app needs to interpret the phone's movement differently.
+            The ideal orientation would be to have the same orientation as with Google Cardboard.
+          </li>
+          <li>
+            The projected 3d objects give a sensation of depth due to the stereoscopic effect, but misses the differences in focal depth.
+            The objects therefore do not properly mix well into the real world. For a true AR experience we will have to wait for 
+            Magic Leap's promising new technology.
+          </li>
+        </ul>
+        <br />
+      </div>
+    </div>
+    
+    
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">17th December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>Improvements and variations</i></span><br />
+        <br />
+        The main needs for improvement seem to be: a wider FOV, compatible with Google Cardboard, and better image quality.<br />
+        <br />
+        <ul>
+          <li>
+            <span style="font-size: 20px; color: #ffffff;">Increasing FOV</span><br />
+            3 possible ways to increase the FOV:<br/>
+            <ol>
+              <li>
+                <b>Get our eyes closer to the lens.</b><br/>
+                 We cannot get our eyes much closer to the lens, because the lens itself needs to be out of our direct line of sight.
+              </li>
+              <li>
+                <b>Increase the size of the lens.</b><br/>
+                It will be a challenge to find the right size and shape of lens.
+              </li>
+              <li>
+                <b>Eliminate the need for a lens.</b><br/>
+                For the eyes to comfortably be able to focus on the phone's screen without the use of lenses, there are two possibilities:
+                <ol>
+                  <li>
+                    <b>Increase the optical distance between eyes and phone.</b><br/>
+                    Increasing the optical distance will result in a decrease of FOV.
+                  </li>
+                  <li>
+                    <b>Use a curved reflective surface.</b><br/>
+                    This is functionally equivalent to a lens, so this would seem a good choice, although probably a challenge to make. 
+                  </li>
+                </ol>
+              </li>
+            </ol>
+            <br />
+          </li>
+          <li>
+            <span style="font-size: 20px; color: #ffffff;">Compatible with Google Cardboard</span><br />
+            Apps for prototype 1 must mirror the image horizontally, because the image is reflected. This is not compatible with Google Cardboard.
+            The only way I could think of to be compatible with Google Cardboard is to use two reflectors, put together
+            like a periscope. The bottom mirror (the "combiner") is semi-reflective, and the top mirror is fully reflective.<br/>
+            <br />
+          </li>
+          <li>
+            <span style="font-size: 20px; color: #ffffff;">Better image quality</span><br />
+            To reduce the ghost image we need first-surface mirrors and very thin glass.<br/>
+          </li>
+        </ul>
+        <br />
+        <br />
+        <span style="font-size: 22px; color: #ffffff;">Variations of the Head-up Cardboard</span><br />
+        There are several variations of the Head-up Cardboard, some of them are listed here. Each has their own set of advantages and disadvantages.<br />
+        <br />
+        
+        <div style="display: inline-block; vertical-align:top; width: 300px; margin: 10px; margin-bottom: 40px;">
+          <span style="font-size: 18px; color: #ffffff;">Concept 1</span><br />
+          <img src="./images/head_up_cardboard_concept1.png" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - concept 1" />
+          <br />
+          Concept 1 is prototype 1.<br />
+        </div>
+        
+        <div style="display: inline-block; vertical-align:top; width: 300px; margin: 10px; margin-bottom: 40px;">
+          <span style="font-size: 18px; color: #ffffff;">Concept 2</span><br />
+          <img src="./images/head_up_cardboard_concept2.png" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - concept 2" />
+          <br />
+          Concept 2 is constructed like a periscope, using a semi-reflective mirror and a fully-reflective mirror.<br />
+          Compatible with Google Cardboard.<br />
+        </div>
+        
+        <div style="display: inline-block; vertical-align:top; width: 300px; margin: 10px; margin-bottom: 40px;">
+          <span style="font-size: 18px; color: #ffffff;">Concept 3</span><br />
+          <img src="./images/head_up_cardboard_concept3.png" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - concept 3" />
+          <br />
+          Concept 3 is a reversed version of concept 2, places the FOV of the real world above the normal line of sight.<br />
+          Compatible with Google Cardboard.<br />
+        </div>
+        
+        <div style="display: inline-block; vertical-align:top; width: 300px; margin: 10px; margin-bottom: 40px;">
+          <span style="font-size: 18px; color: #ffffff;">Concept 4</span><br />
+          <img src="./images/head_up_cardboard_concept4.png" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - concept 4" />
+          <br />
+          Concept 4 uses a curved semi-transparent mirror, doubling as a lens, possibly eliminating the need for a lens.<br />
+        </div>
+        <br />
+      </div>
+    </div>
+    
+    
+    
+    
+
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">20th December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>Constructing mirrors for concept 2</i></span><br />
+        <br />
+        I am very fortunate to know <a href="http://tatjavanvark.nl/projects.html" target="_blank"><u>Tatjana J. van Vark</u></a>, 
+        who is (among many other subjects) an expert on the subject of optics and vacuum coating. She has a vacuum coating machine (actually 
+        <a href="http://tatjavanvark.nl/tvv3/hvacu2.html" target="_blank"><u>fully built by herself</u></a>). 
+        Tatjana made two mirrors:<br />
+        <ul>
+          <li>
+            <b>A 100% fully reflective vacuum coated first surface mirror.</b><br />
+            Thin glass plate vacuum-coated with aluminium.
+          </li>
+          <li>
+            <b>The combiner: a semi-reflective mirror (beam-splitter).</b><br />
+            Thin glass plate vacuum-coated with an extreme thin layer of aluminium for the semi-reflective side, and a 
+            thin layer of Magnesium Fluoride for the non-reflective side (anti-reflective coating, destructive thin-film interference).<br />
+            Target: 50% transmission<br />
+            Result: 44% transmission (a very good result!)
+          </li>
+        </ul>
+        <br />
+        Here are some photos of the process, and of the wonderful vacuum coating machine made by Tatjana J. van Vark:
+        <br />
+        <img src="./images/head_up_cardboard_mirrors1.jpg" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - Constructing the mirrors" />
+        <img src="./images/head_up_cardboard_mirrors2.jpg" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - Constructing the mirrors" />
+        <img src="./images/head_up_cardboard_mirrors3.jpg" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - Constructing the mirrors" />
+        <img src="./images/head_up_cardboard_mirrors4.jpg" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - Constructing the mirrors" />
+        <br />
+      </div>
+    </div>
+    
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">20th December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>The mirrors</i></span><br />
+        <br />
+        The resulting mirrors:
+        <br />
+        <div style="display: inline-block; vertical-align:top; width: 300px; margin: 10px;">
+          <img src="./images/head_up_cardboard_mirrors_combiner.jpg" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - vacuum coated beam-splitter" /><br />
+          <b>Semi-reflective mirror</b><br />
+          The beam splitter or combiner.
+          A thin glass plate, vacuum-coated with an extreme thin layer of aluminium for the semi-reflective side, and a 
+          thin layer of Magnesium Fluoride for the non-reflective side (anti-reflective coating, destructive thin-film interference).
+        </div>
+        <div style="display: inline-block; vertical-align:top; width: 300px; margin: 10px;">
+          <img src="./images/head_up_cardboard_mirrors_vacuumcoatedmirror.jpg" width="300" style="margin: 10px; vertical-align:top;" title="Head-up Cardboard - vacuum coated mirror" /><br />
+          <b>Fully reflective first surface mirror</b><br />
+          Thin glass plate vacuum-coated with aluminium.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panelContent">
+        <span style="font-size: 22px; color: #ffffff;">21st December 2014</span><br />
+        <span style="font-size: 18px; color: #ffffff;"><i>Testing the mirrors</i></span><br />
+        <br />
+        The mirrors were tested in a simple proof-of-concept Lego model of concept 2.
+        It is a flimsy construction, but it works well enough to test the mirrors.
+        First impression: The mirrors work great, they blend the real image with the augmented image very well. 
+        <br />
+        <br />
+        <br />
+        <br />
+      </div>
+    </div>
+
+  </div>
+  <br />
+  <br />
+  <br />
+  <br />
+</body>
+</html>

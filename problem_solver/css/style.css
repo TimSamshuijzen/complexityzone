@@ -1,0 +1,39 @@
+body {
+  font-family: Calibri, Arial, helvetica, sans-serif;
+  font-size: 18px;
+}
+.scrn
+{
+  display: block;
+  position: relative;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.scrn div
+{
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  white-space: normal; 
+  text-align: left;
+}
+.scrn div span
+{
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

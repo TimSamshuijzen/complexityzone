@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>www.complexity.zone - projects and experiments by Tim Samshuijzen</title>
+  <link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
+  <style>
+    body {
+      font-family: Calibri, Arial, helvetica, sans-serif;
+      font-size: 18px;
+      background-color: #222222;
+      color: #cccccc;
+      margin: 0px;
+      padding: 0px;
+    }
+    div
+    {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      overflow: hidden;
+      white-space: normal; 
+      text-align: left;
+    }
+    div span
+    {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    a, a:link, a:visited, a:hover, a:active
+    {
+      text-decoration: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      background-color: inherit;
+      color: inherit;
+    }
+    .panel
+    {
+      display: inline-block;
+      position: relative;
+      margin: 16px;
+      width: 580px; 
+      height: 220px; 
+      background-color: #333333;
+      cursor: pointer;
+    }
+    .panelHeader
+    {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 220px;
+      height: 220px;
+    }
+    .panelContent
+    {
+      position: absolute;
+      left: 220px;
+      top: 0;
+      width: 340px;
+      height: 200px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu" style="position: relative; height: 60px; padding: 10px; background-color: #333333;">
+    <div id="menu_home" style="position: absolute; left: 0; top: 0; height: 60px; width: 400px; padding-left: 20px; font-size: 36px; line-height: 60px; color: #80cccc;">
+      <a href="./">www.complexity.zone</a>
+    </div>
+    <div id="menu_c" style="position: absolute; left: 420px; top: 0; height: 60px; width: 500px; padding-top: 16px;">
+      Projects and experiments<br />
+      by <a href="mailto:timsamshuijzen@gmail.com">Tim Samshuijzen</a>
+    </div>
+  </div>
+  <div id="content" style="background-color: #222222;">
+    <div class="panel" onclick="window.location = './primektuples/';">
+      <div class="panelHeader">
+        <a href="./primektuples/"><img src="./primektuples/primektuples.png" title="Riemann Zeta Scope" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Proof of the Hardy-Littlewood K-tuple Conjecture</b><br />
+        2025<br />
+        <br />
+        Using primorial symmetries to prove the existence of infinitely many twin primes.<br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './lpfspectra/';">
+      <div class="panelHeader">
+        <a href="./lpfspectra/"><img src="./lpfspectra/lpfspectra.png" title="Riemann Zeta Scope" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>On the Spectra of Primes in the Sequence of Least Prime Factors</b><br />
+        2024<br />
+        <br />
+        Exploring primorial symmetries in the sequence of least prime factors.<br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './riemannzetascope/';">
+      <div class="panelHeader">
+        <a href="./riemannzetascope/"><img src="./riemannzetascope/img/riemannzetascope.png" title="Riemann Zeta Scope" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Riemann Zeta Scope</b><br />
+        2023<br />
+        <br />
+        Explore the spirals in the partial sums of the Riemann zeta function.<br />
+        <br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './mobiusinversion/';">
+      <div class="panelHeader">
+        <a href="./mobiusinversion/"><img src="./mobiusinversion/img/mobiusinversion.png" title="mobius inversion" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Möbius inversion of a square wave</b><br />
+        2023<br />
+        <br />
+        From constructing a square with circular wheels to constructing a circle with square wheels.<br />
+        <br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './sha256/';">
+      <div class="panelHeader">
+        <a href="./sha256/" target="_blank"><img src="./sha256/sha256thumbdetail.png" width="180" style="position: absolute; left: 10px; top: 10px; width: 180px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>SHA-256 bit operations</b><br />
+        2023<br />
+        <br />
+        Visualization of all bit operations of the SHA-256 algorithm.
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './head_up_cardboard/';">
+      <div class="panelHeader">
+        <a href="./head_up_cardboard/"><img src="./head_up_cardboard/images/head_up_cardboard_thumb.jpg" width="160" style="position: absolute; left: 10px; top: 10px; width: 160px;" /></a>
+        <a href="./head_up_cardboard/"><img src="./head_up_cardboard/images/head_up_cardboard_prototype1_test_thumb.jpg" width="200" style="position: absolute; left: 60px; top: 146px; width: 110px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Head-up Cardboard</b><br />
+        2014<br />
+        <br />
+        A Google Cardboard-inspired 3d head-up display.
+        Stereoscopic AR holography with a mobile phone.
+        <br />
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panelHeader">
+        <a href="./cardboard_solarsystem/"><img src="./cardboard_solarsystem/images/cardboard_solarsystem.jpg" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+        <a href="./cardboard_solarsystem/"><img src="./cardboard_solarsystem/images/googlecardboard.jpg" width="96" style="position: absolute; left: 10px; top: 126px; width: 96px;" /></a>
+        <a href="./cardboard_solarsystem/"><img src="./cardboard_solarsystem/images/solarsystem.png" width="96" style="position: absolute; left: 114px; top: 126px; width: 96px;" /></a>
+      </div>
+      <div class="panelContent">
+        <div style="position: absolute; left: 10px; top: 10px; width: 340px; height: 200px;" onclick="window.location = './cardboard_solarsystem/';">
+          <b>Solar System for<br />
+            Google Cardboard</b><br />
+            2014<br />
+            <br />
+            World's first 3d AR/VR mobile web app.
+            <br />
+        </div>
+        <div style="position: absolute; left: 250px; top: 10px;">
+          <a href="https://experiments.withgoogle.com/cardboard-solar-system" target="_blank"><img src="./img/badge.png" title="See my experiment on experiments.withgoogle.com" width="100" /></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panelHeader">
+        <a href="./webgl_threejs_surface_graph/"><img src="./webgl_threejs_surface_graph/webgl_threejs_surface_graph_example1.png" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+        <a href="./webgl_threejs_surface_graph/"><img src="./webgl_threejs_surface_graph/webgl_threejs_surface_graph_example2.png" width="200" style="position: absolute; left: 10px; top: 100px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <div style="position: absolute; left: 10px; top: 10px; width: 340px; height: 200px;" onclick="window.location = './webgl_threejs_surface_graph/';">
+          <b>3d surface graph</b><br />
+          2014<br />
+          <br />
+          <br />
+          Visualize a function as a surface in 3d space.<br />
+          <br />
+        </div>
+        <div style="position: absolute; left: 250px; top: 10px;">
+          <a href="https://experiments.withgoogle.com/editable-surface-graph" target="_blank"><img src="./img/badge.png" title="See my experiment on experiments.withgoogle.com" width="100" /></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './problem_solver/';">
+      <div class="panelHeader">
+        <a href="./problem_solver/"><img src="./img/problemsolver.png" title="Problem Solver" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Problem Solver</b><br />
+        2013<br />
+        <br />
+        Programmable puzzle solver and game tree explorer.<br />
+        <br />
+        <br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './helix_harmonic_analyzer/';">
+      <div class="panelHeader">
+        <a href="./helix_harmonic_analyzer/"><img src="./helix_harmonic_analyzer/samshuijzen_helix_harmonic_analyzer.jpg" title="harmonic analyzer" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Helix harmonic analyzer</b><br />
+        2006<br />
+        <br />
+        The most simple mechanical harmonic analyzer.
+        <br />
+        <br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './fourier/';">
+      <div class="panelHeader">
+        <a href="./fourier/"><img src="./fourier/img/60wheels_1.png" title="fourier" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>Sixty wheels</b><br />
+        2002<br />
+        <br />
+        Application for visualizing Fourier Series. 
+        <br />
+      </div>
+    </div>
+
+    <div class="panel" onclick="window.location = './unspoon/';">
+      <div class="panelHeader">
+        <a href="./unspoon/"><img src="./unspoon/img/spoon.jpg" title="one-shot panorama" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>One-shot panorama</b><br />
+        2001<br />
+        <br />
+        One-shot panorama using a spoon.
+        <br />
+      </div>
+    </div>
+
+  </div>
+  <div id="footer" style="position: relative; height: 110px; padding: 10px; background-color: #222222;">
+  </div>
+</body>
+</html>

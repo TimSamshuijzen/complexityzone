@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>complexity.zone - Solar System for Google Cardboard</title>
+<link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
+<style>
+  body {
+    font-family: Calibri, Arial, helvetica, sans-serif;
+    font-size: 18px;
+    background-color: #222222;
+    color: #cccccc;
+    margin: 0px;
+    padding: 0px;
+  }
+  div
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    white-space: normal; 
+    text-align: left;
+  }
+  div span
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  a, a:link, a:visited, a:hover, a:active
+  {
+    text-decoration: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    background-color: inherit;
+    color: inherit;
+  }
+  .panel
+  {
+    display: block;
+    position: relative;
+    margin-top: 16px;
+    margin-left: auto; 
+    margin-right: auto;
+    width: 800px; 
+    height: 2200px; 
+    background-color: #333333;
+  }
+  .panelHeader
+  {
+    padding: 10px;
+  }
+  .panelContent
+  {
+    padding: 10px;
+  }
+</style>
+</head>
+<body>
+  <div id="menu" style="height: 70px; padding: 10px; padding-left: 20px; background-color: #333333; font-size: 36px;"><a href="../"><span style="color: #80cccc; margin-right: 50px;">complexity.zone</span></a> Solar System for Google Cardboard</div>
+  <div id="content" style="background-color: #222222;">
+
+    <div class="panel">
+      <div class="panelHeader">
+      </div>
+      <div class="panelContent">
+        <span style="font-size: 24px; color: #ffffff;">Augmented Reality Solar System for Google Cardboard</span><br />
+        <br />
+        
+        <div>
+          <div style="display: inline-block; position: relative; margin: 10px; padding: 10px; width: 600px; height: 320px; background-color: #111111;">
+            <a href="./run/index.html"><img src="./images/cardboard_solarsystem.jpg" width="600" title="Solar System for Google Cardboard" /></a>
+          </div>
+          <br />
+          <div style="margin-left: 20px;"><a href="./run/index.html"><button style="width: 600px; height: 60px; font-size: 20px; cursor: pointer;">Run Solar System for Cardboard</button></a></div>
+          <br />
+          <div style="display: inline-block; position: relative; margin: 10px; padding: 10px; width: 275px; height: 228px; background-color: #111111;">
+            <a href="./run/index.html"><img src="./images/solarsystem.png" width="275" title="Solar System for Google Cardboard" /></a>
+          </div>
+          <div style="display: inline-block; position: relative; margin: 10px; padding: 10px; width: 275px; height: 228px; background-color: #111111;">
+            <b>Note:</b><br />
+            The relative sizes of the planets and moons sizes are incorrect (some are exaggeratedly huge), 
+            the orbit and rotation times are incorrect, and so are the orbital distances of the moons.
+            This is purposely done so that you can easily see and follow the planets.
+          </div>
+        </div>
+        <br />
+        <span style="font-size: 24px; color: #ffffff;">How to use Solar System for Cardboard:</span><br />
+        <ol>
+          <li>
+            Get <a href="https://cardboard.withgoogle.com/" target="_blank"><u>Google Cardboard</u></a><br />
+            <br />
+            <span><a href="https://cardboard.withgoogle.com/" target="_blank"><img src="./images/googlecardboard.png" width="200" title="Google Cardboard" /></a></span><br />
+            Or one of the many alternatives, such as <a href="http://www.dodocase.com/" target="_blank"><u>Dodocase</u></a>.<br />
+            The one I currently use: a ColorCross VR headset.<br />
+            <br />
+          </li>
+          <li>
+            Use a modern smartphone with browser that supports these capabilities:<br />
+            <ul>
+              <li>
+                WebGL
+              </li>
+              <li>
+                HTML5 video, support for navigator.getUserMedia and access to your phone's camera.<br />
+                - If HTML5 video is not supported then you can still enjoy the Solar System with a black background.
+              </li>
+              <li>
+                deviceorientation events<br />
+                - For detecting your phone's orientation.
+              </li>
+            </ul>
+            <br />
+          </li>
+          <li>
+            Increase the "display sleep" settings of your phone to at least 10 minutes.<br />
+            Usually the "display sleep" time is quite low, and it is annoying when the screen goes dark while installed in Google Cardboard.<br />
+            <br />
+          </li>
+        </ol>
+        <br />
+        <span style="font-size: 24px; color: #ffffff;">Next, open the browser on your phone and go to this page and click the button below:</span><br />
+        <br />
+        <div style="margin-left: 40px;"><a href="./run/index.html"><button style="width: 320px; height: 40px; font-size: 18px; cursor: pointer;">Run Solar System for Cardboard</button></a></div>
+        <ul>
+          <li>
+            Your phone will ask permission to access your phone's camera.<br />
+            - If you allow, then the planets are superimposed on the camera video image.<br />
+            - If you don't allow, then the planets are displayed in a black space.<br />
+            <span style="font-size: 14px;">Note: If you deny camera access, Chrome may stop asking the next time you restart the app.
+            If so, then you can re-enable the "ask for camera access" through Chrome's menu &gt; Settings &gt; Content settings &gt; Website settings.</span><br />
+            <br />
+          </li>
+          <li>
+            Then tap on the screen for displaying the image full screen (without the browser's address bar).
+          </li>
+        </ul>
+        <span style="font-size: 24px; color: #ffffff;">Next, place your phone in Cardboard and enjoy the view!</span><br />
+        <br />
+        <br />
+        <br />
+        Tim Samshuijzen<br />
+        2014<br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
