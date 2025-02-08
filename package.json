@@ -1,0 +1,11 @@
+{
+  "name": "complexityzone",
+  "version": "1.0.0",
+  "description": "complexity.zone static website",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tim Samshuijzen",
+  "license": "ISC"
+}
