@@ -2,4 +2,5 @@
 
 complexity.zone static website at:
 
-https://www.complexity.zone/riemannzetascope/
+https://complexity.zone
+
