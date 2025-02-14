@@ -136,10 +136,6 @@ class Zeta {
           radiusFactor = 0;
         }
       }
-      // - Powers of two only
-      //   radiusFactor *= ((((Math.log(hi + 1) / Math.log(2)) % 1) === 0) ? 1 : 0);
-      // - Square only
-      //   radiusFactor *= ((Math.abs(Math.sqrt(hi + 1) % 1) < 0.000001) ? 1 : 0);
       term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
       term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
       term.phase = (this.eta ? (((hi % 2) === 0) ? 0 : Math.PI) : 0);
@@ -202,14 +198,13 @@ class Zeta {
     const etaEstimationRe = (((priorPartialSum1.re + priorPartialSum2.re) / 2) + ((priorPartialSum2.re + priorPartialSum3.re) / 2) + ((priorPartialSum3.re + priorPartialSum4.re) / 2) + ((priorPartialSum4.re + priorPartialSum5.re) / 2)) / 4;
     const etaEstimationIm = (((priorPartialSum1.im + priorPartialSum2.im) / 2) + ((priorPartialSum2.im + priorPartialSum3.im) / 2) + ((priorPartialSum3.im + priorPartialSum4.im) / 2) + ((priorPartialSum4.im + priorPartialSum5.im) / 2)) / 4;
     // Multiply by 1/(1 - 2^(1-s)) to get zeta(s)
-    const denominator = (1 + (Math.pow(2, 2 - this.sigma) * (Math.pow(2, -this.sigma) - Math.cos(this.t * Math.log(2)))));
+    let denominator = (1 + (Math.pow(2, 2 - this.sigma) * (Math.pow(2, -this.sigma) - Math.cos(this.t * Math.log(2)))));
     if (denominator === 0) {
       this.analyticContinuationRe = 0;
       this.analyticContinuationIm = 0;
     } else {
       const vectorRe = (1 - (Math.pow(2, 1 - this.sigma) * Math.cos(this.t * Math.log(2)))) / denominator;
       const vectorIm = -(Math.pow(2, 1 - this.sigma) * Math.sin(this.t * Math.log(2))) / denominator;
-      // (vectorRe,vectorIm) is a rotating vector, and is never zero for sigma>=0.
       this.analyticContinuationRe = ((etaEstimationRe * vectorRe) - (etaEstimationIm * vectorIm));
       this.analyticContinuationIm = ((etaEstimationRe * vectorIm) + (etaEstimationIm * vectorRe));
     }
@@ -1497,7 +1492,6 @@ const View = {
         }, { once: true });
       }
     });
-    // double click to play/stop
     this.components.canvas.title = 'Double-click to start/stop running t';
     this.components.canvas.addEventListener('dblclick', (e) => {
       e.preventDefault();
@@ -1939,7 +1933,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawAnalyticContinuationButton);
-      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at value of ζ(σ + i·t), calculated by analytic continuation.\nMethod used: ζ(s) = η(s) / (1 - 2^(1 - s))';
+      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at ζ(σ + i·t), calculated by analytic continuation.\nMethod used: ζ(s) = η(s) / (1 - 2^(1 - s))';
       this.components.panelDrawAnalyticContinuationButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #D4AF37;">&nbsp;&nbsp;⬤&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">ζ analytic</span>';
       this.components.panelDrawAnalyticContinuationButton.addEventListener('click', () => {
         this.zetaView.drawAnalyticContinuation = !this.zetaView.drawAnalyticContinuation;

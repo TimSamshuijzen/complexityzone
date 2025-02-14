@@ -136,10 +136,6 @@ class Zeta {
           radiusFactor = 0;
         }
       }
-      // - Powers of two only
-      //   radiusFactor *= ((((Math.log(hi + 1) / Math.log(2)) % 1) === 0) ? 1 : 0);
-      // - Square only
-      //   radiusFactor *= ((Math.abs(Math.sqrt(hi + 1) % 1) < 0.000001) ? 1 : 0);
       term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
       term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
       term.phase = (this.eta ? (((hi % 2) === 0) ? 0 : Math.PI) : 0);
@@ -209,7 +205,6 @@ class Zeta {
     } else {
       const vectorRe = (1 - (Math.pow(2, 1 - this.sigma) * Math.cos(this.t * Math.log(2)))) / denominator;
       const vectorIm = -(Math.pow(2, 1 - this.sigma) * Math.sin(this.t * Math.log(2))) / denominator;
-      // (vectorRe,vectorIm) is a rotating vector, and is never zero for sigma>=0.
       this.analyticContinuationRe = ((etaEstimationRe * vectorRe) - (etaEstimationIm * vectorIm));
       this.analyticContinuationIm = ((etaEstimationRe * vectorIm) + (etaEstimationIm * vectorRe));
     }
@@ -1497,7 +1492,6 @@ const View = {
         }, { once: true });
       }
     });
-    // double click to play/stop
     this.components.canvas.title = 'Double-click to start/stop running t';
     this.components.canvas.addEventListener('dblclick', (e) => {
       e.preventDefault();
@@ -2018,7 +2012,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaSectionCaption);
-      this.components.panelZetaSectionCaption.title = 'Riemann zeta function\n\nζ(σ + i·t) = ∑(n=1 to N) 1/n^(σ + i·t)\n\nYou can manipulate the formula by clicking the buttons below.';
+      this.components.panelZetaSectionCaption.title = 'Riemann zeta function\n\nζ(σ + i·t) = ∑(n=1 to N) 1/n^(σ + i·t)\n\nThese buttons are for manipulating the formula.';
       this.components.panelZetaSectionCaption.innerHTML = '<span style="margin-left: 10px;">ζ(σ + i·t)</span>';
       this.components.panelZetaSectionReportDownloadButton = document.createElement('div');
       Object.assign(this.components.panelZetaSectionReportDownloadButton.style, {
