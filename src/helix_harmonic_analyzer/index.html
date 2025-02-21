@@ -53,64 +53,69 @@
 </head>
 <body>
   <div style="height: 50px; padding: 10px; padding-left: 20px; background-color: #333333; font-size: 30px;">
-    <a href="https://complexity.zone/"><span style="color: #80cccc; margin-right: 50px; font-size: 18px;">complexity.zone</span></a> <span style="font-size: 30px;">Helix harmonic analyzer</span>
+    <a href="https://complexity.zone/"><span style="color: #80cccc; margin-right: 50px; font-size: 18px;">complexity.zone</span></a> <span style="font-size: 30px;">Helix Harmonic Analyzer</span>
   </div>
   <div style="background-color: #222222;">
     <div class="panel">
       <div class="panelHeader">
-        <img src="./helix_harmonic_analyzer.jpg" title="Helix harmonic analyzer" />
+        <img src="./helix_harmonic_analyzer.jpg" title="Helix Harmonic Analyzer" />
       </div>
       <div class="panelContent">
-        The Helix is possibly the most simple mechanical device for finding the harmonic amplitudes and phases of periodic signals.
-        It is a cylindrical axis with a number of perpendicular rods sticking through, constructed in such a way that the  
-        rods spiral a full rotation across the axis' length (shaped like a DNA structure).
-        The photo above shows a proof-of-concept model on the left side, and a more accurate model on the right, machined by
-        <a href="http://www.tatjavanvark.nl/" target="_blank"><i>Tatjana J. van Vark</i></a>.<br />
-        <br />
-        Just like Lord Kelvin's Harmonic Analyzer, Michelson's Harmonic Analyzer and Henrici's Harmonic Analyzer, the Helix
-        determines the Fourier coefficients of the Fourier series.
+        The Helix Harmonic Analyzer (<i>Helix</i> for short) is possibly the most simple mechanical device for estimating the harmonic amplitudes and phases of periodic signals.
+        The Helix is a cylindrical axis with a number of perpendicular rods sticking through, constructed in such a way that the rods spiral a full rotation across the axis' length.
+        Shown above is a proof-of-concept model on the left, and on the right the same model machined with much greater precision by Tatjana J. van Vark.
         <br />
         <br />
-        <b>Usage : finding the first harmonic</b><br/>
+        Just like Lord Kelvin's Harmonic Analyzer, Michelson's Harmonic Analyzer, and Henrici's Harmonic Analyzer, the Helix determines the Fourier coefficients of the Fourier series of a periodic signal.
+        <br />
+        <br />
+        <b>Procedure for estimating the first harmonic</b><br/>
         <ol>
           <li>
-            Print the graph of the signal of interest onto a sheet of paper where the period of the signal is the same width as the distance between the rods on the Helix's axis.
-            It is assumed that the positive area of the signal is equal to the negative area of the signal.<br />
-            <br />
+            Print the signal of interest onto a sheet of paper where the period of the signal is the same width as the length of the Helix's axis.
+            On the same paper, print or draw a horizontal x-axis such that the positive area of the signal is equal to the negative area of the signal.
           </li>
           <li>
-            The Helix's rods can each hold a "slider". A slider is a red or blue spherical weight.<br />
-            Start off with an empty Helix, i.e. all sliders removed.<br />
+            The Helix's rods can each hold a <i>slider</i>. A slider is a red or blue spherical weight.
             <br />
+            Start off with an empty Helix, i.e. all sliders removed.
           </li>
           <li>
-            Position the Helix above the graph so that its axis runs along the graph's x-axis.<br />
-            <br />
+            Position the Helix above the paper so that its axis is above the horizontal x-axis.
           </li>
           <li>
-            While looking down from above the Helix, "record" the signal as follows:<br />
-            For each of the Helix's rod, from left to right along the x-axis:<br />
+            Record the signal onto the Helix as follows:
+            <br />
+            For each rod on the Helix, from left to right along its axis:
+            <br />
             <div style="margin-left: 20px;">
-              - Twist the Helix's axis such that the rod is parallel to the graph's plane.<br />
-              - Find the position where the rod intersects the signal.<br />
+              - Twist the Helix's axis to the angle where the rod is parallel to the graph's plane.<br />
+              - While looking down from above the Helix, locate the position on the rod where it intersects with the signal.<br />
               - Add a red slider to the rod and slide it to this position.
             </div>
-            The result will be a red slider on each rod, added to the Helix after turning a full period.<br />
+            The result will be a helix with a red slider on each rod.
             <br />
-            The photo below shows the result after "recording" a square wave.<br />
-            Notice that the red sliders are all on one side of the Helix, with equal distances from the axis.<br />
+            <br />
+            The photo below shows the result after recording a square wave.
+            <br />
+            Notice that the red sliders are all on one side of the Helix, all with equal distances from the axis.
+            <br />
             <br />
             <img src="./samshuijzen_helix_harmonic_analyzer_recording_squarewave.jpg" title="Samshuijzen Helix harmonic analyzer - recording of a square wave" width="300" />
             <br />
             <br />
           </li>
           <li>
-            Next, hold the Helix at each end and let it rotate freely, allowing gravity to do its work until the heavier side points down.<br />
+            Next, hold the Helix at each end of its axis and let it rotate freely, allowing gravity to do its work and let the heavier side point down.
             <br />
-            <b><u>Result - the phase</u></b>: The angle between the resulting heavier bottom side and the bottom side of the starting position is the <b><u>phase</u></b> of the first harmonic (phase added to the sine).<br />
+            <br />
+            <b>Phase</u></b>
+            <br />
+            The angle between the resulting heavier bottom side and the bottom side of the starting position is the <b>phase</b> of the first harmonic (phase added to the sine).
+            <br />
             <br />
             Note that the phase of the first harmonic of the square wave is zero, which is what we would expect because the first harmonic is a pure sine.
-            If the phase were 90 degrees, then the harmonic would be a pure cosine.<br />
+            <br />
             <br />
           </li>
           <li>
@@ -123,7 +128,7 @@
             <br />
             <b><u>Result - the amplitude</u></b>: The diameter of the resulting circle is the <b><u>amplitude</u></b> of the first harmonic.<br />
             <br />
-            The photo below shows the result after finding the first harmonic of a square wave.<br />
+            The photo below shows the result after estimating the first harmonic of a square wave.<br />
             <br />
             <table border="0" cellpadding="10">
               <tr>
@@ -137,7 +142,8 @@
             </table>
             <br />
             Note that the amplitude of the first harmonic (the diameter of the circle of blue sliders) is slightly larger than the amplitude of the square wave.
-            This is as we would expect, because the theoretical ratio is 4 / &#960; = 1.2732...<br />
+            This is as we would expect, because the theoretical ratio is 4 / &#960; = 1.2732...
+            <br />
             <br />
           </li>
           <li>
@@ -145,29 +151,38 @@
             harmonic onto the graph paper by marking where the blue markers (from left to right) are above the graph when the rod is flat above the paper.
           </li>
           <li>
-            Join the marked dots on the graph and there you have it: the first harmonic!<br />
-            The final result should look something like the situation in the left side of the above photo.<br />
+            Join the marked dots on the graph and there you have it: the first harmonic!
+            <br />
+            The final result should look something like the situation in the left side of the above photo.
+            <br />
           </li>
         </ol>
         <br />
-        <b>Usage : finding the second harmonic</b><br/>
+        <b>Estimating the second harmonic</b>
+        <br/>
         <br />
         <div style="margin-left: 20px;">
-          <b>Method 1</b><br/>
-          As described above, except in step 4: twist with twice the rate while crossing the graph, twisting 720 degrees for one period.
-          Note that you will need twice as many sliders (red and blue), and that it may be difficult to position the sliders correctly.<br/>
+          <b>Method 1</b>
           <br/>
-          <b>Method 2</b><br/>
+          As described above, except in step 4: twist with twice the rate while crossing the graph, twisting 720 degrees for one period.
+          Note that you will need twice as many sliders (red and blue), and that it may be difficult to position the sliders correctly.
+          <br/>
+          <br/>
+          <b>Method 2</b>
+          <br/>
           Use two Helix constructions, joined at the axes. Then proceed as described above, except in step 4: twist a full 720 degrees
           for one period. While doing so you will need to shift the Helix half a slide-distance towards the left after adding
-          each slider.<br/>
+          each slider.
           <br/>
-          <b>Method 3</b><br/>
-          In step 6, use variable weights instead of blue sliders to more simply determine the amplitude and phase for each half of the period (separate measurements), 
-          and then combine the resulting weights for finding the resulting amplitude and phase. The latter alternative is useful if you just want to 
-          know the amplitude and phase, without the need for synthesis.<br />
           <br/>
-          <b>Method 4</b><br/>
+          <b>Method 3</b>
+          <br/>
+          In step 6, use variable weights instead of blue sliders to more simply determine the amplitude and phase for each half of the period (separate measurements), and then combine the resulting weights for estimating the resulting amplitude and phase. 
+          The latter alternative is useful if you just want to know the amplitude and phase, without the need for synthesis.
+          <br />
+          <br/>
+          <b>Method 4</b>
+          <br/>
           Construct a more flexible Helix, where all the rods can be turned freely around the axis. For determining the second harmonic,
           simply evenly arrange all the rods so that it turns a full 720 degrees over the axis. With this construction it is desired to have a 
           large number of rods, for accuracy. The advantage of this construction is that it is a more general construction, and can even be 
@@ -177,18 +192,23 @@
         <br />
         The current design is not very accurate, especially when needing to determine the higher order harmonics. 
         A more accurate design would have a larger number of rods, or would consist of a set of Helix constructions (one for each harmonic to analyze), where the axis of each 
-        Helix can be connected to the axis of another Helix.<br />
+        Helix can be connected to the axis of another Helix.
         <br />
-        <span style="font-size: 20px; color: #ffffff;">An improved design: the Variable Helix Harmonic Analyzer</span><br />
+        <br />
+        <span style="font-size: 20px; color: #ffffff;">An improved design: the Variable Helix Harmonic Analyzer</span>
+        <br />
         A better design would be one that has many freely rotating rods. The recording process would be much easier.
         Recording would be done in a single pass, with all rods' angles set to 0, creating flat set of rods, like an abacus.
-        Then for each harmonic to analyse, apply a 360 degree rotation to the rods, evenly spread across the axis, and determine the rest-weight in each case.<br />
+        Then for each harmonic to analyse, apply a 360 degree rotation to the rods, evenly spread across the axis, and determine the rest-weight in each case.
         <br />
         <br />
         <br />
         <br />
-        Tim Samshuijzen<br />
-        2006<br />
+        <br />
+        Tim Samshuijzen
+        <br />
+        2006
+        <br />
         <br />
         <br />
         <br />

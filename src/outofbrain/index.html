@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>complexity.zone - OutOfBrain</title>
+<link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
+<style>
+  body {
+    font-family: Calibri, Arial, helvetica, sans-serif;
+    font-size: 18px;
+    background-color: #222222;
+    color: #cccccc;
+    margin: 0px;
+    padding: 0px;
+  }
+  div
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    white-space: normal; 
+    text-align: left;
+  }
+  div span
+  {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  a, a:link, a:visited, a:hover, a:active
+  {
+    font-family: inherit;
+    font-size: inherit;
+    background-color: inherit;
+    color: inherit;
+  }
+  .panel
+  {
+    display: block;
+    position: relative;
+    margin-top: 16px;
+    margin-left: auto; 
+    margin-right: auto;
+    width: 1040px; 
+    height: auto; 
+    background-color: #333333;
+  }
+  .panelHeader
+  {
+    padding: 10px;
+  }
+  .panelContent
+  {
+    padding: 10px;
+  }
+</style>
+</head>
+<body>
+  <div id="menu" style="height: 60px; padding: 10px; padding-left: 20px; background-color: #333333; font-size: 32px;">
+      <a href="https://complexity.zone/"><span style="color: #80cccc; margin-right: 50px; line-height: 60px;">complexity.zone</span></a> OutOfBrain
+  </div>
+  <div id="content" style="background-color: #222222;">
+    <div class="panel">
+      <div class="panelHeader">
+      </div>
+      <div class="panelContent">
+        <div style="width: 800px; margin-left: auto; margin-right: auto;">
+          <div style="position: relative; width: 800px; height: 100px;">
+            <div style="position: absolute; width: 100px;">
+              <img src="./img/OutOfBrainLogo.png" width="100" />
+            </div>
+            <div style="position: absolute; left: 120px; width: 680px; height: 100px;">
+              <div style="position: absolute; bottom: 0; left: 0; font-size: 48px;">
+                OutOfBrain
+              </div>
+            </div>
+          </div>
+          <br />
+          <br />
+          OutOfBrain is an application for developing and running multi-agent systems based on graph rewriting.
+          I developed OutOfBrain in 2004, and worked on it till 2008. My goal was to create a <a href="https://en.wikipedia.org/wiki/Symbolic_artificial_intelligence" target="_blank">symbolic AI</a> (as opposed to a connectionist AI).
+          Ideally, the system would learn from its environment and adapt to it, and we as observing humans would be able to see and understand how it works (see <a href="https://en.wikipedia.org/wiki/Explainable_artificial_intelligence" target="_blank">explainable AI</a>).
+          <br />
+          <br />
+          OutOfBrain is a multi-agent system that runs in an executable graph, where instructions and memory reside in the same space.
+          The executable graph is visualized in real-time, showing what the agents are doing, and allows for changing their behavior on the fly.
+          Moreover, OutOfBrain is a client-server program, such that multiple developers can view and edit the same graph in real-time.
+          <br />
+          <br />
+          See the reference manual: <a href="./OutOfBrainManual.pdf" target="_blank">OutOfBrain Reference Manual</a>
+          <br />
+          <br />
+          The following screenshots give an impression of the programming model of OutOfBrain.
+          <br />
+          <br />
+          Dining Philosophers
+          <br />
+          <a href="./img/diningphilosophers.png" target="_blank"><img src="./img/diningphilosophers.png" width="800" /></a>
+          <br />
+          <br />
+          River Crossing Puzzle
+          <br />
+          <a href="./img/rivercrossingpuzzle.png" target="_blank"><img src="./img/rivercrossingpuzzle.png" width="800" /></a>
+          <br />
+          <br />
+          OutOfBrain could solve simple puzzles, but it was not yet able to learn from its environment and adapt to it.
+          <br />
+          <br />
+          In 2005 I attended <a href="https://www.ifaamas.org/AAMAS/aamas05/main.html" target="_blank">AAMAS-05</a>, the fourth international joint conference on Autonomous Agents and Multiagent Systems (by <a href="https://www.ifaamas.org/" target="_blank">IFAAMAS</a>) in Utrecht, The Netherlands.
+          I got to speak with Albert van Breemen, who was working at the time for Philips on iCat, a robotic research platform for studying social human-robot interaction.
+          We got talking about OutOfBrain and he invited me to come to Eindhoven to give a presentation.
+          I went to Eindhoven and gave a presentation about OutOfBrain to a group of researchers at Philips Research.
+          I was hoping that the researchers at Philips would see the potential of OutOfBrain as a platform in their research on social human-robot interaction.
+          Alas, there was no follow-up.
+          <br />
+          <br />
+          I then got into contact with professor Rineke Verbrugge at the University of Groningen (Faculty of Mathematics and Natural Sciences - Artificial Intelligence - Multi-Agent Systems Group).
+          This led to Joris IJsselmuiden doing his master thesis in 2006 on using OutOfBrain as a platform for studying qualitative decision theory and graph rewriting.
+          We worked on developing an Adaptive Diary Assistant, a multi-agent system that uses qualitative decision theory to help the user plan his or her day, based on the user's preferences and current state.
+          Joris is a very smart person, and I learned a lot from him.
+          We got the Adaptive Diary Assistant partially working, but ran out of time and did not complete the whole application.
+          We learned that when building applications in OutOfBrain, the total graph got very large, and time-consuming to program and refactor.
+          <br />
+          <br />
+          See Joris IJsselmuiden's paper <i>Qualitative Decision Theory and Graph Rewriting in an Adaptive Diary Assistant</i>, available <a href="https://fse.studenttheses.ub.rug.nl/9070/" target="_blank">here</a> and <a href="https://www.researchgate.net/publication/41886443_Qualitative_Decision_Theory_and_Graph_Rewriting_in_an_Adaptive_Diary_Assistant" target="_blank">here</a> and <a href="./JIJsselmuiden.CV.pdf" target="_blank">here</a>.
+          <br />
+          <br />
+        </div>
+        <br />
+        <br />
+        <div style="width: 800px; margin-left: auto; margin-right: auto;">
+          <br />
+          <br />
+          Tim Samshuijzen<br />
+        </div>
+        <br />
+        <br />
+        &nbsp;
+      </div>
+    </div>
+  </div>
+</body>
+</html>
