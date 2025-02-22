@@ -1868,7 +1868,7 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawSpiralNumbersButton);
       this.components.panelDrawSpiralNumbersButton.title = 
-        'Show spiral numbers.\n\nThe partial sums of ζ trace a chain of spirals. ' +
+        'Show spiral numbers.\nThe partial sums of ζ trace a chain of spirals. ' +
         'These spirals emerge one by one as t increases, with spiral 1 leading the way. ' +
         'Spiral 1 is the final spiral, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
         'The halfway-point of term n=[t/π] is very near the true value of ζ, particularly when t is a multiple of π, and gets nearer as t increases. ' +
@@ -1912,8 +1912,7 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelInverseOriginButton);
       this.components.panelInverseOriginButton.title = 
         'Lock onto spiral 1 and keep it in center view.\n' +
-        'This allows you to zoom into spiral 1 while running t.\n\n' +
-        'This function maintains a smooth lock with ζ, η and ζ(s, ½), but not yet when used with alt dir or one of the other (filter) buttons. Smoothening this out is work in progress.';
+        'This allows you to zoom into spiral 1 while running t.';
       this.components.panelInverseOriginButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;⊕&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">follow 1</span>';
       this.components.panelInverseOriginButton.addEventListener('click', () => {
         this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
@@ -2078,8 +2077,8 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelEtaButton);
       this.components.panelEtaButton.title = 
-        'Dirichlet eta η(s).\n\n' +
-        'η(s) = 1^(-s) - 2^(-s) + 3^(-s) - 4^(-s) + 5^(-s) - ...\n\n' +
+        'Dirichlet eta η(s).\n' +
+        'η(s) = 1^(-s) - 2^(-s) + 3^(-s) - 4^(-s) + 5^(-s) - ...\n' +
         'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0. It has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelEtaButton.innerHTML = 'η(s)';
       this.components.panelEtaButton.addEventListener('click', () => {
@@ -2101,8 +2100,8 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelAltDirectionButton);
       this.components.panelAltDirectionButton.title = 
-        'Alternate direction of rotation. Odd terms rotate clockwise, even terms rotate anti-clockwise.\n\n' +
-        'This function flattens the spirals, the disks become thin horizontal and vertical structures. It has the same non-trivial zeros as ζ at σ = 0.5. Its spiral 1 (a rhombus shape) is at the four terms around n=[2t/π].';
+        'Alternate direction of rotation. Odd terms rotate clockwise, even terms rotate anti-clockwise.\n' +
+        'It has the same non-trivial zeros as ζ at σ = 0.5. Its spiral 1 (a rhombus shape) is at the four terms at n=[2t/π].';
       this.components.panelAltDirectionButton.innerHTML = 'alt dir';
       this.components.panelAltDirectionButton.addEventListener('click', () => {
         this.zeta.altDirection = !this.zeta.altDirection;
@@ -2122,7 +2121,9 @@ const View = {
         fontSize: '11px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaNMinusHalfButton);
-      this.components.panelZetaNMinusHalfButton.title = 'Hurwitz zeta ζ(s, 1/2)\n\nζ(s, 1/2) is ζ(s) that starts at n=1/2 instead of n=1, shifting the integers. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
+      this.components.panelZetaNMinusHalfButton.title = 
+        'Hurwitz zeta ζ(s, 1/2)\n' +
+        'ζ(s, 1/2) is like ζ(s) but starts at n=1/2 instead of n=1. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelZetaNMinusHalfButton.innerHTML = 'ζ(s, ½)';
       this.components.panelZetaNMinusHalfButton.addEventListener('click', () => {
         this.zeta.zetaNMinusHalf = !this.zeta.zetaNMinusHalf;
