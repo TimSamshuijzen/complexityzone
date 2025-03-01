@@ -12,3 +12,9 @@ To run the app locally, download the html file and open it in your browser.<br /
 <br />
 <br />
 ![Riemann Zeta Scope](./riemannzetascope_screenshot2.png?raw=true "Riemann Zeta Scope")
+<br />
+<br />
+![Riemann Zeta Scope](./riemannzetascope_screenshot3.png?raw=true "Riemann Zeta Scope")
+<br />
+<br />
+![Riemann Zeta Scope](./riemannzetascope_screenshot4.png?raw=true "Riemann Zeta Scope")
