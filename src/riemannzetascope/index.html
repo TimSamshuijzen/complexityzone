@@ -1786,7 +1786,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelGridButton);
-      this.components.panelGridButton.title = 'Show unit grid lines for Re and Im.';
+      this.components.panelGridButton.title = 'Show unit grid lines in the complex plane.';
       this.components.panelGridButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊞&nbsp;</span></span><span style="margin-left: 10px;">grid</span>';
       this.components.panelGridButton.addEventListener('click', () => {
         this.zetaView.drawGrid = !this.zetaView.drawGrid;
@@ -1804,11 +1804,10 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelPolarWindowButton);
       this.components.panelPolarWindowButton.title = 
-        'Open polar window \n' +
-        'The polar window shows the terms of ζ as rotating vectors.\n' +
-        'Instead of adding the vectors to each other, in this view all terms radiate from the origin.\n' +
-        'Notice all the aligments that happen as t runs, and the patterns in the term numbers.\n' +
-        'ζ is like a slide rule on steroids, truly a remarkable machine.';
+        'Open polar window\n' +
+        'The polar window shows the terms of ζ as rotating vectors, radiating from a common origin.\n' +
+        'While running t, notice the moments of geometric aligments and patterns in the term numbers.\n' +
+        'ζ is a universal slide rule.';
       this.components.panelPolarWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊚&nbsp;</span></span><span style="margin-left: 10px;">polar</span>';
       this.components.panelPolarWindowButton.addEventListener('click', () => {
         if (this.zetaView.polarWindow === false) {
@@ -1837,7 +1836,10 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelPhaseWindowButton);
-      this.components.panelPhaseWindowButton.title = 'Open Re-Im window\nThe Re-Im window shows real and imaginary phase per term.\nThese are the top and side views (as in sin and cos) of the polar view.';
+      this.components.panelPhaseWindowButton.title = 
+        'Open Re-Im window\n' +
+        'The Re-Im window shows real and imaginary values per term of ζ.\n' +
+        'These are the top and side views (as in sin and cos) of the polar view.';
       this.components.panelPhaseWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;∿&nbsp;</span></span><span style="margin-left: 10px;">Re-Im</span>';
       this.components.panelPhaseWindowButton.addEventListener('click', () => {
         if (this.zetaView.phaseWindow === false) {
@@ -1868,7 +1870,8 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawSpiralNumbersButton);
       this.components.panelDrawSpiralNumbersButton.title = 
-        'Show spiral numbers.\nThe partial sums of ζ trace a chain of spirals. ' +
+        'Show spiral numbers.\n' +
+        'The partial sums of ζ trace a chain of spirals. ' +
         'These spirals emerge one by one as t increases, with spiral 1 leading the way. ' +
         'Spiral 1 is the final spiral, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
         'The halfway-point of term n=[t/π] is very near the true value of ζ, particularly when t is a multiple of π, and gets nearer as t increases. ' +
@@ -1932,7 +1935,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawAnalyticContinuationButton);
-      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at ζ(σ + i·t), calculated by analytic continuation.\nMethod used: ζ(s) = η(s) / (1 - 2^(1 - s))';
+      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at ζ(σ + i·t) according to analytic continuation.\nMethod used: ζ(s) = η(s) / (1 - 2^(1 - s))';
       this.components.panelDrawAnalyticContinuationButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #D4AF37;">&nbsp;&nbsp;⬤&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">ζ analytic</span>';
       this.components.panelDrawAnalyticContinuationButton.addEventListener('click', () => {
         this.zetaView.drawAnalyticContinuation = !this.zetaView.drawAnalyticContinuation;
