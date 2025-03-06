@@ -229,7 +229,6 @@ class ZetaView {
     this.drawSpiral1 = false;
     this.drawSpiralNumbers = false;
     this.drawEulerProductFormula = false;
-    this.numberOfEulerProductTerms = 10000; // limited by highest prime number in PrimeNumbers
     this.focusSpiral1 = false;
     this.doTrace = false;
     this.traceValues = [];
@@ -608,7 +607,7 @@ class ZetaView {
       if (this.drawEulerProductFormula) {
         positions.euler = {};
         const primeTerms = [];
-        for (let pi = 0, pc = PrimeNumbers.length; ((pi < pc) && (pi < this.numberOfEulerProductTerms)); pi++) {
+        for (let pi = 0, pc = PrimeNumbers.length; pi < pc; pi++) {
           const prime = PrimeNumbers[pi];
           const primeTerm = this.eulerProductFormulaTerm(this.zeta.sigma, this.zeta.t, prime);
           primeTerms.push(primeTerm);
@@ -919,10 +918,7 @@ class ZetaView {
           }
           let totalX = 0;
           let totalY = 0;
-          let hiOfSpiral1 = (this.getTermCountForSpiral1AtT(this.zeta.t) - 1);
-          if (hiOfSpiral1 >= this.zeta.terms.length) {
-            hiOfSpiral1 = (this.zeta.terms.length - 1);
-          }
+          const hiOfSpiral1 = (this.getTermCountForSpiral1AtT(this.zeta.t) - 1);
           canvasCtx.lineWidth = 1;
           for (let hi = 0; hi < this.zeta.terms.length; hi++) {
             const term = this.zeta.terms[hi];
@@ -979,7 +975,7 @@ class ZetaView {
           }
           if (this.drawSpiralNumbers) {
             // just draw spiral number 1
-            if (hiOfSpiral1 >= 0) {
+            if ((hiOfSpiral1 >= 0) && (hiOfSpiral1 < this.zeta.terms.length)) {
               const term = this.zeta.terms[hiOfSpiral1];
               if (term.radius > 0.00001) {
                 const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
@@ -1002,12 +998,15 @@ class ZetaView {
           canvasCtx.ellipse(polarCenterX + (totalX / this.zeta.terms.length), polarCenterY + (totalY / this.zeta.terms.length), 4, 4, 0, 0, (2 * Math.PI));
           canvasCtx.stroke();
           if (this.drawGrid) {
-            // endpoint, which in polar view is the origin
-            canvasCtx.lineWidth = 4;
-            canvasCtx.beginPath();
-            canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 13, 13, 0, 0, (2 * Math.PI));
-            canvasCtx.stroke();
-            canvasCtx.lineWidth = 1;
+            // the origin (a representation of)
+            // only works when N is set to auto and none of the formula manipulation buttons are set (work in progress)
+            if ((View.termCountAuto === true) && (this.zeta.terms.length > 1)) {
+              canvasCtx.lineWidth = 4;
+              canvasCtx.beginPath();
+              canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 13, 13, 0, 0, (2 * Math.PI));
+              canvasCtx.stroke();
+              canvasCtx.lineWidth = 1;
+            }
           }
           // origin at halfway point of last term
           if (this.drawSpiral1) {
@@ -1038,7 +1037,7 @@ class ZetaView {
         const phaseWindowHeight = (this.phaseWindowMaximized ? (this.canvasHeight - 20) : 280);
         const axisLeft = phaseWindowLeft + 70;
         const termWidth = 1 + (parseInt(View.components.panelZoomTrackBar.value) / 2);
-        let hiOfSpiral1 = this.getTermCountForSpiral1AtT(this.zeta.t);
+        const hiOfSpiral1 = this.getTermCountForSpiral1AtT(this.zeta.t);
         canvasCtx.save();
         canvasCtx.beginPath();
         canvasCtx.rect(phaseWindowLeft, phaseWindowTop, phaseWindowWidth, phaseWindowHeight);
@@ -1806,8 +1805,8 @@ const View = {
       this.components.panelPolarWindowButton.title = 
         'Open polar window\n' +
         'The polar window shows the terms of ζ as rotating vectors, radiating from a common origin.\n' +
-        'While running t, notice the moments of geometric aligments and patterns in the term numbers.\n' +
-        'ζ is a universal slide rule.';
+        'While running t, notice the moments of geometric aligments and the patterns in the term numbers.\n' +
+        'The terms of ζ are like a slide rule on steroids.';
       this.components.panelPolarWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊚&nbsp;</span></span><span style="margin-left: 10px;">polar</span>';
       this.components.panelPolarWindowButton.addEventListener('click', () => {
         if (this.zetaView.polarWindow === false) {
@@ -1970,7 +1969,10 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawEulerProductFormulaButton);
-      this.components.panelDrawEulerProductFormulaButton.title = 'Show partial products of Euler\'s product formula for ζ.\nζ = Π(1 - p^(-s))^(-1)\nThe first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are shown as green and white lines.\nAt σ=0.5, it is most interesting to watch its progression while running t from t=0. Euler\'s product formula follows the summation formula quite well, particularly when ζ is farther away from zero, but only for low t (t<300). This is because it requires a lot of terms to get near ζ, and more so as t increases.';
+      this.components.panelDrawEulerProductFormulaButton.title = 
+        'Show partial products of Euler\'s product formula for ζ.\n' +
+        'ζ(s) = Π(1 - p^(-s))^(-1)\n' +
+        'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are shown as alternating green and white lines.';
       this.components.panelDrawEulerProductFormulaButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;Π&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">ζ Euler</span>';
       this.components.panelDrawEulerProductFormulaButton.addEventListener('click', () => {
         this.zetaView.drawEulerProductFormula = !this.zetaView.drawEulerProductFormula;
@@ -2014,7 +2016,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaSectionCaption);
-      this.components.panelZetaSectionCaption.title = 'Riemann zeta function\n\nζ(σ + i·t) = ∑(n=1 to N) 1/n^(σ + i·t)\n\nThese buttons are for manipulating the formula.';
+      this.components.panelZetaSectionCaption.title = 'Riemann zeta function\n\nζ(σ + i·t) = ∑(n=1 to N) 1/n^(σ + i·t)\n\nThe buttons below are for manipulating the formula.';
       this.components.panelZetaSectionCaption.innerHTML = '<span style="margin-left: 10px;">ζ(σ + i·t)</span>';
       this.components.panelZetaSectionReportDownloadButton = document.createElement('div');
       Object.assign(this.components.panelZetaSectionReportDownloadButton.style, {
@@ -2221,8 +2223,8 @@ const View = {
         fontSize: '9px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelNMod8isNot0Button);
-      this.components.panelNMod8isNot0Button.title = 'Filter: Summation of (n mod 8 <> 0) terms only. All other terms are set to 0.\nIt has the same zeros as ζ, but requires 8 times more terms to reach spiral 1.';
-      this.components.panelNMod8isNot0Button.innerHTML = 'n%8&lt;&gt;0';
+      this.components.panelNMod8isNot0Button.title = 'Filter: Summation of (n mod 8 != 0) terms only. All other terms are set to 0.\nIt has the same zeros as ζ, but requires 8 times more terms to reach spiral 1.';
+      this.components.panelNMod8isNot0Button.innerHTML = 'n%8!=0';
       this.components.panelNMod8isNot0Button.addEventListener('click', () => {
         this.zeta.nMod8isNot0Only = !this.zeta.nMod8isNot0Only;
         this.zeta.oddOnly = false;
@@ -2481,7 +2483,7 @@ const View = {
         '  odd-only: N = ⌈2t/π⌉\n' +
         '  even-only: N = [2t/π]\n' +
         '  n mod 8 = 0: N = ⌈8t/π⌉\n' +
-        '  n mod 8 <> 0: N = ⌈8t/π⌉\n';
+        '  n mod 8 != 0: N = ⌈8t/π⌉\n';
       this.components.panelTermCountAutoButton.innerHTML = 'N=auto';
       this.components.panelTermCountAutoButton.addEventListener('click', () => {
         this.termCountAuto = !this.termCountAuto;
@@ -3636,7 +3638,7 @@ const View = {
     Object.assign(this.components.panelNMod8isNot0Button.style, (this.zeta.nMod8isNot0Only ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     {
       // formula
-      this.components.panelFormula_sum_sub.innerHTML = (this.zeta.oddOnly ? 'n=1 odd' : (this.zeta.evenOnly ? 'n=2 even' : (this.zeta.nMod8is0Only ? 'n=8 (n%8=0)' : (this.zeta.nMod8isNot0Only ? 'n=8 (n%8&lt;&gt;0)' : (this.zeta.oddPrimeOnly ? 'n=3 op' : (this.zeta.oddNonPrimeOnly ? 'n=9 onp' : 'n=1'))))));
+      this.components.panelFormula_sum_sub.innerHTML = (this.zeta.oddOnly ? 'n=1 odd' : (this.zeta.evenOnly ? 'n=2 even' : (this.zeta.nMod8is0Only ? 'n=8 (n%8=0)' : (this.zeta.nMod8isNot0Only ? 'n=8 (n%8!=0)' : (this.zeta.oddPrimeOnly ? 'n=3 op' : (this.zeta.oddNonPrimeOnly ? 'n=9 onp' : 'n=1'))))));
       this.components.panelFormula_sum_sup.innerHTML = 'N=' + this.zeta.terms.length;
       let panelFormula_term = '';
       if (this.zeta.eta) {
@@ -3659,7 +3661,10 @@ const View = {
     }
     this.components.panelZetaResult_equation_right.innerHTML = ((this.zetaView.zeta.analyticContinuationRe >= 0) ? '&nbsp;' : '-') + Math.abs(this.zetaView.zeta.analyticContinuationRe).toFixed(3) + ' ' + ((this.zetaView.zeta.analyticContinuationIm >= 0) ? '+' : '-') + ' i·' + Math.abs(this.zetaView.zeta.analyticContinuationIm).toFixed(3);
     if ((this.zeta.eta === false) && (this.zeta.altDirection === false) && (this.zeta.zetaNMinusHalf === false) && (this.zeta.oddOnly === false) && (this.zeta.evenOnly === false) && (this.zeta.nMod8is0Only === false) && (this.zeta.nMod8isNot0Only === false) && (this.zeta.oddPrimeOnly === false) && (this.zeta.oddNonPrimeOnly === false)) {
-      this.components.panelZetaResult.title = 'Estimation of ζ(s) by analytic continuation.\n\nMethod used:\nζ(s) = η(s) / (1 - 2^(1 - s))';
+      this.components.panelZetaResult.title = 
+        'Estimation of ζ(s) by analytic continuation.\n' +
+        'Method used:\n' +
+        'ζ(s) = η(s) / (1 - 2^(1 - s))';
       this.components.panelZetaResult_equation_left.style.display = 'block';
       this.components.panelZetaResult_equation_approximation.style.display = 'block';
       this.components.panelZetaResult_equation_right.style.display = 'block';
