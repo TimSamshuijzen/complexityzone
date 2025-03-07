@@ -511,7 +511,7 @@ class ZetaView {
         positions.analyticContinuation.y = positions.origin.y - (this.zeta.analyticContinuationIm * this.pixelsPerUnit);
         transformPointsList.push(positions.analyticContinuation);
       }
-      // drawSpiralNumbers
+      // spiral numbers
       if (this.drawSpiralNumbers) {
         positions.spiralNumbers = [];
         const spirals = [];
@@ -570,7 +570,7 @@ class ZetaView {
             nextSpiral.sharedLast = true;
           }
         }
-        // in reverse order
+        // draw in reverse order
         for (let si = (spirals.length - 1); si >= 0; si--) {
           const spiral = spirals[si];
           const term = this.zeta.terms[spiral.spiralTermIndex];
@@ -603,7 +603,7 @@ class ZetaView {
         positions.s.y = positions.origin.y - (this.zeta.t * this.pixelsPerUnit);
         transformPointsList.push(positions.s);
       }
-      // drawEulerProductFormula
+      // draw Euler product formula
       if (this.drawEulerProductFormula) {
         positions.euler = {};
         const primeTerms = [];
@@ -926,17 +926,14 @@ class ZetaView {
             totalY -= (term.im * this.pixelsPerUnit);
             const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
             const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
-            // line
-            if (true) {
-              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
-              if ((hi % 2) === 0) {
-                canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
-              }
-              canvasCtx.beginPath();
-              canvasCtx.moveTo(polarCenterX, polarCenterY);
-              canvasCtx.lineTo(endPointX, endPointY);
-              canvasCtx.stroke();
+            canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+            if ((hi % 2) === 0) {
+              canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
             }
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(polarCenterX, polarCenterY);
+            canvasCtx.lineTo(endPointX, endPointY);
+            canvasCtx.stroke();
           }
           // term numbers, in reverse order
           if (true) {
@@ -973,6 +970,12 @@ class ZetaView {
               }
             }
           }
+          // average point
+          canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+          canvasCtx.lineWidth = 2;
+          canvasCtx.beginPath();
+          canvasCtx.ellipse(polarCenterX + (totalX / this.zeta.terms.length), polarCenterY + (totalY / this.zeta.terms.length), 4, 4, 0, 0, (2 * Math.PI));
+          canvasCtx.stroke();
           if (this.drawSpiralNumbers) {
             // just draw spiral number 1
             if ((hiOfSpiral1 >= 0) && (hiOfSpiral1 < this.zeta.terms.length)) {
@@ -991,34 +994,32 @@ class ZetaView {
               }
             }
           }
-          canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
-          // average point
-          canvasCtx.lineWidth = 2;
-          canvasCtx.beginPath();
-          canvasCtx.ellipse(polarCenterX + (totalX / this.zeta.terms.length), polarCenterY + (totalY / this.zeta.terms.length), 4, 4, 0, 0, (2 * Math.PI));
-          canvasCtx.stroke();
+          if (this.drawSpiral1) {
+            if ((hiOfSpiral1 >= 0) && (hiOfSpiral1 < this.zeta.terms.length)) {
+              const term = this.zeta.terms[hiOfSpiral1];
+              if (term.radius > 0.00001) {
+                const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
+                const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
+                canvasCtx.lineWidth = 4;
+                canvasCtx.strokeStyle = '#72E06B';
+                canvasCtx.beginPath();
+                canvasCtx.ellipse((polarCenterX + endPointX) / 2, (polarCenterY + endPointY) / 2, 13, 13, 0, 0, (2 * Math.PI));
+                canvasCtx.stroke();
+                canvasCtx.lineWidth = 1;
+              }
+            }
+          }          
           if (this.drawGrid) {
             // the origin (a representation of)
-            // only works when N is set to auto and none of the formula manipulation buttons are set (work in progress)
+            // work in progress, currently only works when N is set to auto and none of the formula manipulation buttons are set
             if ((View.termCountAuto === true) && (this.zeta.terms.length > 1)) {
+              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
               canvasCtx.lineWidth = 4;
               canvasCtx.beginPath();
               canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 13, 13, 0, 0, (2 * Math.PI));
               canvasCtx.stroke();
               canvasCtx.lineWidth = 1;
             }
-          }
-          // origin at halfway point of last term
-          if (this.drawSpiral1) {
-            const term = this.zeta.terms[this.zeta.terms.length - 1];
-            const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
-            const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
-            canvasCtx.lineWidth = 4;
-            canvasCtx.strokeStyle = '#72E06B';
-            canvasCtx.beginPath();
-            canvasCtx.ellipse((polarCenterX + endPointX) / 2, (polarCenterY + endPointY) / 2, 13, 13, 0, 0, (2 * Math.PI));
-            canvasCtx.stroke();
-            canvasCtx.lineWidth = 1;
           }
         }
         canvasCtx.restore();
