@@ -3733,7 +3733,7 @@ const View = {
 };
 View.init();
 
-if ((window.location.protocol === 'https:') || true) {
+if (window.location.protocol === 'https:') {
   const headerpaneldownloadlink = document.getElementById('headerpaneldownloadlink');
   const downloadlink = document.createElement('div');
   let downloaded = false;
