@@ -40,7 +40,16 @@
     <div style="position: absolute; left: 20px; top: 0px; width: 200px; height: 40px; font-size: 24px; line-height: 40px; color: #cccccc;">
       <a href="https://complexity.zone/"><span style="color: #80cccc; font-size: 16px;">complexity.zone</span></a>
     </div>
-    <div id="headerpanel" style="position: absolute; left: 220px; top: 0px; width: 500px; height: 40px;">
+    <div style="position: absolute; left: 220px; top: 0px; width: 50px; height: 40px;">
+      <div style="position: absolute; left: 0px; top: 8px; width: 24px; height: 24px;">
+        <a href="https://github.com/TimSamshuijzen/RiemannZetaScope" target="_blank" title="view project on GitHub">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" style="width: 24px; height: 24px;">
+            <path fill="#ffffff" fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8C0 11.54 2.29 14.53 5.47 15.59C5.87 15.66 6.02 15.42 6.02 15.21C6.02 15.02 6.01 14.39 6.01 13.72C4 14.09 3.48 13.23 3.32 12.78C3.23 12.55 2.84 11.84 2.5 11.65C2.22 11.5 1.82 11.13 2.49 11.12C3.12 11.11 3.57 11.7 3.72 11.94C4.44 13.15 5.59 12.81 6.05 12.6C6.12 12.08 6.33 11.73 6.56 11.53C4.78 11.33 2.92 10.64 2.92 7.58C2.92 6.71 3.23 5.99 3.74 5.43C3.66 5.23 3.38 4.41 3.82 3.31C3.82 3.31 4.49 3.1 6.02 4.13C6.66 3.95 7.34 3.86 8.02 3.86C8.7 3.86 9.38 3.95 10.02 4.13C11.55 3.09 12.22 3.31 12.22 3.31C12.66 4.41 12.38 5.23 12.3 5.43C12.81 5.99 13.12 6.7 13.12 7.58C13.12 10.65 11.25 11.33 9.47 11.53C9.76 11.78 10.01 12.26 10.01 13.01C10.01 14.08 10 14.94 10 15.21C10 15.42 10.15 15.67 10.55 15.59C13.71 14.53 16 11.53 16 8C16 3.58 12.42 0 8 0Z" transform="scale(64)" />
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div id="headerpaneldownloadlink" style="position: absolute; left: 270px; top: 0px; width: 400px; height: 40px;">
     </div>
   </div>
   <div style="height: 10px; background-color: #333333;">
@@ -2129,7 +2138,7 @@ const View = {
       this.components.panelZetaSection.appendChild(this.components.panelZetaNMinusHalfButton);
       this.components.panelZetaNMinusHalfButton.title = 
         'Hurwitz zeta ζ(s, 1/2)\n' +
-        'ζ(s, 1/2) is like ζ(s) but starts at n=1/2 instead of n=1. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
+        'ζ(s, 1/2) is like ζ(s) but with 1/2 subtracted from n in the summation formula. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelZetaNMinusHalfButton.innerHTML = 'ζ(s, ½)';
       this.components.panelZetaNMinusHalfButton.addEventListener('click', () => {
         this.zeta.zetaNMinusHalf = !this.zeta.zetaNMinusHalf;
@@ -3724,8 +3733,8 @@ const View = {
 };
 View.init();
 
-if (window.location.protocol === 'https:') {
-  const headerpanel = document.getElementById('headerpanel');
+if ((window.location.protocol === 'https:') || true) {
+  const headerpaneldownloadlink = document.getElementById('headerpaneldownloadlink');
   const downloadlink = document.createElement('div');
   let downloaded = false;
   downloadlink.title = 'Riemann Zeta Scope is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file.';
@@ -3736,7 +3745,7 @@ if (window.location.protocol === 'https:') {
     downloaded = true;
     downloadlink.title = '';
     downloadlink.style.cursor = 'default';
-    downloadlink.innerHTML = '<div style="position: absolute; left: 35px; top: 0px; width: 400px; height: 24px; color: #cccccc; font-size: 16px; line-height: 24px; white-space: nowrap;">Downloading app...</div>';
+    downloadlink.innerHTML = '<div style="position: absolute; left: 35px; top: 0px; width: 300px; height: 24px; color: #cccccc; font-size: 16px; line-height: 24px; white-space: nowrap;">Downloading Riemann Zeta Scope...</div>';
     try {
       const response = await fetch(window.location.href);
       const html = await response.text();
@@ -3748,12 +3757,12 @@ if (window.location.protocol === 'https:') {
       a.download = `RiemannZetaScope_${dateYYYYMMDD}.html`;
       a.click();
       URL.revokeObjectURL(url);
-      downloadlink.innerHTML = '<div style="position: absolute; left: 35px; top: 0px; width: 400px; height: 24px; color: #cccccc; font-size: 16px; line-height: 24px; white-space: nowrap;">App downloaded. Check your Downloads folder.</div>';
+      downloadlink.innerHTML = '<div style="position: absolute; left: 35px; top: 0px; width: 300px; height: 24px; color: #cccccc; font-size: 16px; line-height: 24px; white-space: nowrap;">Downloaded Riemann Zeta Scope to your Downloads folder.</div>';
       setTimeout(() => {
         downloadlink.innerHTML = '';
-      }, 7000);
+      }, 5000);
     } catch (error) {
-      downloadlink.innerHTML = '<div style="position: absolute; left: 35px; top: 0px; width: 400px; height: 24px; color: #cccccc; font-size: 16px; line-height: 24px; white-space: nowrap;">Download error</div>';
+      downloadlink.innerHTML = '<div style="position: absolute; left: 35px; top: 0px; width: 300px; height: 24px; color: #cccccc; font-size: 16px; line-height: 24px; white-space: nowrap;">Download error</div>';
       setTimeout(() => {
         downloadlink.innerHTML = '';
       }, 5000);
@@ -3767,7 +3776,7 @@ if (window.location.protocol === 'https:') {
     height: '24px',
     cursor: 'pointer'
   });
-  headerpanel.appendChild(downloadlink);
+  headerpaneldownloadlink.appendChild(downloadlink);
   const downloadlink_svg = document.createElement('div');
   Object.assign(downloadlink_svg.style, {
     position: 'absolute',
