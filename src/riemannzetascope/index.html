@@ -44,7 +44,7 @@
       <div style="position: absolute; left: 0px; top: 8px; width: 24px; height: 24px;">
         <a href="https://github.com/TimSamshuijzen/RiemannZetaScope" target="_blank" title="view project on GitHub">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" style="width: 24px; height: 24px;">
-            <path fill="#ffffff" fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8C0 11.54 2.29 14.53 5.47 15.59C5.87 15.66 6.02 15.42 6.02 15.21C6.02 15.02 6.01 14.39 6.01 13.72C4 14.09 3.48 13.23 3.32 12.78C3.23 12.55 2.84 11.84 2.5 11.65C2.22 11.5 1.82 11.13 2.49 11.12C3.12 11.11 3.57 11.7 3.72 11.94C4.44 13.15 5.59 12.81 6.05 12.6C6.12 12.08 6.33 11.73 6.56 11.53C4.78 11.33 2.92 10.64 2.92 7.58C2.92 6.71 3.23 5.99 3.74 5.43C3.66 5.23 3.38 4.41 3.82 3.31C3.82 3.31 4.49 3.1 6.02 4.13C6.66 3.95 7.34 3.86 8.02 3.86C8.7 3.86 9.38 3.95 10.02 4.13C11.55 3.09 12.22 3.31 12.22 3.31C12.66 4.41 12.38 5.23 12.3 5.43C12.81 5.99 13.12 6.7 13.12 7.58C13.12 10.65 11.25 11.33 9.47 11.53C9.76 11.78 10.01 12.26 10.01 13.01C10.01 14.08 10 14.94 10 15.21C10 15.42 10.15 15.67 10.55 15.59C13.71 14.53 16 11.53 16 8C16 3.58 12.42 0 8 0Z" transform="scale(64)" />
+            <path fill="#ffffff" fill-rule="evenodd" clip-rule="evenodd" transform="scale(64)" d="M8 0C3.58 0 0 3.58 0 8C0 11.54 2.29 14.53 5.47 15.59C5.87 15.66 6.02 15.42 6.02 15.21C6.02 15.02 6.01 14.39 6.01 13.72C4 14.09 3.48 13.23 3.32 12.78C3.23 12.55 2.84 11.84 2.5 11.65C2.22 11.5 1.82 11.13 2.49 11.12C3.12 11.11 3.57 11.7 3.72 11.94C4.44 13.15 5.59 12.81 6.05 12.6C6.12 12.08 6.33 11.73 6.56 11.53C4.78 11.33 2.92 10.64 2.92 7.58C2.92 6.71 3.23 5.99 3.74 5.43C3.66 5.23 3.38 4.41 3.82 3.31C3.82 3.31 4.49 3.1 6.02 4.13C6.66 3.95 7.34 3.86 8.02 3.86C8.7 3.86 9.38 3.95 10.02 4.13C11.55 3.09 12.22 3.31 12.22 3.31C12.66 4.41 12.38 5.23 12.3 5.43C12.81 5.99 13.12 6.7 13.12 7.58C13.12 10.65 11.25 11.33 9.47 11.53C9.76 11.78 10.01 12.26 10.01 13.01C10.01 14.08 10 14.94 10 15.21C10 15.42 10.15 15.67 10.55 15.59C13.71 14.53 16 11.53 16 8C16 3.58 12.42 0 8 0Z" />
           </svg>
         </a>
       </div>
@@ -59,6 +59,7 @@
   <div style="height: 10px;">
   </div>
   <script>
+
 // Riemann Zeta Scope
 // by Tim Samshuijzen 2023
 // https://complexity.zone/riemannzetascope/
@@ -150,8 +151,7 @@ class Zeta {
   }
   calcAnalyticContinuation() {
     // Determine zeta by analytic continuation, by using the Dirichlet eta function, which is convergent for Re(s) > 0.
-    // The eta function is defined as: eta(s) = (1 - 2^(1-s)) * zeta(s)
-    // Therefore: zeta(s) = (1 / (1 - 2^(1-s))) * eta(s)
+    // zeta(s) = (1 / (1 - 2^(1-s))) * eta(s)
     // Approach:
     // Step 1. Calculate 40000 partial sums of eta.
     // Step 2. Estimate eta by taking the average of the halfway points of the last 4 terms.
@@ -238,7 +238,7 @@ class ZetaView {
     zoom = Math.min(Math.max(0, zoom), 100);
     if (zoom < 50) {
       this.pixelsPerUnit = 200 - (Math.pow(((50 - zoom) / 50), 0.5) * 190);
-    } else if (zoom == 50) {
+    } else if (zoom === 50) {
       this.pixelsPerUnit = 200;
     } else {
       this.pixelsPerUnit = 200 + (Math.pow(((zoom - 50) / 50), 6) * 1000000);
@@ -1663,7 +1663,7 @@ const View = {
       whiteSpace: 'nowrap'
     });
     this.components.panel.appendChild(this.components.panelTitleBar);
-    this.components.panelTitleBar.innerHTML = '<span style="margin-left: 10px;">RIEMANN ZETA SCOPE</span><span style="margin-left: 25px; color: #c42626; font-size: 17px;">RZS-10kπ</span>';
+    this.components.panelTitleBar.innerHTML = '<span style="margin-left: 10px;">RIEMANN ZETA SCOPE</span><span style="margin-left: 30px; color: #c42626; font-size: 17px;">RZS-10k</span>';
     runningY += 39;
     // ==================================================================
     // display section
@@ -2436,7 +2436,7 @@ const View = {
         fontSize: '13px',
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTPOW2Button);
-      this.components.panelTermCountTPOW2Button.title = 'Maintain N = [t^2]. When σ = 0.5, this button ensures just enough terms for spiral 1 to fit in a circle with a radius of 1.\n\nNote: This scope is limited to max N=10000, so this only works for t <= 100.\n\nObservation:\nWhen σ = 0 and running t to from 0, the outside perimeter of the spiral just about keeps up with s.';
+      this.components.panelTermCountTPOW2Button.title = 'Maintain N = [t^2]\nWhen σ = 0.5, this button ensures just enough terms for the perimeter of spiral 1 to fit in a circle with a radius of 1.\nThis button is for use in the range t <= 100, because this scope is limited to max N=10000.';
       this.components.panelTermCountTPOW2Button.innerHTML = 'N=t^2';
       this.components.panelTermCountTPOW2Button.addEventListener('click', () => {
         this.termCountLockTSquared = !this.termCountLockTSquared;
@@ -2459,7 +2459,8 @@ const View = {
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountAutoButton);
       this.components.panelTermCountAutoButton.title = 
-        'When running t, this button ensures last term N corresponds with spriral 1\'s center.\nTerms after this are either divergent or convergent (depending on ζ formula settings).\n\n' +
+        'Maintain N = term at spiral 1\n' +
+        'This button ensures N corresponds with the term at spriral 1\'s center, automatically updating when running t.\n' +
         'Calculation of N depends on which ζ formula button is enabled:\n' +
         '  default ζ: N = [t/π]\n' +
         '  Dirichlet η: N = [2t/π]\n' +
