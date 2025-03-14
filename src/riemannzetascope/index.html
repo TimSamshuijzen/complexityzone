@@ -1485,7 +1485,10 @@ const View = {
     });
     this.components.scope.appendChild(this.components.polarWindowMaximizeMinimizeButton);
     this.components.polarWindowMaximizeMinimizeButton.title = 'Maximize/minimize polar window.';
-    this.components.polarWindowMaximizeMinimizeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" /></svg>';
+    this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+        <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+      </svg>`;
     this.components.polarWindowMaximizeMinimizeButton.addEventListener('click', () => {
       if (this.zetaView.polarWindowMaximized === false) {
         this.zetaView.polarWindowMaximized = true;
@@ -1538,7 +1541,10 @@ const View = {
     });
     this.components.scope.appendChild(this.components.phaseWindowMaximizeMinimizeButton);
     this.components.phaseWindowMaximizeMinimizeButton.title = 'Maximize/minimize Re-Im window.';
-    this.components.phaseWindowMaximizeMinimizeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" /></svg>';
+    this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+        <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+      </svg>`;
     this.components.phaseWindowMaximizeMinimizeButton.addEventListener('click', () => {
       if (this.zetaView.phaseWindowMaximized === false) {
         this.zetaView.phaseWindowMaximized = true;
@@ -3568,16 +3574,36 @@ const View = {
     this.components.polarWindowMaximizeMinimizeButton.style.display = (this.zetaView.polarWindow ? 'block' : 'none');
     this.components.polarWindowMaximizeMinimizeButton.style.left = (this.zetaView.polarWindowMaximized ? (this.zetaView.canvasWidth - 45) : 415) + 'px';
     this.components.polarWindowMaximizeMinimizeButton.title = (this.zetaView.polarWindowMaximized ? 'Minimize polar window' : 'Maximize polar window');
+    if (this.zetaView.polarWindowMaximized) {
+      this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+          <rect x="7" y="7" width="6" height="6" fill="#ffffff" />
+        </svg>`;
+    } else {
+      this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+        </svg>`;
+    }
     this.components.polarWindowCloseButton.style.display = (this.zetaView.polarWindow ? 'block' : 'none');
     this.components.polarWindowCloseButton.style.left = (this.zetaView.polarWindowMaximized ? (this.zetaView.canvasWidth - 20) : 440) + 'px';
-    if (this.zetaView.phaseWindow && this.zetaView.phaseWindowMaximized) {
-      this.components.polarWindowMaximizeMinimizeButton.style.display = 'none';
-      this.components.polarWindowCloseButton.style.display = 'none';
-    }
     this.components.phaseWindowMaximizeMinimizeButton.style.display = (this.zetaView.phaseWindow ? 'block' : 'none');
     this.components.phaseWindowMaximizeMinimizeButton.style.left = (this.zetaView.canvasWidth - 45) + 'px';
     this.components.phaseWindowMaximizeMinimizeButton.style.top = (this.zetaView.phaseWindowMaximized ? 35 : 485) + 'px';
     this.components.phaseWindowMaximizeMinimizeButton.title = (this.zetaView.phaseWindowMaximized ? 'Minimize phase window' : 'Maximize phase window');
+    if (this.zetaView.phaseWindowMaximized) {
+      this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+          <rect x="7" y="12" width="10" height="4" fill="#ffffff" />
+        </svg>`;
+    } else {
+      this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+        </svg>`;
+    }
     this.components.phaseWindowCloseButton.style.display = (this.zetaView.phaseWindow ? 'block' : 'none');
     this.components.phaseWindowCloseButton.style.left = (this.zetaView.canvasWidth - 20) + 'px';
     this.components.phaseWindowCloseButton.style.top = (this.zetaView.phaseWindowMaximized ? 35 : 485) + 'px';
