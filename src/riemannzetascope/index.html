@@ -1638,7 +1638,7 @@ const View = {
       whiteSpace: 'nowrap'
     });
     this.components.panel.appendChild(this.components.panelTitleBar);
-    this.components.panelTitleBar.innerHTML = '<span style="margin-left: 10px;">RIEMANN ZETA SCOPE</span><span style="margin-left: 30px; color: #c42626; font-size: 17px;">RZS-10k</span>';
+    this.components.panelTitleBar.innerHTML = '<span style="margin-left: 10px;">RIEMANN ZETA SCOPE</span><span style="margin-left: 35px; color: #c42626; font-size: 17px;">RZS-10k</span>';
     runningY += 39;
     // ==================================================================
     // display section
@@ -1754,7 +1754,7 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelGridButton);
       this.components.panelGridButton.title = 'Show unit grid lines in the complex plane.';
-      this.components.panelGridButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊞&nbsp;</span></span><span style="margin-left: 10px;">grid</span>';
+      this.components.panelGridButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊞&nbsp;</span></span><span style="margin-left: 12px;">grid</span>';
       this.components.panelGridButton.addEventListener('click', () => {
         this.zetaView.drawGrid = !this.zetaView.drawGrid;
         this.zetaView.draw();
@@ -1775,7 +1775,7 @@ const View = {
         'The polar window shows the terms of ζ as rotating vectors, radiating from a common origin.\n' +
         'While running t, notice the moments of geometric aligments and the patterns in the term numbers.\n' +
         'The terms of ζ are like a slide rule on steroids.';
-      this.components.panelPolarWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊚&nbsp;</span></span><span style="margin-left: 10px;">polar</span>';
+      this.components.panelPolarWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊚&nbsp;</span></span><span style="margin-left: 12px;">polar</span>';
       this.components.panelPolarWindowButton.addEventListener('click', () => {
         if (this.zetaView.polarWindow === false) {
           this.zetaView.polarWindow = true;
@@ -1807,7 +1807,7 @@ const View = {
         'Open Re-Im window\n' +
         'The Re-Im window shows real and imaginary values per term of ζ.\n' +
         'These are the top and side views (as in sin and cos) of the polar view.';
-      this.components.panelPhaseWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;∿&nbsp;</span></span><span style="margin-left: 10px;">Re-Im</span>';
+      this.components.panelPhaseWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;∿&nbsp;</span></span><span style="margin-left: 12px;">Re-Im</span>';
       this.components.panelPhaseWindowButton.addEventListener('click', () => {
         if (this.zetaView.phaseWindow === false) {
           this.zetaView.phaseWindow = true;
