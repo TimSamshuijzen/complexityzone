@@ -67,11 +67,11 @@
 </head>
 <body>
   <div style="position: relative; height: 70px; background-color: #333333;">
-    <div style="position: absolute; left: 20px; top: 0px; width: 310px; height: 70px; font-size: 36px; line-height: 70px; color: #80cccc;">
-      <a href="https://complexity.zone">complexity.zone</a>
+    <div style="position: absolute; left: 20px; top: 0px; width: 310px; height: 70px; color: #80cccc;">
+      <a href="https://complexity.zone" style="font-size: 36px; line-height: 70px;">complexity.zone</a>
     </div>
     <div style="position: absolute; left: 330px; top: 0px; width: 500px; height: 70px;">
-      <div style="position: absolute; left: 0px; top: 6px; width: 500px; height: 24px; line-height: 24px;">
+      <div style="position: absolute; left: 0px; top: 8px; width: 500px; height: 24px; line-height: 24px;">
         Projects and experiments<br />
       </div>
       <div style="position: absolute; left: 0px; top: 34px; width: 500px; height: 24px; line-height: 24px;">
@@ -101,6 +101,18 @@
     </div>
   </div>
   <div id="content" style="background-color: #222222;">
+    <div class="panel" onclick="window.location = './sha256circuit/';">
+      <div class="panelHeader">
+        <a href="./sha256circuit/"><img src="./sha256circuit/img/sha256circuit_thumbnail.png" title="SHA-256 Circuit" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+      </div>
+      <div class="panelContent">
+        <b>SHA-256 Circuit</b><br />
+        2025<br />
+        <br />
+        SHA-256 hash generator with visualization of all bit operations of the algorithm.<br />
+      </div>
+    </div>
+
     <div class="panel" onclick="window.location = './primektuples/';">
       <div class="panelHeader">
         <a href="./primektuples/"><img src="./primektuples/primektuples.png" title="Proof of the Hardy-Littlewood K-tuple Conjecture" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
@@ -159,7 +171,7 @@
         <b>SHA-256 bit operations</b><br />
         2023<br />
         <br />
-        Visualization of all bit operations of the SHA-256 algorithm.
+        Poster showing all bit operations of the SHA-256 algorithm.
       </div>
     </div>
 

@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SHA-256 Circuit</title>
+  <link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
+  <style>
+    body {
+      font-family: Calibri, Arial, helvetica, sans-serif;
+      font-size: 18px;
+      background-color: #222222;
+      color: #000000;
+      margin: 0px;
+      padding: 0px;
+    }
+    a, a:link, a:visited, a:hover, a:active {
+      text-decoration: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      background-color: inherit;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div style="position: relative; height: 40px; background-color: #333333;">
+    <div style="position: absolute; left: 20px; top: 0px; width: 200px; height: 40px; color: #cccccc;">
+      <a href="https://complexity.zone/"><span style="color: #80cccc; font-size: 16px; line-height: 40px;">complexity.zone</span></a>
+    </div>
+    <div style="position: absolute; left: 220px; top: 0px; width: 500px; height: 40px;">
+      <div style="position: absolute; left: 0px; top: 8px; width: 500px; height: 24px; font-size: 22px; line-height: 24px; color: #cccccc;">
+        SHA-256 Circuit
+      </div>
+    </div>
+  </div>
+  <div style="height: 10px; background-color: #222222;">
+  </div>
+  <div id="container" style="position: relative; margin-left: auto; margin-right: auto;">
+  </div>
+  <div style="height: 30px;">
+  </div>
+  <script>
+
+// SHA-256 Circuit
+// https://complexity.zone/sha256circuit/
+
+class Bits32 {
+  constructor(value) {
+    this.type = 'value';
+    this.bits = new Array(32);
+    this.setInt32(value);
+    this.row = 0;
+    this.column = 0;
+    Bits32.list.push(this);
+  }
+  setInt32(value) {
+    value = value >>> 0;
+    for (let i = 31; i >= 0; --i) {
+      if (value & 1) {
+        this.bits[i] = 1;
+      } else {
+        this.bits[i] = 0;
+      }
+      value = value >>> 1;
+    }
+  }
+  toInt32() {
+    let value = 0;
+    for (let i = 31; i >= 0; --i) {
+      if (this.bits[i] >= 0.5) {
+        value += (1 << (31 - i));
+      }
+    }
+    return value;
+  }
+  orSetInt32(value) {
+    value = value >>> 0;
+    for (let i = 31; i >= 0; --i) {
+      if (value & 1) {
+        this.bits[i] = 1.0;
+      }
+      value = value >>> 1;
+    }
+  }
+  toBitString() {
+    let value = '';
+    for (let i = 0; i < 32; i++) {
+      if (this.bits[31 - i] >= 0.5) {
+        value += '1';
+      } else {
+        value += '0';
+      }
+    }
+    return value;
+  }
+  toHexString() {
+    let hex = '';
+    for (let i = 0; i < 32; i += 4) {
+      const nibble = this.bits.slice(i, i + 4);
+      let value = 0;
+      for (let j = 0; j < 4; j++) {
+        if (nibble[j] >= 0.5) {
+          value += (1 << (3 - j));
+        }
+      }
+      hex += value.toString(16);
+    }
+    return hex;
+  }
+  toString() {
+    return this.toHexString();
+  }
+  calc() {
+  }
+}
+Bits32.list = [];
+
+class Bits32_constant extends Bits32 {
+  constructor(value) {
+    super(value);
+    this.type = 'constant';
+  }
+}
+
+class Bits32_register extends Bits32 {
+  constructor(input) {
+    super(0.0);
+    this.type = 'register';
+    this.input = input;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      this.bits[i] = this.input.bits[i];
+    }
+  }
+}
+
+class Bits32_and extends Bits32 {
+  constructor(input1, input2) {
+    super(0.0);
+    this.type = 'and';
+    this.input1 = input1;
+    this.input2 = input2;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      this.bits[i] = Math.min(this.input1.bits[i], this.input2.bits[i]);
+    }
+  }
+}
+
+class Bits32_or extends Bits32 {
+  constructor(input1, input2) {
+    super(0.0);
+    this.type = 'or';
+    this.input1 = input1;
+    this.input2 = input2;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      this.bits[i] = Math.max(this.input1.bits[i], this.input2.bits[i]);
+    }
+  }
+}
+
+class Bits32_xor extends Bits32 {
+  constructor(input1, input2) {
+    super(0.0);
+    this.type = 'xor';
+    this.input1 = input1;
+    this.input2 = input2;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      this.bits[i] = Math.abs(this.input1.bits[i] - this.input2.bits[i]);
+    }
+  }
+}
+
+class Bits32_not extends Bits32 {
+  constructor(input) {
+    super(0.0);
+    this.type = 'not';
+    this.input = input;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      this.bits[i] = 1 - this.input.bits[i];
+    }
+  }
+}
+
+class Bits32_rightrotate extends Bits32 {
+  constructor(input, rotateAmount) {
+    super(0.0);
+    this.type = 'rightrotate';
+    this.input = input;
+    this.rotateAmount = rotateAmount;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      this.bits[i] = this.input.bits[(32 + (i - this.rotateAmount)) % 32];
+    }
+  }
+}
+
+class Bits32_rightshift extends Bits32 {
+  constructor(input, shiftAmount) {
+    super(0.0);
+    this.type = 'rightshift';
+    this.input = input;
+    this.shiftAmount = shiftAmount;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < 32; i++) {
+      if ((i - this.shiftAmount) >= 0) {
+        this.bits[i] = this.input.bits[i - this.shiftAmount];
+      } else {
+        this.bits[i] = 0;
+      }
+    }
+  }
+}
+
+class Bits32_add extends Bits32 {
+  constructor(input1, input2) {
+    super(0.0);
+    this.type = 'add';
+    this.input1 = input1;
+    this.input2 = input2;
+    this.calc();
+  }
+  calc() {
+    let carry = 0;
+    for (let i = 31; i >= 0; --i) {
+      if (this.input1.bits[i] >= 0.5) {
+        if (this.input2.bits[i] >= 0.5) {
+          if (carry >= 0.5) {
+            this.bits[i] = 1;
+          } else {
+            this.bits[i] = 0;
+          }
+          carry = 1;
+        } else {
+          if (carry >= 0.5) {
+            this.bits[i] = 0;
+            carry = 1;
+          } else {
+            this.bits[i] = 1;
+            carry = 0;
+          }
+        }
+      } else {
+        if (this.input2.bits[i] >= 0.5) {
+          if (carry >= 0.5) {
+            this.bits[i] = 0;
+            carry = 1;
+          } else {
+            this.bits[i] = 1;
+            carry = 0;
+          }
+        } else {
+          if (carry >= 0.5) {
+            this.bits[i] = 1;
+            carry = 0;
+          } else {
+            this.bits[i] = 0;
+            carry = 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+class Sha256Circuit {
+  constructor(message) {
+    this.message = '' + message;
+    Bits32.list = [];
+    this.circuit = {};
+    let runningRow = 0;
+    let runningColumn = 0;
+    const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    const K = [
+      0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+      0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+      0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+      0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+      0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+      0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    ];
+    // a chunk is 512 bits (64 bytes)
+    const chunkCount = ((this.message.length + 8) >> 6) + 1;
+    // a block is 32 bits (4 bytes)
+    const blockCount = (chunkCount << 4);
+    this.circuit.blocks = new Array(blockCount);
+    runningColumn = 0;
+    for (let i = 0; i < blockCount; i++) {
+      this.circuit.blocks[i] = new Bits32(0);
+      this.circuit.blocks[i].row = runningRow;
+      this.circuit.blocks[i].column = runningColumn;
+      runningColumn++;
+      if ((i > 0) && ((i % 13) === 0)) {
+        runningRow++;
+        runningColumn = 0;
+      } else if ((i > 0) && (i === (blockCount - 3))) {
+        runningRow++;
+        runningColumn = 0;
+      }
+    }
+    for (let i = 0; i < this.message.length; i++) {
+      this.circuit.blocks[i >> 2].orSetInt32(this.message.charCodeAt(i) << ((3 - (i % 4)) << 3));
+    }
+    this.circuit.blocks[this.message.length >> 2].orSetInt32(0x80 << ((3 - (this.message.length % 4)) << 3));
+    this.circuit.blocks[blockCount - 1].setInt32(this.message.length << 3);
+    runningRow++;
+    runningRow++;
+    runningRow++;
+    let hcurrent = new Array(H.length);
+    for (let i = 0; i < H.length; i++) {
+      hcurrent[i] = new Bits32_constant(H[i]);
+      hcurrent[i].row = runningRow;
+      hcurrent[i].column = i;
+    }
+    runningRow++;
+    this.circuit.hstack = [];
+    this.circuit.hstack.push(hcurrent.slice());
+    this.circuit.chunks = [];
+    // for each chunk of 512 bits (64 bytes, 16 x 32 bit blocks)
+    for (let blocki = 0; blocki < this.circuit.blocks.length; blocki += 16) {
+      const chunk = {};
+      this.circuit.chunks.push(chunk);
+      chunk.w = [];
+      for (let j = 0; j < 16; j++) {
+        chunk.w.push(this.circuit.blocks[blocki + j]);
+      }
+      chunk.wsubCalcs16to64 = [];
+      for (let j = 16; j < 64; j++) {
+        const wsubCalc = {};
+        chunk.wsubCalcs16to64.push(wsubCalc);
+        runningColumn = 0;
+        wsubCalc.s0_0 = new Bits32_rightrotate(chunk.w[j - 15], 7);
+        wsubCalc.s0_0.row = runningRow;
+        wsubCalc.s0_0.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s0_1 = new Bits32_rightrotate(chunk.w[j - 15], 18);
+        wsubCalc.s0_1.row = runningRow;
+        wsubCalc.s0_1.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s0_2 = new Bits32_rightshift(chunk.w[j - 15], 3);
+        wsubCalc.s0_2.row = runningRow;
+        wsubCalc.s0_2.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s0_3 = new Bits32_xor(wsubCalc.s0_0, wsubCalc.s0_1);
+        wsubCalc.s0_3.row = runningRow;
+        wsubCalc.s0_3.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s0 = new Bits32_xor(wsubCalc.s0_3, wsubCalc.s0_2);
+        wsubCalc.s0.row = runningRow;
+        wsubCalc.s0.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s1_0 = new Bits32_rightrotate(chunk.w[j - 2], 17);
+        wsubCalc.s1_0.row = runningRow;
+        wsubCalc.s1_0.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s1_1 = new Bits32_rightrotate(chunk.w[j - 2], 19);
+        wsubCalc.s1_1.row = runningRow;
+        wsubCalc.s1_1.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s1_2 = new Bits32_rightshift(chunk.w[j - 2], 10);
+        wsubCalc.s1_2.row = runningRow;
+        wsubCalc.s1_2.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s1_3 = new Bits32_xor(wsubCalc.s1_0, wsubCalc.s1_1);
+        wsubCalc.s1_3.row = runningRow;
+        wsubCalc.s1_3.column = runningColumn;
+        runningColumn++;
+        wsubCalc.s1 = new Bits32_xor(wsubCalc.s1_3, wsubCalc.s1_2);
+        wsubCalc.s1.row = runningRow;
+        wsubCalc.s1.column = runningColumn;
+        runningColumn++;
+        wsubCalc.wj_0 = new Bits32_add(chunk.w[j - 16], wsubCalc.s0);
+        wsubCalc.wj_0.row = runningRow;
+        wsubCalc.wj_0.column = runningColumn;
+        runningColumn++;
+        wsubCalc.wj_1 = new Bits32_add(wsubCalc.wj_0, chunk.w[j - 7]);
+        wsubCalc.wj_1.row = runningRow;
+        wsubCalc.wj_1.column = runningColumn;
+        runningColumn++;
+        wsubCalc.wj = new Bits32_add(wsubCalc.wj_1, wsubCalc.s1);
+        wsubCalc.wj.row = runningRow;
+        wsubCalc.wj.column = runningColumn;
+        runningColumn++;
+        chunk.w.push(wsubCalc.wj);
+        runningRow++;
+      }
+      chunk.a = hcurrent[0];
+      chunk.b = hcurrent[1];
+      chunk.c = hcurrent[2];
+      chunk.d = hcurrent[3];
+      chunk.e = hcurrent[4];
+      chunk.f = hcurrent[5];
+      chunk.g = hcurrent[6];
+      chunk.h = hcurrent[7];
+      chunk.rounds = [];
+      let roundprior = {
+        a: chunk.a,
+        b: chunk.b,
+        c: chunk.c,
+        d: chunk.d,
+        e: chunk.e,
+        f: chunk.f,
+        g: chunk.g,
+        h: chunk.h
+      };
+      for (let j = 0; j < 64; j++) {
+        const round = {};
+        chunk.rounds.push(round);
+        runningColumn = 0;
+        round.s0_0 = new Bits32_rightrotate(roundprior.a, 2);
+        round.s0_0.row = runningRow;
+        round.s0_0.column = runningColumn;
+        runningColumn++;
+        round.s0_1 = new Bits32_rightrotate(roundprior.a, 13);
+        round.s0_1.row = runningRow;
+        round.s0_1.column = runningColumn;
+        runningColumn++;
+        round.s0_2 = new Bits32_rightrotate(roundprior.a, 22);
+        round.s0_2.row = runningRow;
+        round.s0_2.column = runningColumn;
+        runningColumn++;
+        round.s0_3 = new Bits32_xor(round.s0_0, round.s0_1);
+        round.s0_3.row = runningRow;
+        round.s0_3.column = runningColumn;
+        runningColumn++;
+        round.s0 = new Bits32_xor(round.s0_3, round.s0_2);
+        round.s0.row = runningRow;
+        round.s0.column = runningColumn;
+        runningColumn++;
+        round.maj_0 = new Bits32_and(roundprior.a, roundprior.b);
+        round.maj_0.row = runningRow;
+        round.maj_0.column = runningColumn;
+        runningColumn++;
+        round.maj_1 = new Bits32_and(roundprior.a, roundprior.c);
+        round.maj_1.row = runningRow;
+        round.maj_1.column = runningColumn;
+        runningColumn++;
+        round.maj_2 = new Bits32_xor(round.maj_0, round.maj_1);
+        round.maj_2.row = runningRow;
+        round.maj_2.column = runningColumn;
+        runningColumn++;
+        round.maj_3 = new Bits32_and(roundprior.b, roundprior.c);
+        round.maj_3.row = runningRow;
+        round.maj_3.column = runningColumn;
+        runningColumn++;
+        round.maj = new Bits32_xor(round.maj_2, round.maj_3);
+        round.maj.row = runningRow;
+        round.maj.column = runningColumn;
+        runningColumn++;
+        round.t2 = new Bits32_add(round.s0, round.maj);
+        round.t2.row = runningRow;
+        round.t2.column = runningColumn;
+        runningColumn++;
+        round.s1_0 = new Bits32_rightrotate(roundprior.e, 6);
+        round.s1_0.row = runningRow;
+        round.s1_0.column = runningColumn;
+        runningColumn++;
+        round.s1_1 = new Bits32_rightrotate(roundprior.e, 11);
+        round.s1_1.row = runningRow;
+        round.s1_1.column = runningColumn;
+        runningColumn++;
+        runningRow++;
+        runningColumn = 0;
+        round.s1_2 = new Bits32_rightrotate(roundprior.e, 25);
+        round.s1_2.row = runningRow;
+        round.s1_2.column = runningColumn;
+        runningColumn++;
+        round.s1_3 = new Bits32_xor(round.s1_0, round.s1_1);
+        round.s1_3.row = runningRow;
+        round.s1_3.column = runningColumn;
+        runningColumn++;
+        round.s1 = new Bits32_xor(round.s1_3, round.s1_2);
+        round.s1.row = runningRow;
+        round.s1.column = runningColumn;
+        runningColumn++;
+        round.ch_0 = new Bits32_and(roundprior.e, roundprior.f);
+        round.ch_0.row = runningRow;
+        round.ch_0.column = runningColumn;
+        runningColumn++;
+        round.ch_1 = new Bits32_not(roundprior.e);
+        round.ch_1.row = runningRow;
+        round.ch_1.column = runningColumn;
+        runningColumn++;
+        round.ch_2 = new Bits32_and(round.ch_1, roundprior.g);
+        round.ch_2.row = runningRow;
+        round.ch_2.column = runningColumn;
+        runningColumn++;
+        round.ch = new Bits32_xor(round.ch_0, round.ch_2);
+        round.ch.row = runningRow;
+        round.ch.column = runningColumn;
+        runningColumn++;
+        round.t1_0 = new Bits32_add(roundprior.h, round.s1);
+        round.t1_0.row = runningRow;
+        round.t1_0.column = runningColumn;
+        runningColumn++;
+        round.t1_1 = new Bits32_add(round.t1_0, round.ch);
+        round.t1_1.row = runningRow;
+        round.t1_1.column = runningColumn;
+        runningColumn++;
+        round.t1_2k = new Bits32_constant(K[j]);
+        round.t1_2k.row = runningRow;
+        round.t1_2k.column = runningColumn;
+        runningColumn++;
+        round.t1_2 = new Bits32_add(round.t1_1, round.t1_2k);
+        round.t1_2.row = runningRow;
+        round.t1_2.column = runningColumn;
+        runningColumn++;
+        round.t1 = new Bits32_add(round.t1_2, chunk.w[j]);
+        round.t1.row = runningRow;
+        round.t1.column = runningColumn;
+        runningColumn++;
+        round.h = roundprior.g;
+        round.g = roundprior.f;
+        round.f = roundprior.e;
+        round.e_0 = new Bits32_add(roundprior.d, round.t1);
+        round.e_0.row = runningRow;
+        round.e_0.column = runningColumn;
+        runningColumn++;
+        round.e = round.e_0;
+        round.d = roundprior.c;
+        round.c = roundprior.b;
+        round.b = roundprior.a;
+        round.a_0 = new Bits32_add(round.t1, round.t2);
+        round.a_0.row = runningRow;
+        round.a_0.column = runningColumn;
+        runningColumn++;
+        round.a = round.a_0;
+        roundprior = round;
+        runningRow++;
+      }
+      runningRow++;
+      runningRow++;
+      runningRow++;
+      hcurrent[0] = new Bits32_add(hcurrent[0], roundprior.a);
+      hcurrent[0].row = runningRow;
+      hcurrent[0].column = 0;
+      hcurrent[1] = new Bits32_add(hcurrent[1], roundprior.b);
+      hcurrent[1].row = runningRow;
+      hcurrent[1].column = 1;
+      hcurrent[2] = new Bits32_add(hcurrent[2], roundprior.c);
+      hcurrent[2].row = runningRow;
+      hcurrent[2].column = 2;
+      hcurrent[3] = new Bits32_add(hcurrent[3], roundprior.d);
+      hcurrent[3].row = runningRow;
+      hcurrent[3].column = 3;
+      hcurrent[4] = new Bits32_add(hcurrent[4], roundprior.e);
+      hcurrent[4].row = runningRow;
+      hcurrent[4].column = 4;
+      hcurrent[5] = new Bits32_add(hcurrent[5], roundprior.f);
+      hcurrent[5].row = runningRow;
+      hcurrent[5].column = 5;
+      hcurrent[6] = new Bits32_add(hcurrent[6], roundprior.g);
+      hcurrent[6].row = runningRow;
+      hcurrent[6].column = 6;
+      hcurrent[7] = new Bits32_add(hcurrent[7], roundprior.h);
+      hcurrent[7].row = runningRow;
+      hcurrent[7].column = 7;
+      this.circuit.hstack.push(hcurrent.slice());
+      runningRow++;
+    }
+    this.houtput = hcurrent;
+    this.numberOfRows = runningRow;
+  }
+  getHash() {
+    return this.houtput[0].toHexString() + this.houtput[1].toHexString() + this.houtput[2].toHexString() + this.houtput[3].toHexString() + this.houtput[4].toHexString() + this.houtput[5].toHexString() + this.houtput[6].toHexString() + this.houtput[7].toHexString();
+  }
+  calc() {
+    for (let li = 0; li < Bits32.list.length; li++) {
+      Bits32.list[li].calc();
+    }
+  }
+}
+
+let sha256 = new Sha256Circuit('The quick brown fox jumps over the lazy dog');
+if (sha256.getHash() !== 'd7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592') {
+  console.log('ERROR');
+}
+
+const View = {
+  components: {
+    container: null,
+    containerCenter: null,
+    inputMessageLabel: null,
+    inputMessage: null,
+    canvas: null,
+    outputHashLabel: null,
+    outputHash: null
+  },
+  ctx: null,
+  canvasWidth: 1520,
+  canvasHeight: 670,
+  containerHeight: 1400,
+  doBackPropagations: 0,
+  init() {
+    this.canvasHeight = (sha256.numberOfRows * 3) + 30;
+    this.containerHeight = this.canvasHeight + 180;
+    this.components.container = document.getElementById('container');
+    this.components.containerCenter = document.createElement('div');
+    Object.assign(this.components.containerCenter.style, {
+      position: 'relative',
+      width: this.canvasWidth + 'px',
+      height: this.containerHeight + 'px',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      backgroundColor: '#333333',
+      overflow: 'hidden'
+    });
+    this.components.container.appendChild(this.components.containerCenter);
+    let runningTop = 10;
+    this.components.inputMessageLabel = document.createElement('div');
+    this.components.inputMessageLabel.innerHTML = 'message';
+    Object.assign(this.components.inputMessageLabel.style, {
+      display: 'block',
+      position: 'absolute',
+      left: 20 + 'px',
+      top: runningTop + 'px',
+      width: 900 + 'px',
+      height: 30 + 'px',
+      color: '#ffffff',
+      fontSize: '18px',
+      lineHeight: 30 + 'px'
+    });
+    this.components.containerCenter.appendChild(this.components.inputMessageLabel);
+    runningTop += 30;
+    this.components.inputMessage = document.createElement('input');
+    this.components.inputMessage.type = 'text';
+    this.components.inputMessage.value = sha256.message;
+    Object.assign(this.components.inputMessage.style, {
+      display: 'block',
+      position: 'absolute',
+      left: 20 + 'px',
+      top: runningTop + 'px',
+      width: 1470 + 'px',
+      height: 30 + 'px',
+      fontSize: '19px',
+      lineHeight: 30 + 'px'
+    });
+    this.components.containerCenter.appendChild(this.components.inputMessage);
+    this.components.inputMessage.addEventListener('input', (event) => {
+      let message = event.target.value;
+      // max 2 chunks
+      if (message.length > (55 * 2)) {
+        message = message.substring(0, (55 * 2));
+        this.components.inputMessage.value = message;
+        this.components.inputMessage.style.backgroundColor = '#ffcccc';
+        setTimeout(() => {
+          this.components.inputMessage.style.backgroundColor = '#ffffff';
+        }, 500);
+      }
+      sha256 = new Sha256Circuit(message);
+      this.components.outputHash.innerHTML = sha256.getHash();
+      this.render();
+    });
+    runningTop += 50;
+    this.components.canvas = document.createElement('canvas');
+    this.components.canvas.width = this.canvasWidth;
+    this.components.canvas.height = this.canvasHeight;
+    Object.assign(this.components.canvas.style, {
+      display: 'block',
+      position: 'absolute',
+      left: 0 + 'px',
+      top: runningTop + 'px',
+      width: this.canvasWidth + 'px',
+      height: this.canvasHeight + 'px',
+      overflow: 'hidden'
+    });
+    this.components.containerCenter.appendChild(this.components.canvas);
+    this.ctx = this.components.canvas.getContext('2d');
+    runningTop += this.canvasHeight;
+    runningTop += 10;
+    this.components.outputHashLabel = document.createElement('div');
+    this.components.outputHashLabel.innerHTML = 'SHA-256 hash';
+    Object.assign(this.components.outputHashLabel.style, {
+      display: 'block',
+      position: 'absolute',
+      left: 20 + 'px',
+      top: runningTop + 'px',
+      width: 900 + 'px',
+      height: 30 + 'px',
+      color: '#ffffff',
+      fontSize: '18px',
+      lineHeight: 30 + 'px'
+    });
+    this.components.containerCenter.appendChild(this.components.outputHashLabel);
+    runningTop += 30;
+    this.components.outputHash = document.createElement('div');
+    this.components.outputHash.innerHTML = sha256.getHash();
+    Object.assign(this.components.outputHash.style, {
+      display: 'block',
+      position: 'absolute',
+      left: 20 + 'px',
+      top: runningTop + 'px',
+      width: 900 + 'px',
+      height: 30 + 'px',
+      color: '#DEDB4B',
+      fontSize: '22px',
+      fontFamily: 'Courier New',
+      lineHeight: 30 + 'px'
+    });
+    this.components.containerCenter.appendChild(this.components.outputHash);
+    runningTop += 60;
+    View.render();
+  },
+  render() {
+    const leftOffset = 20;
+    const topOffset = 10;
+    const bitWidth = 3;
+    const bitHeight = 3;
+    this.canvasHeight = (sha256.numberOfRows * 3) + 20;
+    this.containerHeight = this.canvasHeight + 180;
+    this.components.containerCenter.style.height = this.containerHeight + 'px';
+    this.components.canvas.height = this.canvasHeight;
+    this.components.canvas.style.height = this.canvasHeight + 'px';
+    this.components.outputHashLabel.style.top = (this.canvasHeight + 100) + 'px';
+    this.components.outputHash.style.top = (this.canvasHeight + 130) + 'px';
+    this.ctx.fillStyle = '#333333';
+    this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+    const columnWidth = (bitWidth * 32) + 10;
+    const rowHeight = bitHeight;
+    for (let i = 0; i < Bits32.list.length; i++) {
+      const bits32 = Bits32.list[i];
+      const x = leftOffset + (bits32.column * columnWidth);
+      const y = topOffset + (bits32.row * rowHeight);
+      for (let j = 0; j < 32; j++) {
+        const bit = bits32.bits[j];
+        this.ctx.fillStyle = (bit >= 0.5) ? '#000000' : '#ffffff';
+        this.ctx.fillRect(x + (j * bitWidth), y, bitWidth, bitHeight);
+      }
+    }
+  }
+};
+
+View.init();
+
+  </script>
+</body>
+</html>
