@@ -309,10 +309,7 @@ class Sha256Circuit {
       this.circuit.blocks[i].row = runningRow;
       this.circuit.blocks[i].column = runningColumn;
       runningColumn++;
-      if ((i > 0) && ((i % 13) === 0)) {
-        runningRow++;
-        runningColumn = 0;
-      } else if ((i > 0) && (i === (blockCount - 3))) {
+      if ((i > 0) && ((i % 14) === 13)) {
         runningRow++;
         runningColumn = 0;
       }
@@ -609,7 +606,7 @@ const View = {
   canvasWidth: 1520,
   canvasHeight: 670,
   containerHeight: 1400,
-  doBackPropagations: 0,
+  maxChunks: 2,
   init() {
     this.canvasHeight = (sha256.numberOfRows * 3) + 30;
     this.containerHeight = this.canvasHeight + 180;
@@ -657,9 +654,8 @@ const View = {
     this.components.containerCenter.appendChild(this.components.inputMessage);
     this.components.inputMessage.addEventListener('input', (event) => {
       let message = event.target.value;
-      // max 2 chunks
-      if (message.length > (55 * 2)) {
-        message = message.substring(0, (55 * 2));
+      if (message.length > ((64 * this.maxChunks) - 9)) {
+        message = message.substring(0, ((64 * this.maxChunks) - 9));
         this.components.inputMessage.value = message;
         this.components.inputMessage.style.backgroundColor = '#ffcccc';
         setTimeout(() => {
