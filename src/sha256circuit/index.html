@@ -46,7 +46,6 @@
 
 class Bits32 {
   constructor(value) {
-    this.type = 'value';
     this.bits = new Array(32);
     this.setInt32(value);
     this.row = 0;
@@ -115,17 +114,9 @@ class Bits32 {
 }
 Bits32.list = [];
 
-class Bits32_constant extends Bits32 {
-  constructor(value) {
-    super(value);
-    this.type = 'constant';
-  }
-}
-
 class Bits32_register extends Bits32 {
   constructor(input) {
     super(0);
-    this.type = 'register';
     this.input = input;
     this.calc();
   }
@@ -139,7 +130,6 @@ class Bits32_register extends Bits32 {
 class Bits32_and extends Bits32 {
   constructor(input1, input2) {
     super(0);
-    this.type = 'and';
     this.input1 = input1;
     this.input2 = input2;
     this.calc();
@@ -154,7 +144,6 @@ class Bits32_and extends Bits32 {
 class Bits32_or extends Bits32 {
   constructor(input1, input2) {
     super(0);
-    this.type = 'or';
     this.input1 = input1;
     this.input2 = input2;
     this.calc();
@@ -169,7 +158,6 @@ class Bits32_or extends Bits32 {
 class Bits32_xor extends Bits32 {
   constructor(input1, input2) {
     super(0);
-    this.type = 'xor';
     this.input1 = input1;
     this.input2 = input2;
     this.calc();
@@ -184,7 +172,6 @@ class Bits32_xor extends Bits32 {
 class Bits32_not extends Bits32 {
   constructor(input) {
     super(0);
-    this.type = 'not';
     this.input = input;
     this.calc();
   }
@@ -198,7 +185,6 @@ class Bits32_not extends Bits32 {
 class Bits32_rightrotate extends Bits32 {
   constructor(input, rotateAmount) {
     super(0);
-    this.type = 'rightrotate';
     this.input = input;
     this.rotateAmount = rotateAmount;
     this.calc();
@@ -213,7 +199,6 @@ class Bits32_rightrotate extends Bits32 {
 class Bits32_rightshift extends Bits32 {
   constructor(input, shiftAmount) {
     super(0);
-    this.type = 'rightshift';
     this.input = input;
     this.shiftAmount = shiftAmount;
     this.calc();
@@ -232,7 +217,6 @@ class Bits32_rightshift extends Bits32 {
 class Bits32_add extends Bits32 {
   constructor(input1, input2) {
     super(0);
-    this.type = 'add';
     this.input1 = input1;
     this.input2 = input2;
     this.calc();
@@ -324,7 +308,7 @@ class Sha256Circuit {
     runningRow++;
     let hcurrent = new Array(H.length);
     for (let i = 0; i < H.length; i++) {
-      hcurrent[i] = new Bits32_constant(H[i]);
+      hcurrent[i] = new Bits32(H[i]);
       hcurrent[i].row = runningRow;
       hcurrent[i].column = i;
     }
@@ -513,7 +497,7 @@ class Sha256Circuit {
         round.t1_1.row = runningRow;
         round.t1_1.column = runningColumn;
         runningColumn++;
-        round.t1_2k = new Bits32_constant(K[j]);
+        round.t1_2k = new Bits32(K[j]);
         round.t1_2k.row = runningRow;
         round.t1_2k.column = runningColumn;
         runningColumn++;
@@ -748,7 +732,7 @@ const View = {
 View.init();
 
 // DOWNLOADLINKSTART
-// This code is removed when the html file is downloaded.
+// This code is removed in the downloaded html file.
 if (window.location.protocol === 'https:') {
   const headerpanel = document.getElementById('headerpanel');
   const headerpaneldownloadlink = document.createElement('div');
@@ -813,7 +797,6 @@ if (window.location.protocol === 'https:') {
     try {
       const response = await fetch(window.location.href);
       let html = await response.text();
-      // remove code for download link
       html = html.replace(/\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g, '');
       const blob = new Blob([html], {type: 'text/html'});
       const url = URL.createObjectURL(blob);
