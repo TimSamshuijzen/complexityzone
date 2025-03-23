@@ -587,7 +587,7 @@ const View = {
     outputHash: null
   },
   bitSize: 3,
-  maxChunks: 2,
+  maxChunks: 3,
   canvasWidth: 1520,
   canvasHeight: 0,
   containerHeight: 0,
@@ -646,6 +646,14 @@ const View = {
         setTimeout(() => {
           this.components.inputMessage.style.backgroundColor = '#ffffff';
         }, 500);
+      }
+      const numChunks = ((message.length + 8) >> 6) + 1;
+      if (numChunks === 1) {
+        this.bitSize = 3;
+      } else if (numChunks === 2) {
+        this.bitSize = 2;
+      } else {
+        this.bitSize = 1;
       }
       sha256 = new Sha256Circuit(message);
       this.components.outputHash.innerHTML = sha256.getHash();
