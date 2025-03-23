@@ -114,19 +114,6 @@ class Bits32 {
 }
 Bits32.list = [];
 
-class Bits32_register extends Bits32 {
-  constructor(input, row, column) {
-    super(0, row, column);
-    this.input = input;
-    this.calc();
-  }
-  calc() {
-    for (let i = 0; i < 32; i++) {
-      this.bits[i] = this.input.bits[i];
-    }
-  }
-}
-
 class Bits32_and extends Bits32 {
   constructor(input1, input2, row, column) {
     super(0, row, column);
