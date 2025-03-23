@@ -348,8 +348,7 @@ class Sha256Circuit {
         g: chunk.g,
         h: chunk.h
       };
-      runningRow++;
-      runningRow++;
+      runningRow += 2;
       for (let j = 0; j < 64; j++) {
         const round = {};
         chunk.rounds.push(round);
