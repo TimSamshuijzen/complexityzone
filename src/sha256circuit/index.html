@@ -310,7 +310,7 @@ class Sha256Circuit {
     this.circuit.hstack = [];
     this.circuit.hstack.push(hcurrent.slice());
     this.circuit.chunks = [];
-    // for each chunk of 512 bits (64 bytes, 16 x 32 bit blocks)
+    // for each chunk
     for (let blocki = 0; blocki < this.circuit.blocks.length; blocki += 16) {
       const chunk = {};
       this.circuit.chunks.push(chunk);
@@ -466,11 +466,6 @@ class Sha256Circuit {
   }
   getHash() {
     return this.houtput[0].toHexString() + this.houtput[1].toHexString() + this.houtput[2].toHexString() + this.houtput[3].toHexString() + this.houtput[4].toHexString() + this.houtput[5].toHexString() + this.houtput[6].toHexString() + this.houtput[7].toHexString();
-  }
-  calc() {
-    for (let li = 0; li < Bits32.list.length; li++) {
-      Bits32.list[li].calc();
-    }
   }
 }
 
