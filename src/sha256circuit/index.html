@@ -586,13 +586,14 @@ const View = {
     outputHashLabel: null,
     outputHash: null
   },
-  ctx: null,
-  canvasWidth: 1520,
-  canvasHeight: 670,
-  containerHeight: 1400,
+  bitWidth: 3,
   maxChunks: 2,
+  canvasWidth: 1520,
+  canvasHeight: 0,
+  containerHeight: 0,
+  ctx: null,
   init() {
-    this.canvasHeight = (sha256.numberOfRows * 3) + 30;
+    this.canvasHeight = (sha256.numberOfRows * this.bitWidth) + 30;
     this.containerHeight = this.canvasHeight + 180;
     this.components.container = document.getElementById('container');
     this.components.containerCenter = document.createElement('div');
@@ -703,9 +704,7 @@ const View = {
   render() {
     const leftOffset = 20;
     const topOffset = 10;
-    const bitWidth = 3;
-    const bitHeight = 3;
-    this.canvasHeight = (sha256.numberOfRows * 3) + 20;
+    this.canvasHeight = (sha256.numberOfRows * this.bitWidth) + 20;
     this.containerHeight = this.canvasHeight + 180;
     this.components.containerCenter.style.height = this.containerHeight + 'px';
     this.components.canvas.height = this.canvasHeight;
@@ -714,16 +713,15 @@ const View = {
     this.components.outputHash.style.top = (this.canvasHeight + 130) + 'px';
     this.ctx.fillStyle = '#333333';
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
-    const columnWidth = (bitWidth * 32) + 10;
-    const rowHeight = bitHeight;
+    const columnWidth = (this.bitWidth * 32) + 10;
+    const rowHeight = this.bitWidth;
     for (let i = 0; i < Bits32.list.length; i++) {
       const bits32 = Bits32.list[i];
       const x = leftOffset + (bits32.column * columnWidth);
       const y = topOffset + (bits32.row * rowHeight);
       for (let j = 0; j < 32; j++) {
-        const bit = bits32.bits[j];
-        this.ctx.fillStyle = (bit >= 0.5) ? '#000000' : '#ffffff';
-        this.ctx.fillRect(x + (j * bitWidth), y, bitWidth, bitHeight);
+        this.ctx.fillStyle = (bits32.bits[j] >= 0.5) ? '#000000' : '#ffffff';
+        this.ctx.fillRect(x + (j * this.bitWidth), y, this.bitWidth, this.bitWidth);
       }
     }
   }
