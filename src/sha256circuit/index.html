@@ -301,9 +301,7 @@ class Sha256Circuit {
     }
     this.circuit.blocks[this.message.length >> 2].orSetInt32(0x80 << ((3 - (this.message.length % 4)) << 3));
     this.circuit.blocks[blockCount - 1].setInt32(this.message.length << 3);
-    runningRow++;
-    runningRow++;
-    runningRow++;
+    runningRow += 3;
     let hcurrent = new Array(H.length);
     for (let i = 0; i < H.length; i++) {
       hcurrent[i] = new Bits32(H[i], runningRow, i);
@@ -439,14 +437,11 @@ class Sha256Circuit {
         round.c = roundprior.b;
         round.b = roundprior.a;
         round.a_0 = new Bits32_add(round.t1, round.t2, runningRow, runningColumn);
-        runningColumn++;
         round.a = round.a_0;
         roundprior = round;
         runningRow++;
       }
-      runningRow++;
-      runningRow++;
-      runningRow++;
+      runningRow += 3;
       runningColumn = 0;
       hcurrent[0] = new Bits32_add(hcurrent[0], roundprior.a, runningRow, runningColumn);
       runningColumn++;
