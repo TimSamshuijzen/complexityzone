@@ -27,10 +27,12 @@
     <div style="position: absolute; left: 20px; top: 0px; width: 200px; height: 40px; color: #cccccc;">
       <a href="https://complexity.zone/"><span style="color: #80cccc; font-size: 16px; line-height: 40px;">complexity.zone</span></a>
     </div>
-    <div style="position: absolute; left: 220px; top: 0px; width: 500px; height: 40px;">
-      <div style="position: absolute; left: 0px; top: 8px; width: 500px; height: 24px; font-size: 22px; line-height: 24px; color: #cccccc;">
+    <div style="position: absolute; left: 220px; top: 0px; width: 200px; height: 40px;">
+      <div style="position: absolute; left: 0px; top: 8px; width: 200px; height: 24px; font-size: 22px; line-height: 24px; color: #cccccc;">
         SHA-256 Circuit
       </div>
+    </div>
+    <div id="headerpaneldownloadlink" style="position: absolute; left: 430px; top: 0px; width: 400px; height: 40px;">
     </div>
   </div>
   <div style="height: 10px; background-color: #222222;">
@@ -77,7 +79,7 @@ class Bits32 {
     value = value >>> 0;
     for (let i = 31; i >= 0; --i) {
       if (value & 1) {
-        this.bits[i] = 1.0;
+        this.bits[i] = 1;
       }
       value = value >>> 1;
     }
@@ -124,7 +126,7 @@ class Bits32_constant extends Bits32 {
 
 class Bits32_register extends Bits32 {
   constructor(input) {
-    super(0.0);
+    super(0);
     this.type = 'register';
     this.input = input;
     this.calc();
@@ -138,7 +140,7 @@ class Bits32_register extends Bits32 {
 
 class Bits32_and extends Bits32 {
   constructor(input1, input2) {
-    super(0.0);
+    super(0);
     this.type = 'and';
     this.input1 = input1;
     this.input2 = input2;
@@ -153,7 +155,7 @@ class Bits32_and extends Bits32 {
 
 class Bits32_or extends Bits32 {
   constructor(input1, input2) {
-    super(0.0);
+    super(0);
     this.type = 'or';
     this.input1 = input1;
     this.input2 = input2;
@@ -168,7 +170,7 @@ class Bits32_or extends Bits32 {
 
 class Bits32_xor extends Bits32 {
   constructor(input1, input2) {
-    super(0.0);
+    super(0);
     this.type = 'xor';
     this.input1 = input1;
     this.input2 = input2;
@@ -183,7 +185,7 @@ class Bits32_xor extends Bits32 {
 
 class Bits32_not extends Bits32 {
   constructor(input) {
-    super(0.0);
+    super(0);
     this.type = 'not';
     this.input = input;
     this.calc();
@@ -197,7 +199,7 @@ class Bits32_not extends Bits32 {
 
 class Bits32_rightrotate extends Bits32 {
   constructor(input, rotateAmount) {
-    super(0.0);
+    super(0);
     this.type = 'rightrotate';
     this.input = input;
     this.rotateAmount = rotateAmount;
@@ -212,7 +214,7 @@ class Bits32_rightrotate extends Bits32 {
 
 class Bits32_rightshift extends Bits32 {
   constructor(input, shiftAmount) {
-    super(0.0);
+    super(0);
     this.type = 'rightshift';
     this.input = input;
     this.shiftAmount = shiftAmount;
@@ -231,7 +233,7 @@ class Bits32_rightshift extends Bits32 {
 
 class Bits32_add extends Bits32 {
   constructor(input1, input2) {
-    super(0.0);
+    super(0);
     this.type = 'add';
     this.input1 = input1;
     this.input2 = input2;
@@ -746,6 +748,83 @@ const View = {
 };
 
 View.init();
+
+
+if (window.location.protocol === 'https:') {
+  let downloaded = false;
+  const headerpaneldownloadlink = document.getElementById('headerpaneldownloadlink');
+  const downloadlink = document.createElement('div');
+  downloadlink.title = 'SHA-256 Circuit is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file.';
+  Object.assign(downloadlink.style, {
+    position: 'absolute',
+    left: '10px',
+    top: '8px',
+    width: '400px',
+    height: '24px',
+    cursor: 'pointer'
+  });
+  headerpaneldownloadlink.appendChild(downloadlink);
+  const downloadlink_svg = document.createElement('div');
+  Object.assign(downloadlink_svg.style, {
+    position: 'absolute',
+    left: '0px',
+    top: '0px',
+    width: '24px',
+    height: '24px',
+    cursor: 'pointer'
+  });
+  downloadlink_svg.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+      <path fill="#cccccc" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+    </svg>
+  `;
+  downloadlink.appendChild(downloadlink_svg);
+  const downloadlink_text = document.createElement('div');
+  Object.assign(downloadlink_text.style, {
+    position: 'absolute',
+    left: '35px',
+    top: '0px',
+    width: '365px',
+    height: '24px',
+    color: '#cccccc',
+    fontSize: '16px',
+    lineHeight: '24px',
+    whiteSpace: 'nowrap'
+  });
+  downloadlink_text.innerHTML = 'Download SHA-256 Circuit';
+  downloadlink.appendChild(downloadlink_text);
+  downloadlink.addEventListener('click', async () => {
+    if (downloaded) {
+      return;
+    }
+    downloaded = true;
+    downloadlink.title = '';
+    downloadlink.style.cursor = 'default';
+    downloadlink_svg.style.display = 'none';
+    downloadlink_text.innerHTML = 'Downloading SHA-256 Circuit...';
+    try {
+      const response = await fetch(window.location.href);
+      const html = await response.text();
+      const blob = new Blob([html], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      a.href = url;
+      a.download = `sha256circuit_${dateYYYYMMDD}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+      downloadlink_text.innerHTML = 'Downloaded to your Downloads folder';
+      setTimeout(() => {
+        downloadlink_text.innerHTML = '';
+      }, 3000);
+    } catch (error) {
+      downloadlink_text.innerHTML = 'Download error';
+      setTimeout(() => {
+        downloadlink_text.innerHTML = '';
+      }, 3000);
+    }
+  });
+}
 
   </script>
 </body>
