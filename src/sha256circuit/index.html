@@ -206,8 +206,6 @@ class Sha256Circuit {
     this.message = '' + message;
     Bits32.list = [];
     this.circuit = {};
-    let runningRow = 0;
-    let runningColumn = 0;
     const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
     const K = [
       0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -224,7 +222,8 @@ class Sha256Circuit {
     // a block is 32 bits
     const blockCount = (chunkCount << 4);
     this.circuit.blocks = new Array(blockCount);
-    runningColumn = 0;
+    let runningRow = 0;
+    let runningColumn = 0;
     for (let i = 0; i < blockCount; i++) {
       this.circuit.blocks[i] = new Bits32(0, runningRow, runningColumn);
       runningColumn++;
