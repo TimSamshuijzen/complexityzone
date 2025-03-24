@@ -460,7 +460,8 @@ const View = {
     inputMessage: null,
     canvas: null,
     outputHashLabel: null,
-    outputHash: null
+    outputHash: null,
+    outputHashCopyButton: null
   },
   bitSize: 3,
   maxChunks: 3,
@@ -582,6 +583,32 @@ const View = {
       lineHeight: 30 + 'px'
     });
     this.components.containerCenter.appendChild(this.components.outputHash);
+    this.components.outputHashCopyButton = document.createElement('div');
+    this.components.outputHashCopyButton.title = 'Copy SHA-256 hash to clipboard.';
+    Object.assign(this.components.outputHashCopyButton.style, {
+      display: 'block',
+      position: 'absolute',
+      left: 930 + 'px',
+      top: (runningTop - 2) + 'px',
+      width: 28 + 'px',
+      height: 28 + 'px',
+      backgroundColor: '#333333',
+      borderRadius: '4px',
+      cursor: 'pointer'
+    });
+    this.components.containerCenter.appendChild(this.components.outputHashCopyButton);
+    this.components.outputHashCopyButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 28px; height: 28px;">
+        <path fill="#ffffff" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
+      </svg>
+    `;
+    this.components.outputHashCopyButton.addEventListener('click', () => {
+      navigator.clipboard.writeText(sha256.getHash());
+      this.components.outputHashCopyButton.style.backgroundColor = '#44ff99';
+      setTimeout(() => {
+        this.components.outputHashCopyButton.style.backgroundColor = '#333333';
+      }, 500);
+    });
     runningTop += 60;
     View.render();
   },
@@ -595,6 +622,7 @@ const View = {
     this.components.canvas.style.height = this.canvasHeight + 'px';
     this.components.outputHashLabel.style.top = (this.canvasHeight + 100) + 'px';
     this.components.outputHash.style.top = (this.canvasHeight + 130) + 'px';
+    this.components.outputHashCopyButton.style.top = ((this.canvasHeight + 130) - 2) + 'px';
     this.ctx.fillStyle = '#333333';
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     const columnWidth = (this.bitSize * 32) + 10;
