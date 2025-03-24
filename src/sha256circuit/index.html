@@ -47,11 +47,11 @@
 
 class Bits32 {
   constructor(value, row, column) {
+    Bits32.list.push(this);
     this.bits = new Array(32);
     this.setInt32(value);
     this.row = row || 0;
     this.column = column || 0;
-    Bits32.list.push(this);
   }
   setInt32(value) {
     value = value >>> 0;
@@ -551,7 +551,7 @@ const View = {
     });
     this.components.containerCenter.appendChild(this.components.outputHash);
     this.components.outputHashCopyButton = document.createElement('div');
-    this.components.outputHashCopyButton.title = 'Copy SHA-256 hash to clipboard.';
+    this.components.outputHashCopyButton.title = 'copy hash to clipboard';
     Object.assign(this.components.outputHashCopyButton.style, {
       display: 'block',
       position: 'absolute',
