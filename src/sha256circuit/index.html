@@ -109,7 +109,6 @@ class Bits32_and extends Bits32 {
     super(0, row, column);
     this.input1 = input1;
     this.input2 = input2;
-    this.calc();
   }
   calc() {
     for (let i = 0; i < 32; i++) {
@@ -123,7 +122,6 @@ class Bits32_or extends Bits32 {
     super(0, row, column);
     this.input1 = input1;
     this.input2 = input2;
-    this.calc();
   }
   calc() {
     for (let i = 0; i < 32; i++) {
@@ -137,7 +135,6 @@ class Bits32_xor extends Bits32 {
     super(0, row, column);
     this.input1 = input1;
     this.input2 = input2;
-    this.calc();
   }
   calc() {
     for (let i = 0; i < 32; i++) {
@@ -150,7 +147,6 @@ class Bits32_not extends Bits32 {
   constructor(input, row, column) {
     super(0, row, column);
     this.input = input;
-    this.calc();
   }
   calc() {
     for (let i = 0; i < 32; i++) {
@@ -164,7 +160,6 @@ class Bits32_rightrotate extends Bits32 {
     super(0, row, column);
     this.input = input;
     this.rotateAmount = rotateAmount;
-    this.calc();
   }
   calc() {
     for (let i = 0; i < 32; i++) {
@@ -178,7 +173,6 @@ class Bits32_rightshift extends Bits32 {
     super(0, row, column);
     this.input = input;
     this.shiftAmount = shiftAmount;
-    this.calc();
   }
   calc() {
     for (let i = 0; i < 32; i++) {
@@ -196,7 +190,6 @@ class Bits32_add extends Bits32 {
     super(0, row, column);
     this.input1 = input1;
     this.input2 = input2;
-    this.calc();
   }
   calc() {
     let carry = 0;
@@ -408,6 +401,12 @@ class Sha256Circuit {
     }
     this.houtput = hcurrent;
     this.numberOfRows = runningRow;
+    this.calc();
+  }
+  calc() {
+    for (let i = 0; i < Bits32.list.length; i++) {
+      Bits32.list[i].calc();
+    }
   }
   getHash() {
     return this.houtput[0].toHexString() + this.houtput[1].toHexString() + this.houtput[2].toHexString() + this.houtput[3].toHexString() + this.houtput[4].toHexString() + this.houtput[5].toHexString() + this.houtput[6].toHexString() + this.houtput[7].toHexString();
