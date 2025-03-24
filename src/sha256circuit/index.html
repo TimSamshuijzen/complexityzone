@@ -401,11 +401,12 @@ class Sha256Circuit {
     }
     this.houtput = hcurrent;
     this.numberOfRows = runningRow;
+    this.bits32List = Bits32.list.slice();
     this.calc();
   }
   calc() {
-    for (let i = 0; i < Bits32.list.length; i++) {
-      Bits32.list[i].calc();
+    for (let i = 0; i < this.bits32List.length; i++) {
+      this.bits32List[i].calc();
     }
   }
   getHash() {
