@@ -48,8 +48,8 @@ class Bits32 {
     Bits32.list.push(this);
     this.bits = new Array(32);
     this.setInt32(value);
-    this.row = row || 0;
-    this.column = column || 0;
+    this.row = row | 0;
+    this.column = column | 0;
   }
   setInt32(value) {
     value = value >>> 0;
@@ -200,6 +200,7 @@ class Sha256Circuit {
   constructor(message) {
     this.message = '' + message;
     Bits32.list = [];
+    // build the cicuit
     this.circuit = {};
     const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
     const K = [
@@ -225,6 +226,7 @@ class Sha256Circuit {
         column = 0;
       }
     }
+    // read message into blocks
     for (let i = 0; i < this.message.length; i++) {
       this.circuit.blocks[i >> 2].orSetInt32(this.message.charCodeAt(i) << ((3 - (i % 4)) << 3));
     }
@@ -330,8 +332,8 @@ class Sha256Circuit {
         round.s1_0 = new Bits32_rightrotate(roundprior.e, 6, row, column);
         column++;
         round.s1_1 = new Bits32_rightrotate(roundprior.e, 11, row, column);
-        row++;
         column = 0;
+        row++;
         round.s1_2 = new Bits32_rightrotate(roundprior.e, 25, row, column);
         column++;
         round.s1_3 = new Bits32_xor(round.s1_0, round.s1_1, row, column);
@@ -393,6 +395,7 @@ class Sha256Circuit {
     this.houtput = hcurrent;
     this.numberOfRows = row;
     this.list = Bits32.list.slice();
+    // run the cicuit
     for (let i = 0; i < this.list.length; i++) {
       this.list[i].calc();
     }
@@ -599,7 +602,6 @@ if (window.location.protocol === 'https:') {
     height: '40px'
   });
   headerpanel.appendChild(headerpaneldownloadlink);
-  let downloaded = false;
   const downloadlink = document.createElement('div');
   downloadlink.title = 'SHA-256 Circuit is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file. Feel free to tinker and make it your own.';
   Object.assign(downloadlink.style, {
@@ -640,6 +642,7 @@ if (window.location.protocol === 'https:') {
   });
   downloadlink_text.innerHTML = 'Download SHA-256 Circuit';
   downloadlink.appendChild(downloadlink_text);
+  let downloaded = false;
   downloadlink.addEventListener('click', async () => {
     if (downloaded) {
       return;
