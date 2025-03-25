@@ -93,7 +93,7 @@ class Bits32 {
   toString() {
     return this.toHexString();
   }
-  calc() {
+  compute() {
   }
 }
 Bits32.list = [];
@@ -104,7 +104,7 @@ class Bits32_and extends Bits32 {
     this.input1 = input1;
     this.input2 = input2;
   }
-  calc() {
+  compute() {
     for (let i = 0; i < 32; i++) {
       this.bits[i] = this.input1.bits[i] & this.input2.bits[i];
     }
@@ -117,7 +117,7 @@ class Bits32_or extends Bits32 {
     this.input1 = input1;
     this.input2 = input2;
   }
-  calc() {
+  compute() {
     for (let i = 0; i < 32; i++) {
       this.bits[i] = this.input1.bits[i] | this.input2.bits[i];
     }
@@ -130,7 +130,7 @@ class Bits32_xor extends Bits32 {
     this.input1 = input1;
     this.input2 = input2;
   }
-  calc() {
+  compute() {
     for (let i = 0; i < 32; i++) {
       this.bits[i] = this.input1.bits[i] ^ this.input2.bits[i];
     }
@@ -142,7 +142,7 @@ class Bits32_not extends Bits32 {
     super(0, row, column);
     this.input = input;
   }
-  calc() {
+  compute() {
     for (let i = 0; i < 32; i++) {
       this.bits[i] = 1 - this.input.bits[i];
     }
@@ -155,7 +155,7 @@ class Bits32_rightrotate extends Bits32 {
     this.input = input;
     this.rotateAmount = rotateAmount;
   }
-  calc() {
+  compute() {
     for (let i = 0; i < 32; i++) {
       this.bits[i] = this.input.bits[(32 + (i - this.rotateAmount)) % 32];
     }
@@ -168,7 +168,7 @@ class Bits32_rightshift extends Bits32 {
     this.input = input;
     this.shiftAmount = shiftAmount;
   }
-  calc() {
+  compute() {
     for (let i = 0; i < 32; i++) {
       if ((i - this.shiftAmount) >= 0) {
         this.bits[i] = this.input.bits[i - this.shiftAmount];
@@ -185,7 +185,7 @@ class Bits32_add extends Bits32 {
     this.input1 = input1;
     this.input2 = input2;
   }
-  calc() {
+  compute() {
     let carry = 0;
     let sum;
     for (let i = 31; i >= 0; --i) {
@@ -397,7 +397,7 @@ class Sha256Circuit {
     this.list = Bits32.list.slice();
     // run the circuit
     for (let i = 0; i < this.list.length; i++) {
-      this.list[i].calc();
+      this.list[i].compute();
     }
   }
   getHash() {
