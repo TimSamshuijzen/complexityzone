@@ -338,7 +338,6 @@ class Sha256Circuit {
         round.s1_0 = new Bits32_rightrotate(roundprior.e, 6, runningRow, runningColumn);
         runningColumn++;
         round.s1_1 = new Bits32_rightrotate(roundprior.e, 11, runningRow, runningColumn);
-        runningColumn++;
         runningRow++;
         runningColumn = 0;
         round.s1_2 = new Bits32_rightrotate(roundprior.e, 25, runningRow, runningColumn);
@@ -402,9 +401,6 @@ class Sha256Circuit {
     this.houtput = hcurrent;
     this.numberOfRows = runningRow;
     this.bits32List = Bits32.list.slice();
-    this.calc();
-  }
-  calc() {
     for (let i = 0; i < this.bits32List.length; i++) {
       this.bits32List[i].calc();
     }
@@ -415,9 +411,6 @@ class Sha256Circuit {
 }
 
 let sha256 = new Sha256Circuit('The quick brown fox jumps over the lazy dog');
-if (sha256.getHash() !== 'd7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592') {
-  console.log('ERROR');
-}
 
 const View = {
   components: {
@@ -576,7 +569,6 @@ const View = {
         this.components.outputHashCopyButton.style.backgroundColor = '#333333';
       }, 500);
     });
-    runningTop += 60;
     View.render();
   },
   render() {
