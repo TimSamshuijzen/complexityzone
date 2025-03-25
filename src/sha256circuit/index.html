@@ -561,8 +561,6 @@ const View = {
     this.render();
   },
   render() {
-    const leftOffset = 20;
-    const topOffset = 10;
     this.canvasHeight = (sha256.numberOfRows * this.bitSize) + 20;
     this.containerHeight = this.canvasHeight + 180;
     this.components.containerCenter.style.height = this.containerHeight + 'px';
@@ -573,6 +571,8 @@ const View = {
     this.components.outputHashCopyButton.style.top = ((this.canvasHeight + 130) - 2) + 'px';
     this.ctx.fillStyle = '#333333';
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+    const leftOffset = 20;
+    const topOffset = 10;
     const columnWidth = (this.bitSize * 32) + 10;
     const rowHeight = this.bitSize;
     for (let i = 0; i < Bits32.list.length; i++) {
