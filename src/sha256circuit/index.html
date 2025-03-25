@@ -394,7 +394,7 @@ class Sha256Circuit {
       column++;
       hcurrent[7] = new Bits32_add(hcurrent[7], roundprior.h, row, column);
       this.circuit.hstack.push(hcurrent.slice());
-      row++;
+      row += 2;
     }
     this.houtput = hcurrent;
     this.numberOfRows = row;
