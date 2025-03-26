@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <div style="position: relative; height: 40px; background-color: #333333;">
+  <div id="headerpanel" style="position: relative; height: 40px; background-color: #333333;">
     <div style="position: absolute; left: 20px; top: 0px; width: 200px; height: 40px;">
       <a href="https://complexity.zone/"><span style="color: #80cccc; font-size: 16px; line-height: 40px;">complexity.zone</span></a>
     </div>
@@ -35,8 +35,6 @@
           </svg>
         </a>
       </div>
-    </div>
-    <div id="headerpaneldownloadlink" style="position: absolute; left: 270px; top: 0px; width: 400px; height: 40px;">
     </div>
   </div>
   <div style="height: 10px; background-color: #333333;">
@@ -3722,9 +3720,19 @@ const View = {
 };
 View.init();
 
+// DOWNLOADLINKSTART
+// This code is removed in the downloaded html file.
 if (window.location.protocol === 'https:') {
-  let downloaded = false;
-  const headerpaneldownloadlink = document.getElementById('headerpaneldownloadlink');
+  const headerpanel = document.getElementById('headerpanel');
+  const headerpaneldownloadlink = document.createElement('div');
+  Object.assign(headerpaneldownloadlink.style, {
+    position: 'absolute',
+    left: '270px',
+    top: '0px',
+    width: '400px',
+    height: '40px'
+  });
+  headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
   downloadlink.title = 'Riemann Zeta Scope is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file.';
   Object.assign(downloadlink.style, {
@@ -3765,6 +3773,7 @@ if (window.location.protocol === 'https:') {
   });
   downloadlink_text.innerHTML = 'Download Riemann Zeta Scope';
   downloadlink.appendChild(downloadlink_text);
+  let downloaded = false;
   downloadlink.addEventListener('click', async () => {
     if (downloaded) {
       return;
@@ -3773,10 +3782,11 @@ if (window.location.protocol === 'https:') {
     downloadlink.title = '';
     downloadlink.style.cursor = 'default';
     downloadlink_svg.style.display = 'none';
-    downloadlink_text.innerHTML = 'Downloading Riemann Zeta Scope...';
+    downloadlink_text.innerHTML = 'downloading Riemann Zeta Scope...';
     try {
       const response = await fetch(window.location.href);
-      const html = await response.text();
+      let html = await response.text();
+      html = html.replace(/\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g, '');
       const blob = new Blob([html], {type: 'text/html'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -3785,19 +3795,19 @@ if (window.location.protocol === 'https:') {
       a.download = `RiemannZetaScope_${dateYYYYMMDD}.html`;
       a.click();
       URL.revokeObjectURL(url);
-      downloadlink_text.innerHTML = 'Downloaded to your Downloads folder';
+      downloadlink_text.innerHTML = 'downloaded to your Downloads folder';
       setTimeout(() => {
         downloadlink_text.innerHTML = '';
-      }, 3000);
+      }, 2000);
     } catch (error) {
-      downloadlink_text.innerHTML = 'Download error';
+      downloadlink_text.innerHTML = 'download error';
       setTimeout(() => {
         downloadlink_text.innerHTML = '';
-      }, 3000);
+      }, 2000);
     }
   });
 }
-
+// DOWNLOADLINKEND
   </script>
 </body>
 </html>
