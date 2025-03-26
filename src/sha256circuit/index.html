@@ -248,38 +248,36 @@ class Sha256Circuit {
       for (let j = 0; j < 16; j++) {
         chunk.w.push(this.circuit.blocks[blocki + j]);
       }
-      chunk.wsubCalcs16to64 = [];
       for (let j = 16; j < 64; j++) {
-        const wsubCalc = {};
-        chunk.wsubCalcs16to64.push(wsubCalc);
+        const wsub = {};
         column = 0;
-        wsubCalc.s0_0 = new Bits32_rightrotate(chunk.w[j - 15], 7, row, column);
+        wsub.s0_0 = new Bits32_rightrotate(chunk.w[j - 15], 7, row, column);
         column++;
-        wsubCalc.s0_1 = new Bits32_rightrotate(chunk.w[j - 15], 18, row, column);
+        wsub.s0_1 = new Bits32_rightrotate(chunk.w[j - 15], 18, row, column);
         column++;
-        wsubCalc.s0_2 = new Bits32_rightshift(chunk.w[j - 15], 3, row, column);
+        wsub.s0_2 = new Bits32_rightshift(chunk.w[j - 15], 3, row, column);
         column++;
-        wsubCalc.s0_3 = new Bits32_xor(wsubCalc.s0_0, wsubCalc.s0_1, row, column);
+        wsub.s0_3 = new Bits32_xor(wsub.s0_0, wsub.s0_1, row, column);
         column++;
-        wsubCalc.s0 = new Bits32_xor(wsubCalc.s0_3, wsubCalc.s0_2, row, column);
+        wsub.s0 = new Bits32_xor(wsub.s0_3, wsub.s0_2, row, column);
         column++;
-        wsubCalc.s1_0 = new Bits32_rightrotate(chunk.w[j - 2], 17, row, column);
+        wsub.s1_0 = new Bits32_rightrotate(chunk.w[j - 2], 17, row, column);
         column++;
-        wsubCalc.s1_1 = new Bits32_rightrotate(chunk.w[j - 2], 19, row, column);
+        wsub.s1_1 = new Bits32_rightrotate(chunk.w[j - 2], 19, row, column);
         column++;
-        wsubCalc.s1_2 = new Bits32_rightshift(chunk.w[j - 2], 10, row, column);
+        wsub.s1_2 = new Bits32_rightshift(chunk.w[j - 2], 10, row, column);
         column++;
-        wsubCalc.s1_3 = new Bits32_xor(wsubCalc.s1_0, wsubCalc.s1_1, row, column);
+        wsub.s1_3 = new Bits32_xor(wsub.s1_0, wsub.s1_1, row, column);
         column++;
-        wsubCalc.s1 = new Bits32_xor(wsubCalc.s1_3, wsubCalc.s1_2, row, column);
+        wsub.s1 = new Bits32_xor(wsub.s1_3, wsub.s1_2, row, column);
         column++;
-        wsubCalc.wj_0 = new Bits32_add(chunk.w[j - 16], wsubCalc.s0, row, column);
+        wsub.wj_0 = new Bits32_add(chunk.w[j - 16], wsub.s0, row, column);
         column++;
-        wsubCalc.wj_1 = new Bits32_add(wsubCalc.wj_0, chunk.w[j - 7], row, column);
+        wsub.wj_1 = new Bits32_add(wsub.wj_0, chunk.w[j - 7], row, column);
         column++;
-        wsubCalc.wj = new Bits32_add(wsubCalc.wj_1, wsubCalc.s1, row, column);
+        wsub.wj = new Bits32_add(wsub.wj_1, wsub.s1, row, column);
         column++;
-        chunk.w.push(wsubCalc.wj);
+        chunk.w.push(wsub.wj);
         row++;
       }
       chunk.a = hcurrent[0];
