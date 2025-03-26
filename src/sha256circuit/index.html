@@ -248,8 +248,10 @@ class Sha256Circuit {
       for (let j = 0; j < 16; j++) {
         chunk.w.push(this.circuit.blocks[blocki + j]);
       }
+      chunk.wsubs = [];
       for (let j = 16; j < 64; j++) {
         const wsub = {};
+        chunk.wsubs.push(wsub);
         column = 0;
         wsub.s0_0 = new Bits32_rightrotate(chunk.w[j - 15], 7, row, column);
         column++;
