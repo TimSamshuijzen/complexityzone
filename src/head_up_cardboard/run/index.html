@@ -70,7 +70,6 @@
         filter: alpha(opacity=60);
         color: #00dddd;
         text-align: left;
-        /* font-family: "Arial", "Sans-serif"; */
         font-family:  "Courier New", Courier, monospace;
         font-weight: bold;
         font-size: 12px;
@@ -87,7 +86,7 @@
         text-align: center;
         font-family: "Arial", "Sans-serif";
         font-size: 12px;
-        whiteSpace: nowrap;
+        white-space: nowrap;
       }
     </style>
   </head>
@@ -122,13 +121,6 @@
     </div>    
   </div>
 
-  <script>
-    /*
-      Thanks Mr.doob for Three.js.
-      Thanks http://planetpixelemporium.com/ for textures.
-      Thanks Google for Google Cardboard
-    */
-  </script>
   <script src="js/three.min.js"></script>
   <script src="js/StereoEffect.js"></script>
   <script src="js/DeviceOrientationControls.js"></script>
@@ -136,11 +128,6 @@
   <script src="js/tween.js"></script>
   
   <script>
-    /*
-      complexity.zone
-      Tim Samshuijzen
-      2014
-    */
     var camera, scene, renderer, raycaster;
     var effect, controls;
 
@@ -637,9 +624,6 @@
       }
     }
 
-    // If "guns don't kill people, people kill people", ...
-    // TODO: Better method for conditional sequential toasting.
-    
     if (isMobile) {
       toast('Test scene for Head-up Cardboard'); 
       toast('Get your Head-up Cardboard ready');
@@ -650,8 +634,6 @@
         'Open this page on your phone and place your phone in Head-up Cardboard.'
       ); 
     }
-    
-
     
   </script>
   </body>
