@@ -366,7 +366,7 @@ class Sha256Circuit {
       this.circuit.hstack.push(hCurrent.slice());
       row += 2;
     }
-    this.houtput = hCurrent;
+    this.hOutput = hCurrent;
     this.numberOfRows = row;
     this.list = Bits32.list.slice();
     // run the circuit
@@ -375,7 +375,7 @@ class Sha256Circuit {
     }
   }
   getHash() {
-    return this.houtput[0].toHexString() + this.houtput[1].toHexString() + this.houtput[2].toHexString() + this.houtput[3].toHexString() + this.houtput[4].toHexString() + this.houtput[5].toHexString() + this.houtput[6].toHexString() + this.houtput[7].toHexString();
+    return this.hOutput[0].toHexString() + this.hOutput[1].toHexString() + this.hOutput[2].toHexString() + this.hOutput[3].toHexString() + this.hOutput[4].toHexString() + this.hOutput[5].toHexString() + this.hOutput[6].toHexString() + this.hOutput[7].toHexString();
   }
 }
 
