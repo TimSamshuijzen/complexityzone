@@ -110,19 +110,6 @@ class Bits32_and extends Bits32 {
   }
 }
 
-class Bits32_or extends Bits32 {
-  constructor(input1, input2, row, column) {
-    super(0, row, column);
-    this.input1 = input1;
-    this.input2 = input2;
-  }
-  compute() {
-    for (let i = 0; i < 32; i++) {
-      this.bits[i] = this.input1.bits[i] | this.input2.bits[i];
-    }
-  }
-}
-
 class Bits32_xor extends Bits32 {
   constructor(input1, input2, row, column) {
     super(0, row, column);
@@ -233,13 +220,13 @@ class Sha256Circuit {
     ];
     column = 0;
     row += 3;
-    let hcurrent = new Array(H.length);
+    let hCurrent = new Array(H.length);
     for (let i = 0; i < H.length; i++) {
-      hcurrent[i] = new Bits32(H[i], row, i);
+      hCurrent[i] = new Bits32(H[i], row, i);
     }
     row++;
     this.circuit.hstack = [];
-    this.circuit.hstack.push(hcurrent.slice());
+    this.circuit.hstack.push(hCurrent.slice());
     this.circuit.chunks = [];
     for (let blocki = 0; blocki < this.circuit.blocks.length; blocki += 16) {
       const chunk = {};
@@ -282,16 +269,16 @@ class Sha256Circuit {
         chunk.w.push(wsub.wj);
         row++;
       }
-      chunk.a = hcurrent[0];
-      chunk.b = hcurrent[1];
-      chunk.c = hcurrent[2];
-      chunk.d = hcurrent[3];
-      chunk.e = hcurrent[4];
-      chunk.f = hcurrent[5];
-      chunk.g = hcurrent[6];
-      chunk.h = hcurrent[7];
+      chunk.a = hCurrent[0];
+      chunk.b = hCurrent[1];
+      chunk.c = hCurrent[2];
+      chunk.d = hCurrent[3];
+      chunk.e = hCurrent[4];
+      chunk.f = hCurrent[5];
+      chunk.g = hCurrent[6];
+      chunk.h = hCurrent[7];
       chunk.rounds = [];
-      let roundprior = {
+      let roundPrior = {
         a: chunk.a,
         b: chunk.b,
         c: chunk.c,
@@ -306,48 +293,48 @@ class Sha256Circuit {
         const round = {};
         chunk.rounds.push(round);
         column = 0;
-        round.s0_0 = new Bits32_rightrotate(roundprior.a, 2, row, column);
+        round.s0_0 = new Bits32_rightrotate(roundPrior.a, 2, row, column);
         column++;
-        round.s0_1 = new Bits32_rightrotate(roundprior.a, 13, row, column);
+        round.s0_1 = new Bits32_rightrotate(roundPrior.a, 13, row, column);
         column++;
-        round.s0_2 = new Bits32_rightrotate(roundprior.a, 22, row, column);
+        round.s0_2 = new Bits32_rightrotate(roundPrior.a, 22, row, column);
         column++;
         round.s0_3 = new Bits32_xor(round.s0_0, round.s0_1, row, column);
         column++;
         round.s0 = new Bits32_xor(round.s0_3, round.s0_2, row, column);
         column++;
-        round.maj_0 = new Bits32_and(roundprior.a, roundprior.b, row, column);
+        round.maj_0 = new Bits32_and(roundPrior.a, roundPrior.b, row, column);
         column++;
-        round.maj_1 = new Bits32_and(roundprior.a, roundprior.c, row, column);
+        round.maj_1 = new Bits32_and(roundPrior.a, roundPrior.c, row, column);
         column++;
         round.maj_2 = new Bits32_xor(round.maj_0, round.maj_1, row, column);
         column++;
-        round.maj_3 = new Bits32_and(roundprior.b, roundprior.c, row, column);
+        round.maj_3 = new Bits32_and(roundPrior.b, roundPrior.c, row, column);
         column++;
         round.maj = new Bits32_xor(round.maj_2, round.maj_3, row, column);
         column++;
         round.t2 = new Bits32_add(round.s0, round.maj, row, column);
         column++;
-        round.s1_0 = new Bits32_rightrotate(roundprior.e, 6, row, column);
+        round.s1_0 = new Bits32_rightrotate(roundPrior.e, 6, row, column);
         column++;
-        round.s1_1 = new Bits32_rightrotate(roundprior.e, 11, row, column);
+        round.s1_1 = new Bits32_rightrotate(roundPrior.e, 11, row, column);
         column = 0;
         row++;
-        round.s1_2 = new Bits32_rightrotate(roundprior.e, 25, row, column);
+        round.s1_2 = new Bits32_rightrotate(roundPrior.e, 25, row, column);
         column++;
         round.s1_3 = new Bits32_xor(round.s1_0, round.s1_1, row, column);
         column++;
         round.s1 = new Bits32_xor(round.s1_3, round.s1_2, row, column);
         column++;
-        round.ch_0 = new Bits32_and(roundprior.e, roundprior.f, row, column);
+        round.ch_0 = new Bits32_and(roundPrior.e, roundPrior.f, row, column);
         column++;
-        round.ch_1 = new Bits32_not(roundprior.e, row, column);
+        round.ch_1 = new Bits32_not(roundPrior.e, row, column);
         column++;
-        round.ch_2 = new Bits32_and(round.ch_1, roundprior.g, row, column);
+        round.ch_2 = new Bits32_and(round.ch_1, roundPrior.g, row, column);
         column++;
         round.ch = new Bits32_xor(round.ch_0, round.ch_2, row, column);
         column++;
-        round.t1_0 = new Bits32_add(roundprior.h, round.s1, row, column);
+        round.t1_0 = new Bits32_add(roundPrior.h, round.s1, row, column);
         column++;
         round.t1_1 = new Bits32_add(round.t1_0, round.ch, row, column);
         column++;
@@ -357,41 +344,41 @@ class Sha256Circuit {
         column++;
         round.t1 = new Bits32_add(round.t1_2, chunk.w[j], row, column);
         column++;
-        round.h = roundprior.g;
-        round.g = roundprior.f;
-        round.f = roundprior.e;
-        round.e_0 = new Bits32_add(roundprior.d, round.t1, row, column);
+        round.h = roundPrior.g;
+        round.g = roundPrior.f;
+        round.f = roundPrior.e;
+        round.e_0 = new Bits32_add(roundPrior.d, round.t1, row, column);
         column++;
         round.e = round.e_0;
-        round.d = roundprior.c;
-        round.c = roundprior.b;
-        round.b = roundprior.a;
+        round.d = roundPrior.c;
+        round.c = roundPrior.b;
+        round.b = roundPrior.a;
         round.a_0 = new Bits32_add(round.t1, round.t2, row, column);
         round.a = round.a_0;
-        roundprior = round;
+        roundPrior = round;
         row++;
       }
       row += 3;
       column = 0;
-      hcurrent[0] = new Bits32_add(hcurrent[0], roundprior.a, row, column);
+      hCurrent[0] = new Bits32_add(hCurrent[0], roundPrior.a, row, column);
       column++;
-      hcurrent[1] = new Bits32_add(hcurrent[1], roundprior.b, row, column);
+      hCurrent[1] = new Bits32_add(hCurrent[1], roundPrior.b, row, column);
       column++;
-      hcurrent[2] = new Bits32_add(hcurrent[2], roundprior.c, row, column);
+      hCurrent[2] = new Bits32_add(hCurrent[2], roundPrior.c, row, column);
       column++;
-      hcurrent[3] = new Bits32_add(hcurrent[3], roundprior.d, row, column);
+      hCurrent[3] = new Bits32_add(hCurrent[3], roundPrior.d, row, column);
       column++;
-      hcurrent[4] = new Bits32_add(hcurrent[4], roundprior.e, row, column);
+      hCurrent[4] = new Bits32_add(hCurrent[4], roundPrior.e, row, column);
       column++;
-      hcurrent[5] = new Bits32_add(hcurrent[5], roundprior.f, row, column);
+      hCurrent[5] = new Bits32_add(hCurrent[5], roundPrior.f, row, column);
       column++;
-      hcurrent[6] = new Bits32_add(hcurrent[6], roundprior.g, row, column);
+      hCurrent[6] = new Bits32_add(hCurrent[6], roundPrior.g, row, column);
       column++;
-      hcurrent[7] = new Bits32_add(hcurrent[7], roundprior.h, row, column);
-      this.circuit.hstack.push(hcurrent.slice());
+      hCurrent[7] = new Bits32_add(hCurrent[7], roundPrior.h, row, column);
+      this.circuit.hstack.push(hCurrent.slice());
       row += 2;
     }
-    this.houtput = hcurrent;
+    this.houtput = hCurrent;
     this.numberOfRows = row;
     this.list = Bits32.list.slice();
     // run the circuit
@@ -455,6 +442,7 @@ const View = {
     this.components.inputMessage = document.createElement('input');
     this.components.inputMessage.type = 'text';
     this.components.inputMessage.value = sha256.message;
+    this.components.inputMessage.name = 'inputMessage';
     Object.assign(this.components.inputMessage.style, {
       display: 'block',
       position: 'absolute',
