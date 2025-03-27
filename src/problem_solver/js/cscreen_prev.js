@@ -1,5 +1,3 @@
-// Copyright 2012 Tim Samshuijzen.
-
 include("cbase.js");
 include("cdom.js");
 include("cpanel.js");

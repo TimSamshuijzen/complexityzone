@@ -1,5 +1,3 @@
-// Copyright 2012 Tim Samshuijzen.
-
 function include() {
   // This dummy function is to be able to include individual files without compiler.
 }

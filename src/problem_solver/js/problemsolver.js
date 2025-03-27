@@ -9854,20 +9854,8 @@ function cProblemSolverApp(aContainer) {
           innerHTML: 
             '<span style="font-style: italic;">A solution looking for a problem</span><br />\n' +
             '<br />\n' +
-            'Problem Solver is the result of experimenting with JavaScript and a history of personal interest in AI and CS.\n' +
             'Problem Solver is an online programmable "game tree viewer", a web application for those who are looking for a tool to analyse puzzles, problems and algorithms.\n' +
-            'Many simple puzzles (see the puzzles in the "examples" menu) can be modelled in Problem Solver, and it\'s solutions (goals) can simply be discovered in the "multiverse viewer".\n' +
-            'However, when modelling complex problems or puzzles, you will find that the multiverse (game tree) grows too fast, with no solution in sight.\n' +
-            'Therefore, Problem Solver is not necessarily intended for solving large complex problems, but merely a tool for gaining understanding and appreciation for the nature\n' +
-            'and complexity of a problem of interest.\n' +
-            'Problem Solver works best on a modern desktop PC or laptop with a large screen resolution.<br />\n' +
-            'Please note that Problem Solver is still in the beta-phase of development.<br />\n' +
-            '<br />\n' +
-            'Feedback and comments are appreciated.<br />\n' +
-            '<br />\n' +
-            'Tim Samshuijzen<br />\n' +
-            '<a href="mailto:timsamshuijzen@gmail.com" style="color: #cccccc; text-decoration: none;">timsamshuijzen@gmail.com</a><br />\n' +
-            '<a href="http://complexity.zone/" target="_blank" style="color: #cccccc; text-decoration: none;">complexity.zone</a><br />\n' +
+            'Simple puzzles (see the puzzles in the "examples" menu) can be modelled in Problem Solver, and it\'s solutions are visible in the multiverse viewer.\n' +
             '<br />\n'
         });
         lModalPanel.dialogPanel.contentScrollPanel.panelBox.panels.push(lModalPanel.dialogPanel.messagePanel);

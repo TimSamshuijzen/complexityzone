@@ -1,5 +1,3 @@
-// Copyright 2012 Tim Samshuijzen.
-
 include("cbase.js");
 include("cpanel.js");
 include("ciframepanel.js");

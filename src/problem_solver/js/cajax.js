@@ -1,4 +1,3 @@
-// Copyright 2012 Tim Samshuijzen.
 
 var cAjaxMaxTimeout = 20000;
 

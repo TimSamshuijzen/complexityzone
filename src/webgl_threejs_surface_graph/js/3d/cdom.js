@@ -1,6 +1,4 @@
-// Copyright 2012 Tim Samshuijzen.
 
-// Static class cDOM.
 var cDOM = {
   getElement: function(id) {
     return document.getElementById(id);

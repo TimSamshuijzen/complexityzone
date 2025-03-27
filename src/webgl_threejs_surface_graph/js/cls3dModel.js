@@ -1,6 +1,4 @@
 
-// Tim Samshuijzen 2013
-
 /**
  *  Class cls3dModel
  */

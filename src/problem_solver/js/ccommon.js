@@ -1,4 +1,3 @@
-// Copyright 2012 Tim Samshuijzen.
 
 if (typeof Object.create !== 'function') {
   (function () {

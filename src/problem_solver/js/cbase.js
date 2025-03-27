@@ -1,5 +1,3 @@
-// Copyright 2012 Tim Samshuijzen.
-
 include("ccommon.js");
 
 /**
