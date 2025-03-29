@@ -394,13 +394,15 @@ const View = {
   },
   bitSize: 3,
   maxChunks: 3,
+  containerHeaderHeight: 85,
+  containerFooterHeight: 80,
   canvasWidth: 1520,
   canvasHeight: 0,
   containerHeight: 0,
   ctx: null,
   init() {
-    this.canvasHeight = (sha256.numberOfRows * this.bitSize) + 30;
-    this.containerHeight = this.canvasHeight + 180;
+    this.canvasHeight = (sha256.numberOfRows * this.bitSize) + 10;
+    this.containerHeight = this.containerHeaderHeight + this.canvasHeight + this.containerFooterHeight;
     this.components.container = document.getElementById('container');
     this.components.containerCenter = document.createElement('div');
     Object.assign(this.components.containerCenter.style, {
@@ -436,7 +438,7 @@ const View = {
       position: 'absolute',
       left: 20 + 'px',
       top: 40 + 'px',
-      width: 1470 + 'px',
+      width: (this.canvasWidth - 50) + 'px',
       height: 30 + 'px',
       fontSize: '19px',
       lineHeight: 30 + 'px'
@@ -471,7 +473,7 @@ const View = {
       display: 'block',
       position: 'absolute',
       left: 0 + 'px',
-      top: 90 + 'px',
+      top: this.containerHeaderHeight + 'px',
       width: this.canvasWidth + 'px',
       height: this.canvasHeight + 'px',
       overflow: 'hidden'
@@ -479,12 +481,12 @@ const View = {
     this.components.containerCenter.appendChild(this.components.canvas);
     this.ctx = this.components.canvas.getContext('2d');
     this.components.outputHashLabel = document.createElement('div');
-    this.components.outputHashLabel.innerHTML = 'SHA-256 hash';
+    this.components.outputHashLabel.innerHTML = 'hash';
     Object.assign(this.components.outputHashLabel.style, {
       display: 'block',
       position: 'absolute',
       left: 20 + 'px',
-      top: 691 + 'px',
+      top: (this.containerHeaderHeight + this.canvasHeight + 10) + 'px',
       width: 900 + 'px',
       height: 30 + 'px',
       color: '#ffffff',
@@ -498,7 +500,7 @@ const View = {
       display: 'block',
       position: 'absolute',
       left: 20 + 'px',
-      top: 721 + 'px',
+      top: (this.containerHeaderHeight + this.canvasHeight + 40) + 'px',
       width: 900 + 'px',
       height: 30 + 'px',
       color: '#DEDB4B',
@@ -513,7 +515,7 @@ const View = {
       display: 'block',
       position: 'absolute',
       left: 930 + 'px',
-      top: 719 + 'px',
+      top: (this.containerHeaderHeight + this.canvasHeight + 38) + 'px',
       width: 28 + 'px',
       height: 28 + 'px',
       backgroundColor: '#333333',
@@ -536,18 +538,18 @@ const View = {
     this.render();
   },
   render() {
-    this.canvasHeight = (sha256.numberOfRows * this.bitSize) + 20;
-    this.containerHeight = this.canvasHeight + 180;
+    this.canvasHeight = (sha256.numberOfRows * this.bitSize) + 10;
+    this.containerHeight = this.containerHeaderHeight + this.canvasHeight + this.containerFooterHeight;
     this.components.containerCenter.style.height = this.containerHeight + 'px';
     this.components.canvas.height = this.canvasHeight;
     this.components.canvas.style.height = this.canvasHeight + 'px';
-    this.components.outputHashLabel.style.top = (this.canvasHeight + 100) + 'px';
-    this.components.outputHash.style.top = (this.canvasHeight + 130) + 'px';
-    this.components.outputHashCopyButton.style.top = ((this.canvasHeight + 130) - 2) + 'px';
+    this.components.outputHashLabel.style.top = (this.containerHeaderHeight + this.canvasHeight + 0) + 'px';
+    this.components.outputHash.style.top = (this.containerHeaderHeight + this.canvasHeight + 30) + 'px';
+    this.components.outputHashCopyButton.style.top = (this.containerHeaderHeight + this.canvasHeight + 28) + 'px';
     this.ctx.fillStyle = '#333333';
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     const leftOffset = 20;
-    const topOffset = 10;
+    const topOffset = 5;
     const columnWidth = (this.bitSize * 32) + 10;
     const rowHeight = this.bitSize;
     for (let i = 0; i < Bits32.list.length; i++) {
