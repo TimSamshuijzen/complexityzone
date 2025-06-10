@@ -28,7 +28,8 @@
   </div>
   <script>
 
-// HTML3D - a lightweight JavaScript library for creating interactive 3D scenes
+// HTML3D
+// A lightweight library for creating interactive 3D scenes.
 
 class HTML3D {
   constructor(container, scene) {
@@ -651,7 +652,6 @@ class HTML3D {
 
 // =====================================================================
 // scene
-// HTML3D showcase
 
 const cameraHeight = 900;
 const buildingWidth = 10000;
@@ -676,7 +676,7 @@ function initAudioContext() {
   return Promise.resolve();
 }
 
-const scene_HTML3Dshowcase = {
+const scene_HTML3Ddemo = {
   camera: {
     x: doorWidth / 2,
     y: -cameraHeight,
@@ -687,7 +687,7 @@ const scene_HTML3Dshowcase = {
   },
   panels: [
     {
-      id: 'html3dshowcase',
+      id: 'html3dInstructions',
       width: 1500,
       height: 1500,
       x: -1500, 
@@ -702,7 +702,7 @@ const scene_HTML3Dshowcase = {
       innerHTML: `
         <div style="position: absolute; left: 0px; top: 0px; width: 1500px; height: 150px; background-color: #000000;">
           <div style="position: absolute; left: 100px; top: 0px; width: 1400px; height: 150px; color: #ffffff; font-size: 100px; line-height: 150px;">
-            HTML3D showcase
+            HTML3D
           </div>
         </div>
         <div style="position: absolute; left: 100px; top: 200px; width: 1100px; height: 150px; color: #ffffff; font-size: 100px;">
@@ -2337,7 +2337,7 @@ const scene_HTML3Dshowcase = {
 };
 
 // run the scene
-const html3dInstance = new HTML3D(document.getElementById('container'), scene_HTML3Dshowcase);
+const html3dInstance = new HTML3D(document.getElementById('container'), scene_HTML3Ddemo);
 
 // DOWNLOADLINKSTART
 // This code is removed in the downloaded html file.
@@ -2353,7 +2353,7 @@ if (window.location.protocol === 'https:') {
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'HTML3D showcase is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file.';
+  downloadlink.title = 'HTML3D is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '10px',
@@ -2390,7 +2390,7 @@ if (window.location.protocol === 'https:') {
     lineHeight: '24px',
     whiteSpace: 'nowrap'
   });
-  downloadlink_text.innerHTML = 'Download HTML3D showcase';
+  downloadlink_text.innerHTML = 'Download HTML3D';
   downloadlink.appendChild(downloadlink_text);
   let downloaded = false;
   downloadlink.addEventListener('click', async () => {
@@ -2401,7 +2401,7 @@ if (window.location.protocol === 'https:') {
     downloadlink.title = '';
     downloadlink.style.cursor = 'default';
     downloadlink_svg.style.display = 'none';
-    downloadlink_text.innerHTML = 'downloading HTML3D showcase...';
+    downloadlink_text.innerHTML = 'downloading HTML3D ...';
     try {
       const response = await fetch(window.location.href);
       let html = await response.text();
@@ -2411,7 +2411,7 @@ if (window.location.protocol === 'https:') {
       const a = document.createElement('a');
       const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       a.href = url;
-      a.download = `html3dshowcase_${dateYYYYMMDD}.html`;
+      a.download = `html3d_${dateYYYYMMDD}.html`;
       a.click();
       URL.revokeObjectURL(url);
       downloadlink_text.innerHTML = 'downloaded to your Downloads folder';
