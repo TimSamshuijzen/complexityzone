@@ -28,6 +28,8 @@
   </div>
   <script>
 
+// HTML3D - a lightweight JavaScript library for creating 3D scenes using HTML elements
+
 class HTML3D {
   constructor(container, scene) {
     this.camera = {
@@ -39,7 +41,6 @@ class HTML3D {
       collisionWidth: ((typeof scene?.camera?.collisionWidth === 'number') ? scene.camera.collisionWidth : 300),
       collisionHeight: ((typeof scene?.camera?.collisionHeight === 'number') ? scene.camera.collisionHeight : 600),
       fov: ((typeof scene?.camera?.fov === 'number') ? scene.camera.fov : 70),
-      focalLength: 0,
       worldMatrix: new HTML3D.Matrix4(),
       viewMatrix: new HTML3D.Matrix4(),
       updateWorldMatrix() {
@@ -91,8 +92,7 @@ class HTML3D {
     document.addEventListener('keyup', (event) => { 
       this.keyboard[event.code] = false; 
     });
-    window.addEventListener('resize', () => this.resize());
-    this.resize();
+    window.addEventListener('resize', () => { this.requestRender = true; });
     this._thread();
   }
   exportScene() {
@@ -139,10 +139,6 @@ class HTML3D {
         panel.init(this, panel);
       }
     }
-    this.resize();
-  }
-  resize() {
-    this.camera.focalLength = (0.5 * window.innerHeight) / Math.tan((this.camera.fov * 0.5 * Math.PI) / 180);
     this.requestRender = true;
   }
   render() {
@@ -152,7 +148,7 @@ class HTML3D {
     for (let i = 0; i < this.panels.length; i++) {
       const panel = this.panels[i];
       panel.render();
-      if (typeof panel.postRender === 'function') {
+      if (panel.postRender !== null) {
         panel.postRender(this, panel);
       }
     }
@@ -166,7 +162,7 @@ class HTML3D {
       this.render();
     }
     for (const panel of this.panels) {
-      if (typeof panel.animate === 'function') {
+      if (panel.animate !== null) {
         panel.animate(this, panel);
       }
     }
@@ -2340,6 +2336,7 @@ const scene_HTML3Dshowcase = {
   ]
 };
 
+// run the scene
 const html3dInstance = new HTML3D(document.getElementById('container'), scene_HTML3Dshowcase);
 
 // DOWNLOADLINKSTART
