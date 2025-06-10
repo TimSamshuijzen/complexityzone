@@ -142,9 +142,11 @@ class HTML3D {
     this.requestRender = true;
   }
   render() {
-    const focalLength = (0.5 * window.innerHeight) / Math.tan((this.camera.fov * 0.5 * Math.PI) / 180);
+    const innerWidth = this.container.clientWidth;
+    const innerHeight = this.container.clientHeight;
+    const focalLength = (0.5 * innerHeight) / Math.tan((this.camera.fov * 0.5 * Math.PI) / 180);
     this.camera.viewMatrix.copy(this.camera.worldMatrix).invert();
-    this.sceneContainer.style.transform = `perspective(${focalLength}px) scale(1) translateZ(${focalLength}px) ${this.camera.viewMatrix.toCSSMatrixString()} translate(${window.innerWidth / 2}px, ${window.innerHeight / 2}px)`;
+    this.sceneContainer.style.transform = `perspective(${focalLength}px) scale(1) translateZ(${focalLength}px) ${this.camera.viewMatrix.toCSSMatrixString()} translate(${innerWidth / 2}px, ${innerHeight / 2}px)`;
     for (let i = 0; i < this.panels.length; i++) {
       const panel = this.panels[i];
       panel.render();
@@ -678,7 +680,7 @@ const scene_HTML3Dshowcase = {
   camera: {
     x: doorWidth / 2,
     y: -cameraHeight,
-    z: 11000,
+    z: 10600,
     rotationY: 0,
     collisionWidth: 300,
     collisionHeight: (cameraHeight - 200)
@@ -690,7 +692,7 @@ const scene_HTML3Dshowcase = {
       height: 1500,
       x: -1500, 
       y: -1500,
-      z: 9000,
+      z: 8200,
       rotationX: 0,
       rotationY: 0,
       obstruction: true,
@@ -704,7 +706,7 @@ const scene_HTML3Dshowcase = {
           </div>
         </div>
         <div style="position: absolute; left: 100px; top: 200px; width: 1100px; height: 150px; color: #ffffff; font-size: 100px;">
-          move
+          move / turn
         </div>
         <div style="position: absolute; left: 200px; top: 350px; width: 1300px; height: 420px;">
           <div style="position: absolute; left: 0px; top: 0px; width: 380px; height: 250px;">
@@ -769,7 +771,7 @@ const scene_HTML3Dshowcase = {
       height: 1500,
       x: doorWidth, 
       y: -1500,
-      z: 9000,
+      z: 8200,
       rotationX: 0,
       rotationY: 0,
       obstruction: true,
