@@ -2380,7 +2380,7 @@ const scene_HTML3Ddemo = {
       interaction: true,
       backgroundColor: 'transparent',
       innerHTML: `
-        <div id="arcadeCabinetFrontBottomStartButtonText" style="position: absolute; left: 10px; top: 10px; width: 80px; height: 80px; border: 5px solid #FFDF00; border-radius: 60px; background-color: transparent; color: #ffffff; text-align: center; font-size: 40px; line-height: 80px; font-family: 'Arial'; font-weight: bold; box-shadow: 0 0 15px #FFDF00; text-shadow: 0 0 8px #FFDF00;">
+        <div id="arcadeCabinetFrontBottomStartButton_div" title="Start or stop the game." style="position: absolute; left: 10px; top: 10px; width: 80px; height: 80px; border: 5px solid #FFDF00; border-radius: 60px; background-color: transparent; color: #ffffff; text-align: center; font-size: 40px; line-height: 80px; font-family: 'Arial'; font-weight: bold; box-shadow: 0 0 15px #FFDF00; text-shadow: 0 0 8px #FFDF00;">
           ⏻
         </div>
       `,
@@ -2391,10 +2391,10 @@ const scene_HTML3Ddemo = {
           arcadeIframe.element.style.pointerEvents = 'auto';
           arcadeIframe.element.style.userSelect = 'auto';
           arcadeIframe.iframe.srcdoc = pageCode;
-          const arcadeCabinetFrontBottomStartButtonText = document.getElementById('arcadeCabinetFrontBottomStartButtonText');
-          arcadeCabinetFrontBottomStartButtonText.style.border = '5px solid #55F755';
-          arcadeCabinetFrontBottomStartButtonText.style.boxShadow = '0 0 15px #00F700';
-          arcadeCabinetFrontBottomStartButtonText.style.textShadow = '0 0 8px #55F755';
+          const arcadeCabinetFrontBottomStartButton_div = document.getElementById('arcadeCabinetFrontBottomStartButton_div');
+          arcadeCabinetFrontBottomStartButton_div.style.border = '5px solid #55F755';
+          arcadeCabinetFrontBottomStartButton_div.style.boxShadow = '0 0 15px #00F700';
+          arcadeCabinetFrontBottomStartButton_div.style.textShadow = '0 0 8px #55F755';
           const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
           arcadeCabinetFrontBottomDescription.style.visibility = 'visible';
           const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
@@ -2404,10 +2404,10 @@ const scene_HTML3Ddemo = {
           arcadeIframe.element.style.pointerEvents = 'none';
           arcadeIframe.element.style.userSelect = 'none';
           arcadeIframe.iframe.srcdoc = arcadeIframe.iframeHtml;
-          const arcadeCabinetFrontBottomStartButtonText = document.getElementById('arcadeCabinetFrontBottomStartButtonText');
-          arcadeCabinetFrontBottomStartButtonText.style.border = '5px solid #FFDF00';
-          arcadeCabinetFrontBottomStartButtonText.style.boxShadow = '0 0 15px #F77C00';
-          arcadeCabinetFrontBottomStartButtonText.style.textShadow = '0 0 8px #F77C00';
+          const arcadeCabinetFrontBottomStartButton_div = document.getElementById('arcadeCabinetFrontBottomStartButton_div');
+          arcadeCabinetFrontBottomStartButton_div.style.border = '5px solid #FFDF00';
+          arcadeCabinetFrontBottomStartButton_div.style.boxShadow = '0 0 15px #F77C00';
+          arcadeCabinetFrontBottomStartButton_div.style.textShadow = '0 0 8px #F77C00';
           const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
           arcadeCabinetFrontBottomDescription.style.visibility = 'hidden';
           const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
@@ -2418,7 +2418,7 @@ const scene_HTML3Ddemo = {
     {
       id: 'arcadeCabinetFrontBottomImportSceneButton',
       width: 280,
-      height: 70,
+      height: 60,
       x: (3000 + 650), 
       y: -525,
       z: -1640,
@@ -2428,18 +2428,18 @@ const scene_HTML3Ddemo = {
       interaction: true,
       backgroundColor: 'transparent',
       innerHTML: `
-        <button id="arcadeCabinetFrontBottomImportSceneButton_button" title="Import a copy of your scene into the game.\nEverything will be the same, except the game in the game is not yet started." style="position: absolute; left: 10px; top: 10px; width: 260px; height: 50px; color: #000000; text-align: center; font-size: 26px; box-shadow: 0 0 5px #ffffff; cursor: pointer;">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 30px; height: 30px;" fill="#000000" stroke="none">
+        <div id="arcadeCabinetFrontBottomImportSceneButton_div" title="Import a copy of your scene into the game.\nEverything will be in the same state, except the game in the game is not yet started." style="position: absolute; left: 10px; top: 10px; width: 260px; height: 60px; border: 5px solid #00FFDF; border-radius: 10px; background-color: transparent; color: #ffffff; text-align: center; font-size: 22px; line-height: 60px; font-family: 'Arial'; font-weight: bold; box-shadow: 0 0 5px #00FFDF; text-shadow: 0 0 2px #00FFDF; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 30px; height: 30px;" fill="#ffffff" stroke="none">
             <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"></path>
           </svg>
           import scene
-        </button>
+        </div>
       `,
       init(html3d, panel) {
         const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
         importButton.style.visibility = 'hidden';
-        const importButton_button = document.getElementById('arcadeCabinetFrontBottomImportSceneButton_button');
-        importButton_button.addEventListener('click', () => {
+        const importButton_div = document.getElementById('arcadeCabinetFrontBottomImportSceneButton_div');
+        importButton_div.addEventListener('click', () => {
           const iframeHtml3dInstance = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow?.html3dInstance;
           if (iframeHtml3dInstance) {
             const sceneData = html3d.export();
