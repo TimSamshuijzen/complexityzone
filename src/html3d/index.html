@@ -752,9 +752,9 @@ const scene_HTML3Ddemo = {
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 200px; height: 200px;">
             <path fill="#ffffff" d="M11,1.07C7.05,1.56 4,4.92 4,9H11M4,15A8,8 0 0,0 12,23A8,8 0 0,0 20,15V11H4M13,1.07V9H20C20,4.92 16.94,1.56 13,1.07Z" />
           </svg>
-          <div style="position: absolute; left: 280px; top: 0px; width: 900px; height: 350px; color: #ffffff; font-size: 45px;">
+          <div style="position: absolute; left: 280px; top: 0px; width: 900px; height: 350px; color: #ffffff; font-size: 42px;">
             All objects are HTML elements, positioned in 3D space with CSS 3D transforms.
-            Note that when an input field has focus, the keys for moving and turning are disabled.
+            You can click on them to interact. When an input field has focus, the keys for moving and turning are disabled.
             To resume being able to move with the keyboard, click outside the input field.
           </div>
         </div>
@@ -784,37 +784,37 @@ const scene_HTML3Ddemo = {
         </div>
         <div style="position: absolute; left: 1150px; top: 250px; width: 400px; height: 240px; color: #ffffff; font-size: 24px;">
           <span style="font-size: 50px;">🛈</span><br />
-          This json code describes the entire scene, including camera position and this scene editor. You can modify the json code and write it to the HTML3D engine.<br />
+          This json code describes the entire scene, including camera position and this scene editor. You can modify the json code and write it to HTML3D.<br />
         </div>
-        <button id="scenejsonReadButton" title="Read current scene state from HTML3D and update the editor." style="position: absolute; left: 1150px; top: 500px; width: 400px; height: 50px; font-size: 26px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
+        <button id="scenejsonReadButton" title="Read current scene state (including camera position) from HTML3D and update the editor." style="position: absolute; left: 1150px; top: 500px; width: 400px; height: 50px; font-size: 24px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
           <span style="display: inline-block; width: 26px; height: 26px;"></span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 26px; height: 26px;" fill="#000000" stroke="none">
             <path d="M13,22L3,12L13,2V8H21V16H13V22M6,12L11,17V14H19V10H11V7L6,12Z"></path>
           </svg>
           Read scene from HTML3D
         </button>
-        <button id="scenejsonWriteButton" title="Send scene json to HTML3D and render the new scene." style="position: absolute; left: 1150px; top: 570px; width: 400px; height: 50px; font-size: 26px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
+        <button id="scenejsonWriteButton" title="Send scene in editor to HTML3D and render the new scene.\nWarning: You will teleport to the new camera position." style="position: absolute; left: 1150px; top: 570px; width: 400px; height: 50px; font-size: 24px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
           <span style="display: inline-block; width: 26px; height: 26px;"></span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 26px; height: 26px;" fill="#000000" stroke="none">
             <path d="M11,16H3V8H11V2L21,12L11,22V16M13,7V10H5V14H13V17L18,12L13,7Z"></path>
           </svg>
           Write scene to HTML3D
         </button>
-        <button id="scenejsonCopyToClipboardButton" style="position: absolute; left: 1150px; top: 760px; width: 400px; height: 50px; font-size: 26px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
+        <button id="scenejsonCopyToClipboardButton" style="position: absolute; left: 1150px; top: 760px; width: 400px; height: 50px; font-size: 24px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
           <span style="display: inline-block; width: 26px; height: 26px;"></span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 26px; height: 26px;" fill="#000000" stroke="none">
             <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path>
           </svg>
           Copy scene to clipboard
         </button>
-        <button id="scenejsonDownloadFileButton" style="position: absolute; left: 1150px; top: 830px; width: 400px; height: 50px; font-size: 26px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
+        <button id="scenejsonDownloadFileButton" style="position: absolute; left: 1150px; top: 830px; width: 400px; height: 50px; font-size: 24px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
           <span style="display: inline-block; width: 26px; height: 26px;"></span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 26px; height: 26px;" fill="#000000" stroke="none">
             <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"></path>
           </svg>
           Download scene json file
         </button>
-        <button id="scenejsonLoadFromFileButton" style="position: absolute; left: 1150px; top: 900px; width: 400px; height: 50px; font-size: 26px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
+        <button id="scenejsonLoadFromFileButton" style="position: absolute; left: 1150px; top: 900px; width: 400px; height: 50px; font-size: 24px; background-color: #f0f0f0; color: #000000; white-space: nowrap; text-align: left; cursor: pointer;">
           <span style="display: inline-block; width: 26px; height: 26px;"></span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 26px; height: 26px;" fill="#000000" stroke="none">
             <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"></path>
@@ -1764,7 +1764,7 @@ const scene_HTML3Ddemo = {
     },
     {
       id: 'testPanelControllerStand',
-      width: 600,
+      width: 640,
       height: ((wallHeight / 2) - 100),
       x: 600,
       y: -((wallHeight / 2) - 100),
@@ -1777,7 +1777,7 @@ const scene_HTML3Ddemo = {
     },
     {
       id: 'testPanelControllerPanel',
-      width: 600,
+      width: 640,
       height: 370,
       x: 600,
       y: -((wallHeight / 2) - 100),
@@ -1788,56 +1788,74 @@ const scene_HTML3Ddemo = {
       interaction: true,
       backgroundColor: '#222222',
       innerHTML: `
-        <div style="position: absolute; left: 0px; top: 55px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+        <div id="testPanelControllerPanel_header" style="position: absolute; left: 170px; top: 10px; width: 400px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 18px;">
+          TEST PANEL CONTROLLER
+        </div>
+        <div style="position: absolute; left: 0px; top: 55px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           width
         </div>
-          <input id="testPanelControllerPanel_width" type="range" min="10" max="1000" step="10" style="position: absolute; left: 170px; top: 55px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #ff0000; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_width_value" style="position: absolute; left: 450px; top: 55px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_width" type="range" min="10" max="1000" step="10" style="position: absolute; left: 170px; top: 55px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #ff0000; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_width_value" style="position: absolute; left: 450px; top: 55px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             width value
           </div>
-        <div style="position: absolute; left: 0px; top: 90px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+        <div style="position: absolute; left: 0px; top: 90px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           height
         </div>
-          <input id="testPanelControllerPanel_height" type="range" min="10" max="1000" step="10" style="position: absolute; left: 170px; top: 90px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #00ff00; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_height_value" style="position: absolute; left: 450px; top: 90px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_height" type="range" min="10" max="1000" step="10" style="position: absolute; left: 170px; top: 90px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #00ff00; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_height_value" style="position: absolute; left: 450px; top: 90px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             height value
           </div>
-        <div style="position: absolute; left: 0px; top: 125px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+        <div style="position: absolute; left: 0px; top: 125px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           x
         </div>
-          <input id="testPanelControllerPanel_x" type="range" min="-1000" max="2000" step="10" style="position: absolute; left: 170px; top: 125px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #ff0000; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_x_value" style="position: absolute; left: 450px; top: 125px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_x" type="range" min="-2000" max="2000" step="10" style="position: absolute; left: 170px; top: 125px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #ff0000; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_x_value" style="position: absolute; left: 450px; top: 125px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             x value
           </div>
-        <div style="position: absolute; left: 0px; top: 160px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+          <button id="testPanelControllerPanel_x_value_reset" title="reset to 0" style="position: absolute; left: 550px; top: 125px; width: 50px; height: 22px; color: #000000; font-size: 12px; cursor: pointer;">
+            reset
+          </button>
+        <div style="position: absolute; left: 0px; top: 160px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           y
         </div>
-          <input id="testPanelControllerPanel_y" type="range" min="-3000" max="0" step="10" style="position: absolute; left: 170px; top: 160px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #00ff00; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_y_value" style="position: absolute; left: 450px; top: 160px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_y" type="range" min="-3000" max="3000" step="10" style="position: absolute; left: 170px; top: 160px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #00ff00; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_y_value" style="position: absolute; left: 450px; top: 160px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             y value
           </div>
-        <div style="position: absolute; left: 0px; top: 195px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+          <button id="testPanelControllerPanel_y_value_reset" title="reset to 0\nNote that y needs to be negative for it to be above the floor." style="position: absolute; left: 550px; top: 160px; width: 50px; height: 22px; color: #000000; font-size: 12px; cursor: pointer;">
+            reset
+          </button>
+        <div style="position: absolute; left: 0px; top: 195px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           z
         </div>
-          <input id="testPanelControllerPanel_z" type="range" min="-1000" max="1000" step="10" style="position: absolute; left: 170px; top: 195px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #0000ff; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_z_value" style="position: absolute; left: 450px; top: 195px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_z" type="range" min="-1000" max="1000" step="10" style="position: absolute; left: 170px; top: 195px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #0000ff; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_z_value" style="position: absolute; left: 450px; top: 195px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             z value
           </div>
-        <div style="position: absolute; left: 0px; top: 230px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+          <button id="testPanelControllerPanel_z_value_reset" title="reset to 0" style="position: absolute; left: 550px; top: 195px; width: 50px; height: 22px; color: #000000; font-size: 12px; cursor: pointer;">
+            reset
+          </button>
+        <div style="position: absolute; left: 0px; top: 230px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           rotation x
         </div>
-          <input id="testPanelControllerPanel_rotationXdegrees" type="range" min="-180" max="180" step="1" style="position: absolute; left: 170px; top: 230px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #ff0000; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_rotationXdegrees_valueRadians" style="position: absolute; left: 450px; top: 230px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_rotationXdegrees" type="range" min="-180" max="180" step="1" style="position: absolute; left: 170px; top: 230px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #ff0000; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_rotationXdegrees_valueRadians" style="position: absolute; left: 450px; top: 230px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             rotation x value
           </div>
-        <div style="position: absolute; left: 0px; top: 265px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+          <button id="testPanelControllerPanel_rotationXdegrees_valueRadians_reset" title="reset to 0" style="position: absolute; left: 550px; top: 230px; width: 50px; height: 22px; color: #000000; font-size: 12px; cursor: pointer;">
+            reset
+          </button>
+        <div style="position: absolute; left: 0px; top: 265px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           rotation y
         </div>
-          <input id="testPanelControllerPanel_rotationYdegrees" type="range" min="-180" max="180" step="1" style="position: absolute; left: 170px; top: 265px; width: 250px; height: 20px; overflow: hidden; appearance: none; accent-color: #00ff00; background-color: #ffffff;">
-          <div id="testPanelControllerPanel_rotationYdegrees_valueRadians" style="position: absolute; left: 450px; top: 265px; width: 150px; height: 20px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: left;">
+          <input id="testPanelControllerPanel_rotationYdegrees" type="range" min="-180" max="180" step="1" style="position: absolute; left: 170px; top: 265px; width: 250px; height: 18px; overflow: hidden; appearance: none; accent-color: #00ff00; background-color: #ffffff;">
+          <div id="testPanelControllerPanel_rotationYdegrees_valueRadians" style="position: absolute; left: 450px; top: 265px; width: 150px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px;">
             rotation y value
           </div>
-        <div style="position: absolute; left: 0px; top: 300px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; text-align: right;">
+          <button id="testPanelControllerPanel_rotationYdegrees_valueRadians_reset" title="reset to 0" style="position: absolute; left: 550px; top: 265px; width: 50px; height: 22px; color: #000000; font-size: 12px; cursor: pointer;">
+            reset
+          </button>
+        <div style="position: absolute; left: 0px; top: 300px; width: 130px; height: 22px; line-height: 22px; color: #ffffff; overflow: hidden; white-space: nowrap; font-size: 16px; text-align: right;">
           anchor center
         </div>
           <div id="testPanelControllerPanel_anchorCenter" style="position: absolute; left: 170px; top: 300px; width: 22px; height: 22px; background-color: #ffffff; cursor: pointer;">
@@ -1856,14 +1874,19 @@ const scene_HTML3Ddemo = {
         const heightValue = document.getElementById('testPanelControllerPanel_height_value');
         const xInput = document.getElementById('testPanelControllerPanel_x');
         const xValue = document.getElementById('testPanelControllerPanel_x_value');
+        const xValueReset = document.getElementById('testPanelControllerPanel_x_value_reset');
         const yInput = document.getElementById('testPanelControllerPanel_y');
         const yValue = document.getElementById('testPanelControllerPanel_y_value');
+        const yValueReset = document.getElementById('testPanelControllerPanel_y_value_reset');
         const zInput = document.getElementById('testPanelControllerPanel_z');
         const zValue = document.getElementById('testPanelControllerPanel_z_value');
+        const zValueReset = document.getElementById('testPanelControllerPanel_z_value_reset');
         const rotationXInput = document.getElementById('testPanelControllerPanel_rotationXdegrees');
         const rotationXValue = document.getElementById('testPanelControllerPanel_rotationXdegrees_valueRadians');
+        const rotationXValueReset = document.getElementById('testPanelControllerPanel_rotationXdegrees_valueRadians_reset');
         const rotationYInput = document.getElementById('testPanelControllerPanel_rotationYdegrees');
         const rotationYValue = document.getElementById('testPanelControllerPanel_rotationYdegrees_valueRadians');
+        const rotationYValueReset = document.getElementById('testPanelControllerPanel_rotationYdegrees_valueRadians_reset');
         const anchorCenter = document.getElementById('testPanelControllerPanel_anchorCenter');
         const anchorCenterCheck = document.getElementById('testPanelControllerPanel_anchorCenter_check');
         widthInput.addEventListener('input', () => {
@@ -1886,6 +1909,16 @@ const scene_HTML3Ddemo = {
           html3d.requestRender = true;
           xValue.textContent = `${testPanel.x} px`;
           testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          xValueReset.style.visibility = (testPanel.x === 0) ? 'hidden' : 'visible';
+        });
+        xValueReset.addEventListener('click', () => {
+          testPanel.x = 0;
+          testPanel.updateWorldMatrix();
+          html3d.requestRender = true;
+          xInput.value = testPanel.x;
+          xValue.textContent = `${testPanel.x} px`;
+          testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          xValueReset.style.visibility = 'hidden';
         });
         yInput.addEventListener('input', () => {
           testPanel.y = parseInt(yInput.value, 10);
@@ -1893,6 +1926,16 @@ const scene_HTML3Ddemo = {
           html3d.requestRender = true;
           yValue.textContent = `${testPanel.y} px`;
           testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          yValueReset.style.visibility = (testPanel.y === 0) ? 'hidden' : 'visible';
+        });
+        yValueReset.addEventListener('click', () => {
+          testPanel.y = 0;
+          testPanel.updateWorldMatrix();
+          html3d.requestRender = true;
+          yInput.value = testPanel.y;
+          yValue.textContent = `${testPanel.y} px`;
+          testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          yValueReset.style.visibility = 'hidden';
         });
         zInput.addEventListener('input', () => {
           testPanel.z = parseInt(zInput.value, 10);
@@ -1900,6 +1943,16 @@ const scene_HTML3Ddemo = {
           html3d.requestRender = true;
           zValue.textContent = `${testPanel.z} px`;
           testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          zValueReset.style.visibility = (testPanel.z === 0) ? 'hidden' : 'visible';
+        });
+        zValueReset.addEventListener('click', () => {
+          testPanel.z = 0;
+          testPanel.updateWorldMatrix();
+          html3d.requestRender = true;
+          zInput.value = testPanel.z;
+          zValue.textContent = `${testPanel.z} px`;
+          testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          zValueReset.style.visibility = 'hidden';
         });
         rotationXInput.addEventListener('input', () => {
           const rotationX = parseFloat(rotationXInput.value);
@@ -1908,6 +1961,16 @@ const scene_HTML3Ddemo = {
           html3d.requestRender = true;
           rotationXValue.textContent = `${testPanel.rotationX.toFixed(3)} rad`;
           testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          rotationXValueReset.style.visibility = (testPanel.rotationX === 0) ? 'hidden' : 'visible';
+        });
+        rotationXValueReset.addEventListener('click', () => {
+          testPanel.rotationX = 0;
+          testPanel.updateWorldMatrix();
+          html3d.requestRender = true;
+          rotationXInput.value = (testPanel.rotationX * (180 / Math.PI)).toFixed(3);
+          rotationXValue.textContent = `${testPanel.rotationX.toFixed(3)} rad`;
+          testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          rotationXValueReset.style.visibility = 'hidden';
         });
         rotationYInput.addEventListener('input', () => {
           const rotationY = parseFloat(rotationYInput.value);
@@ -1916,11 +1979,22 @@ const scene_HTML3Ddemo = {
           html3d.requestRender = true;
           rotationYValue.textContent = `${testPanel.rotationY.toFixed(3)} rad`;
           testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          rotationYValueReset.style.visibility = (testPanel.rotationY === 0) ? 'hidden' : 'visible';
+        });
+        rotationYValueReset.addEventListener('click', () => {
+          testPanel.rotationY = 0;
+          testPanel.updateWorldMatrix();
+          html3d.requestRender = true;
+          rotationYInput.value = (testPanel.rotationY * (180 / Math.PI)).toFixed(3);
+          rotationYValue.textContent = `${testPanel.rotationY.toFixed(3)} rad`;
+          testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          rotationYValueReset.style.visibility = 'hidden';
         });
         anchorCenter.addEventListener('click', () => {
           testPanel.anchorCenter = !testPanel.anchorCenter;
           testPanel.updateWorldMatrix();
           html3d.requestRender = true;
+          testPanelContent.innerHTML = JSON.stringify(testPanel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
           if (testPanel.anchorCenter === true) {
             anchorCenterCheck.style.display = 'block';
           } else {
@@ -1933,14 +2007,19 @@ const scene_HTML3Ddemo = {
         heightValue.textContent = `${testPanel.height} px`;
         xInput.value = testPanel.x;
         xValue.textContent = `${testPanel.x} px`;
+        xValueReset.style.visibility = (testPanel.x === 0) ? 'hidden' : 'visible';
         yInput.value = testPanel.y;
         yValue.textContent = `${testPanel.y} px`;
+        yValueReset.style.visibility = (testPanel.y === 0) ? 'hidden' : 'visible';
         zInput.value = testPanel.z;
         zValue.textContent = `${testPanel.z} px`;
+        zValueReset.style.visibility = (testPanel.z === 0) ? 'hidden' : 'visible';
         rotationXInput.value = (testPanel.rotationX * (180 / Math.PI)).toFixed(3);
         rotationXValue.textContent = `${testPanel.rotationX.toFixed(3)} rad`;
+        rotationXValueReset.style.visibility = (testPanel.rotationX === 0) ? 'hidden' : 'visible';
         rotationYInput.value = (testPanel.rotationY * (180 / Math.PI)).toFixed(3);
         rotationYValue.textContent = `${testPanel.rotationY.toFixed(3)} rad`;
+        rotationYValueReset.style.visibility = (testPanel.rotationY === 0) ? 'hidden' : 'visible';
         if (testPanel.anchorCenter === true) {
           anchorCenterCheck.style.display = 'block';
         } else {
@@ -1950,9 +2029,9 @@ const scene_HTML3Ddemo = {
     },
     {
       id: 'testPanel',
-      width: 400,
+      width: 600,
       height: 400,
-      x: 700,
+      x: 0,
       y: -1250,
       z: 0,
       rotationX: 0,
