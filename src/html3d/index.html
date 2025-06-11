@@ -91,7 +91,7 @@ class HTML3D {
     window.addEventListener('resize', () => { this.requestRender = true; });
     this._thread();
   }
-  exportScene() {
+  export() {
     return {
       camera: {
         x: this.camera.x,
@@ -108,7 +108,7 @@ class HTML3D {
       })
     };
   }
-  importScene(scene) {
+  import(scene) {
     for (const panel of this.panels) {
       panel.element.remove();
     }
@@ -824,7 +824,7 @@ const scene_HTML3Ddemo = {
       `,
       init(html3d, panel) {
         const textarea = document.getElementById('scenejsonTextarea');
-        textarea.value = JSON.stringify(html3d.exportScene(), null, 2);
+        textarea.value = JSON.stringify(html3d.export(), null, 2);
         const scenejsonReadButton = document.getElementById('scenejsonReadButton');
         const scenejsonWriteButton = document.getElementById('scenejsonWriteButton');
         const scenejsonCopyToClipboardButton = document.getElementById('scenejsonCopyToClipboardButton');
@@ -850,7 +850,7 @@ const scene_HTML3Ddemo = {
           scenejsonWriteButton.style.cursor = (jsonObject !== undefined) ? 'pointer' : 'not-allowed';
         });
         scenejsonReadButton.addEventListener('click', () => {
-          textarea.value = JSON.stringify(html3d.exportScene(), null, 2);
+          textarea.value = JSON.stringify(html3d.export(), null, 2);
           textarea.scrollTop = 0;
         });
         scenejsonWriteButton.addEventListener('click', () => {
@@ -861,7 +861,7 @@ const scene_HTML3Ddemo = {
             jsonObject = undefined;
           }
           if (jsonObject !== undefined) {
-            html3d.importScene(jsonObject);
+            html3d.import(jsonObject);
           }
         });
         scenejsonCopyToClipboardButton.addEventListener('click', () => {
@@ -2344,7 +2344,7 @@ const scene_HTML3Ddemo = {
       backgroundColor: '#111111'
     },
     {
-      id: 'arcadeCabinetFrontBottomTopDescription',
+      id: 'arcadeCabinetFrontBottomDescription',
       width: 600,
       height: 180,
       x: (3000 + 25), 
@@ -2355,17 +2355,20 @@ const scene_HTML3Ddemo = {
       obstruction: false,
       interaction: true,
       backgroundColor: '#111111',
-      opacity: 0,
       innerHTML: `
-        <div style="width: 550px; margin-left: 15px; margin-top: 10px; color: #ffffff; font-size: 20px;">
+        <div style="width: 550px; margin-left: 15px; margin-top: 10px; color: #ffffff; font-size: 20px;" >
           <span style="font-size: 40px;">🛈</span><br />
           Click on the screen to give it focus. You can then move about the scene using your keyboard, by pressing WASD or arrow keys.
           Click outside the screen, such as on this text, to return focus and control to this scene.
         </div>
-      `
+      `,
+      init(html3d, panel) {
+        const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
+        arcadeCabinetFrontBottomDescription.style.visibility = 'hidden';
+      }
     },
     {
-      id: 'arcadeCabinetFrontBottomTopStartButton',
+      id: 'arcadeCabinetFrontBottomStartButton',
       width: 110,
       height: 110,
       x: (4100 - 135),
@@ -2377,7 +2380,7 @@ const scene_HTML3Ddemo = {
       interaction: true,
       backgroundColor: 'transparent',
       innerHTML: `
-        <div id="arcadeCabinetFrontBottomTopStartButtonText" style="position: absolute; left: 10px; top: 10px; width: 80px; height: 80px; border: 5px solid #FFDF00; border-radius: 60px; background-color: transparent; color: #ffffff; text-align: center; font-size: 40px; line-height: 80px; font-family: 'Arial'; font-weight: bold; box-shadow: 0 0 15px #FFDF00; text-shadow: 0 0 8px #FFDF00;">
+        <div id="arcadeCabinetFrontBottomStartButtonText" style="position: absolute; left: 10px; top: 10px; width: 80px; height: 80px; border: 5px solid #FFDF00; border-radius: 60px; background-color: transparent; color: #ffffff; text-align: center; font-size: 40px; line-height: 80px; font-family: 'Arial'; font-weight: bold; box-shadow: 0 0 15px #FFDF00; text-shadow: 0 0 8px #FFDF00;">
           ⏻
         </div>
       `,
@@ -2388,24 +2391,61 @@ const scene_HTML3Ddemo = {
           arcadeIframe.element.style.pointerEvents = 'auto';
           arcadeIframe.element.style.userSelect = 'auto';
           arcadeIframe.iframe.srcdoc = pageCode;
-          const arcadeCabinetFrontBottomTopStartButtonText = document.getElementById('arcadeCabinetFrontBottomTopStartButtonText');
-          arcadeCabinetFrontBottomTopStartButtonText.style.border = '5px solid #55F755';
-          arcadeCabinetFrontBottomTopStartButtonText.style.boxShadow = '0 0 15px #00F700';
-          arcadeCabinetFrontBottomTopStartButtonText.style.textShadow = '0 0 8px #55F755';
-          const arcadeCabinetFrontBottomTopDescription = document.getElementById('arcadeCabinetFrontBottomTopDescription');
-          arcadeCabinetFrontBottomTopDescription.style.opacity = 1;
+          const arcadeCabinetFrontBottomStartButtonText = document.getElementById('arcadeCabinetFrontBottomStartButtonText');
+          arcadeCabinetFrontBottomStartButtonText.style.border = '5px solid #55F755';
+          arcadeCabinetFrontBottomStartButtonText.style.boxShadow = '0 0 15px #00F700';
+          arcadeCabinetFrontBottomStartButtonText.style.textShadow = '0 0 8px #55F755';
+          const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
+          arcadeCabinetFrontBottomDescription.style.visibility = 'visible';
+          const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
+          importButton.style.visibility = 'visible';
         } else {
           arcadeIframe.userData.arcadeStarted = false;
           arcadeIframe.element.style.pointerEvents = 'none';
           arcadeIframe.element.style.userSelect = 'none';
           arcadeIframe.iframe.srcdoc = arcadeIframe.iframeHtml;
-          const arcadeCabinetFrontBottomTopStartButtonText = document.getElementById('arcadeCabinetFrontBottomTopStartButtonText');
-          arcadeCabinetFrontBottomTopStartButtonText.style.border = '5px solid #FFDF00';
-          arcadeCabinetFrontBottomTopStartButtonText.style.boxShadow = '0 0 15px #F77C00';
-          arcadeCabinetFrontBottomTopStartButtonText.style.textShadow = '0 0 8px #F77C00';
-          const arcadeCabinetFrontBottomTopDescription = document.getElementById('arcadeCabinetFrontBottomTopDescription');
-          arcadeCabinetFrontBottomTopDescription.style.opacity = 0;
+          const arcadeCabinetFrontBottomStartButtonText = document.getElementById('arcadeCabinetFrontBottomStartButtonText');
+          arcadeCabinetFrontBottomStartButtonText.style.border = '5px solid #FFDF00';
+          arcadeCabinetFrontBottomStartButtonText.style.boxShadow = '0 0 15px #F77C00';
+          arcadeCabinetFrontBottomStartButtonText.style.textShadow = '0 0 8px #F77C00';
+          const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
+          arcadeCabinetFrontBottomDescription.style.visibility = 'hidden';
+          const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
+          importButton.style.visibility = 'hidden';
         }
+      }
+    },
+    {
+      id: 'arcadeCabinetFrontBottomImportSceneButton',
+      width: 280,
+      height: 70,
+      x: (3000 + 650), 
+      y: -525,
+      z: -1640,
+      rotationX: 0,
+      rotationY: 0,
+      obstruction: false,
+      interaction: true,
+      backgroundColor: 'transparent',
+      innerHTML: `
+        <button id="arcadeCabinetFrontBottomImportSceneButton_button" title="Import a copy of your scene into the game.\nEverything will be the same, except the game in the game is not yet started." style="position: absolute; left: 10px; top: 10px; width: 260px; height: 50px; color: #000000; text-align: center; font-size: 26px; box-shadow: 0 0 5px #ffffff; cursor: pointer;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: inline-block; width: 30px; height: 30px;" fill="#000000" stroke="none">
+            <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"></path>
+          </svg>
+          import scene
+        </button>
+      `,
+      init(html3d, panel) {
+        const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
+        importButton.style.visibility = 'hidden';
+        const importButton_button = document.getElementById('arcadeCabinetFrontBottomImportSceneButton_button');
+        importButton_button.addEventListener('click', () => {
+          const iframeHtml3dInstance = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow?.html3dInstance;
+          if (iframeHtml3dInstance) {
+            const sceneData = html3d.export();
+            iframeHtml3dInstance.import(sceneData);
+          }
+        });
       }
     },
     {
@@ -2471,7 +2511,7 @@ const scene_HTML3Ddemo = {
 };
 
 // run the scene
-const html3dInstance = new HTML3D(document.getElementById('container'), scene_HTML3Ddemo);
+window.html3dInstance = new HTML3D(document.getElementById('container'), scene_HTML3Ddemo);
 
 // DOWNLOADLINKSTART
 // This code is removed in the downloaded html file.
