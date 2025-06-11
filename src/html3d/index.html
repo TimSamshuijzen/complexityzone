@@ -370,9 +370,16 @@ class HTML3D {
         interaction: (this.interaction !== null) ? this.interaction : undefined,
         innerHTML: (this.innerHTML !== null) ? this.innerHTML : undefined,
         iframeSrc: (this.iframeSrc !== null) ? this.iframeSrc : undefined,
-        iframeHtml: (this.iframeHtml !== null) ? this.iframeHtml : undefined,
-        userData: (this.userData !== null) ? this.userData : undefined
+        iframeHtml: (this.iframeHtml !== null) ? this.iframeHtml : undefined
       };
+      if (this.userData !== null) {
+        panelData.userData = {};
+        for (const key in this.userData) {
+          if (this.userData.hasOwnProperty(key)) {
+            panelData.userData[key] = this.userData[key];
+          }
+        }
+      }
       if (this.init !== null) {
         panelData.initString = this.init.toString();
         panelData.initString = panelData.initString.substring(panelData.initString.indexOf('{') + 1, panelData.initString.lastIndexOf('}')).trim();
