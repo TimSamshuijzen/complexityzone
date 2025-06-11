@@ -28,9 +28,6 @@
   </div>
   <script>
 
-// HTML3D
-// A lightweight library for creating interactive 3D scenes.
-
 class HTML3D {
   constructor(container, scene) {
     this.camera = {
@@ -45,11 +42,9 @@ class HTML3D {
       worldMatrix: new HTML3D.Matrix4(),
       viewMatrix: new HTML3D.Matrix4(),
       updateWorldMatrix() {
-        const R_y = new HTML3D.Matrix4().setRotateY(this.rotationY);
-        const R_x = new HTML3D.Matrix4().setRotateX(this.rotationX);
         this.worldMatrix.setTranslate(this.x, this.y, this.z);
-        this.worldMatrix.multiply(R_y);
-        this.worldMatrix.multiply(R_x);
+        this.worldMatrix.multiply(new HTML3D.Matrix4().setRotateY(this.rotationY));
+        this.worldMatrix.multiply(new HTML3D.Matrix4().setRotateX(this.rotationX));
       }
     };
     this.camera.updateWorldMatrix();
@@ -151,9 +146,6 @@ class HTML3D {
     for (let i = 0; i < this.panels.length; i++) {
       const panel = this.panels[i];
       panel.render();
-      if (panel.postRender !== null) {
-        panel.postRender(this, panel);
-      }
     }
   }
   _thread() {
@@ -182,36 +174,26 @@ class HTML3D {
     const right = new HTML3D.Vector3(this.camera.worldMatrix.elements[0], this.camera.worldMatrix.elements[1], this.camera.worldMatrix.elements[2]);
     right.y = 0;
     right.normalize();
-    let rotationChanged = false;
     if ((this.keyboard['ArrowLeft']) || (this.keyboard['KeyA'])) {
       this.camera.rotationY += rotateSpeed;
-      rotationChanged = true;
       result = true;
     }
     if ((this.keyboard['ArrowRight']) || (this.keyboard['KeyD'])) {
       this.camera.rotationY -= rotateSpeed;
-      rotationChanged = true;
       result = true;
-    }
-    if (rotationChanged) {
-      this.camera.updateWorldMatrix();
     }
     const intendedMove = new HTML3D.Vector3(0, 0, 0);
     if ((this.keyboard['ArrowUp']) || (this.keyboard['KeyW'])) {
       intendedMove.add(forward);
-      result = true;
     }
     if ((this.keyboard['ArrowDown']) || (this.keyboard['KeyS'])) {
       intendedMove.sub(forward);
-      result = true;
     }
     if (this.keyboard['KeyZ']) { 
       intendedMove.sub(right); 
-      result = true;
     }
     if (this.keyboard['KeyX']) { 
       intendedMove.add(right);
-      result = true;
     }
     if (intendedMove.lengthSq() > 0) {
       intendedMove.normalize();
@@ -225,9 +207,14 @@ class HTML3D {
       if (this._checkAABBCollision(moveZ)) {
         finalMove.z = 0;
       }
-      this.camera.x += finalMove.x;
-      this.camera.y += finalMove.y;
-      this.camera.z += finalMove.z;
+      if (finalMove.lengthSq() > 0) {
+        result = true;
+        this.camera.x += finalMove.x;
+        this.camera.y += finalMove.y;
+        this.camera.z += finalMove.z;
+      }
+    }
+    if (result) {
       this.camera.updateWorldMatrix();
     }
     return result;
@@ -254,8 +241,10 @@ class HTML3D {
 {
   HTML3D.Panel = class Panel {
     constructor(html3d, scenePanel) {
+      this.html3d = html3d;
       Object.assign(this, {
         id: ((typeof scenePanel.id === 'string') ? scenePanel.id : null),
+        relativeToId: ((typeof scenePanel.relativeToId === 'string') ? scenePanel.relativeToId : null),
         title: ((typeof scenePanel.title === 'string') ? scenePanel.title : null),
         width: ((typeof scenePanel.width === 'number') ? scenePanel.width : 100),
         height: ((typeof scenePanel.height === 'number') ? scenePanel.height : 100),
@@ -277,8 +266,7 @@ class HTML3D {
         userData: ((typeof scenePanel.userData === 'object') ? scenePanel.userData : null),
         init: ((typeof scenePanel.init === 'function') ? scenePanel.init : null),
         click: ((typeof scenePanel.click === 'function') ? scenePanel.click : null),
-        animate: ((typeof scenePanel.animate === 'function') ? scenePanel.animate : null),
-        postRender: ((typeof scenePanel.postRender === 'function') ? scenePanel.postRender : null)
+        animate: ((typeof scenePanel.animate === 'function') ? scenePanel.animate : null)
       });
       if (typeof scenePanel.initString === 'string') {
         try {
@@ -299,13 +287,6 @@ class HTML3D {
           this.animate = new Function('html3d', 'panel', scenePanel.animateString);
         } catch (e) {
           this.animate = null;
-        }
-      }
-      if (typeof scenePanel.postRenderString === 'string') {
-        try {
-          this.postRender = new Function('html3d', 'panel', scenePanel.postRenderString);
-        } catch (e) {
-          this.postRender = null;
         }
       }
       this.iframe = null;
@@ -371,6 +352,7 @@ class HTML3D {
     export() {
       const panelData = {
         id: (this.id !== null) ? this.id : undefined,
+        relativeToId: (this.relativeToId !== null) ? this.relativeToId : undefined,
         title: (this.title !== null) ? this.title : undefined,
         width: this.width,
         height: this.height,
@@ -403,18 +385,21 @@ class HTML3D {
         panelData.animateString = this.animate.toString();
         panelData.animateString = panelData.animateString.substring(panelData.animateString.indexOf('{') + 1, panelData.animateString.lastIndexOf('}')).trim();
       }
-      if (this.postRender !== null) {
-        panelData.postRenderString = this.postRender.toString();
-        panelData.postRenderString = panelData.postRenderString.substring(panelData.postRenderString.indexOf('{') + 1, panelData.postRenderString.lastIndexOf('}')).trim();
-      }
       return panelData;
     }
     updateWorldMatrix() {
-      this.worldMatrix.setTranslate(this.x, this.y, this.z);
+      this.worldMatrix.reset();
+      if (this.relativeToId !== null) {
+        const relativeToPanel = this.html3d.panels.find((panel) => panel.id === this.relativeToId);
+        if (relativeToPanel) {
+          this.worldMatrix.copy(relativeToPanel.worldMatrix);
+        }
+      }
+      this.worldMatrix.multiply(new HTML3D.Matrix4().setTranslate(this.x, this.y, this.z));
       this.worldMatrix.multiply(new HTML3D.Matrix4().setRotateY(this.rotationY));
       this.worldMatrix.multiply(new HTML3D.Matrix4().setRotateX(this.rotationX));
       if (this.obstruction === true) {
-        const aboveAndBelow = 100;
+        const aboveAndBelow = 10;
         if (this.anchorCenter === true) {
           this.boundingBox = new HTML3D.BoundingBox(
             new HTML3D.Vector3(-this.width / 2, -this.height / 2, -aboveAndBelow),
@@ -429,6 +414,11 @@ class HTML3D {
         this.boundingBox.applyMatrix4(this.worldMatrix);
       } else {
         this.boundingBox = null;
+      }
+      for (const panel of this.html3d.panels) {
+        if (panel.relativeToId === this.id) {
+          panel.updateWorldMatrix();
+        }
       }
     }
     render() {
@@ -508,12 +498,16 @@ class HTML3D {
   }
   HTML3D.Matrix4 = class Matrix4 {
     constructor() {
+      this.reset();
+    }
+    reset() {
       this.elements = [
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
       ];
+      return this;
     }
     set(n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41, n42, n43, n44) {
       const te = this.elements;
@@ -687,7 +681,7 @@ const scene_HTML3Ddemo = {
   },
   panels: [
     {
-      id: 'html3dInstructions',
+      id: 'instructions',
       width: 1500,
       height: 1500,
       x: -1500, 
@@ -754,11 +748,14 @@ const scene_HTML3Ddemo = {
         <div style="position: absolute; left: 100px; top: 850px; width: 1100px; height: 150px; color: #ffffff; font-size: 100px;">
           interact
         </div>
-        <div style="position: absolute; left: 200px; top: 1000px; width: 1300px; height: 300px;">
+        <div style="position: absolute; left: 200px; top: 1000px; width: 1300px; height: 350px;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 200px; height: 200px;">
             <path fill="#ffffff" d="M11,1.07C7.05,1.56 4,4.92 4,9H11M4,15A8,8 0 0,0 12,23A8,8 0 0,0 20,15V11H4M13,1.07V9H20C20,4.92 16.94,1.56 13,1.07Z" />
           </svg>
-          <div style="position: absolute; left: 280px; top: 0px; width: 900px; height: 300px; color: #ffffff; font-size: 45px;">
+          <div style="position: absolute; left: 280px; top: 0px; width: 900px; height: 350px; color: #ffffff; font-size: 45px;">
+            All objects are HTML elements, positioned in 3D space with CSS 3D transforms.
+            Note that when an input field has focus, the keys for moving and turning are disabled.
+            To resume being able to move with the keyboard, click outside the input field.
           </div>
         </div>
       `
@@ -978,7 +975,7 @@ const scene_HTML3Ddemo = {
       width: 500,
       height: 200,
       x: 0, 
-      y: (-(wallHeight / 2)) - 100, 
+      y: ((-(wallHeight / 2)) + 200) - 100, 
       z: 0,
       rotationX: 0,
       rotationY: 0,
@@ -1000,7 +997,7 @@ const scene_HTML3Ddemo = {
       width: 200,
       height: 500,
       x: -100, 
-      y: (-(wallHeight / 2)),
+      y: ((-(wallHeight / 2)) + 200),
       z: 0,
       rotationX: 0,
       rotationY: 0,
@@ -1022,7 +1019,7 @@ const scene_HTML3Ddemo = {
       width: 500,
       height: 200,
       x: 0, 
-      y: (-(wallHeight / 2)) - 100, 
+      y: ((-(wallHeight / 2)) + 200) - 100, 
       z: 500,
       rotationX: 0,
       rotationY: (Math.PI / 2),
@@ -1975,6 +1972,64 @@ const scene_HTML3Ddemo = {
         testPanelContainer.style.height = `${panel.height - 20}px`;
         testPanelContent.innerHTML = JSON.stringify(panel.export(), null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
       },
+    },
+    {
+      id: 'testPanelAxisX',
+      relativeToId: 'testPanel',
+      width: 100,
+      height: 10,
+      anchorCenter: true,
+      x: 0,
+      y: 0,
+      z: 0,
+      rotationX: 0,
+      rotationY: 0,
+      obstruction: false,
+      interaction: false,
+      backgroundColor: '#ff0000'
+    },
+    {
+      id: 'testPanelAxisY',
+      relativeToId: 'testPanel',
+      width: 10,
+      height: 100,
+      anchorCenter: true,
+      x: 0,
+      y: 0,
+      z: 0,
+      rotationX: 0,
+      rotationY: Math.PI / 2,
+      obstruction: false,
+      interaction: false,
+      backgroundColor: '#00ff00'
+    },
+    {
+      id: 'testPanelAxisZ',
+      relativeToId: 'testPanel',
+      width: 10,
+      height: 100,
+      anchorCenter: true,
+      x: 0,
+      y: 0,
+      z: 0,
+      rotationX: Math.PI / 2,
+      rotationY: 0,
+      obstruction: false,
+      interaction: false,
+      backgroundColor: '#0000ff'
+    },
+    {
+      id: 'arcadeCabinet',
+      width: 1100,
+      height: 1400,
+      x: 3000,
+      y: -1400,
+      z: -2000,
+      rotationX: 0,
+      rotationY: 0,
+      obstruction: true,
+      interaction: true,
+      backgroundColor: '#333333'
     },
     {
       id: 'arcadeCabinetFront',
