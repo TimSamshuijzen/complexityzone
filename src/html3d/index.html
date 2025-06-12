@@ -80,9 +80,28 @@ class HTML3D {
     this.requestRender = true;
     this.keyboard = {};
     document.addEventListener('keydown', (event) => {
-      if ((document.activeElement.tagName === 'TEXTAREA') || (document.activeElement.tagName === 'INPUT')) {
-      } else {
+      if ((document.activeElement.tagName !== 'TEXTAREA') && (document.activeElement.tagName !== 'INPUT')) {
         this.keyboard[event.code] = true;
+        // In some cases the keyup event is not triggered, so we help the user get out of the stuck keys situation.
+        if (event.code === 'Escape') {
+          this.keyboard = {};
+        } else if ((event.code === 'ArrowLeft') || (event.code === this.keyboard['KeyA'])) {
+          this.keyboard['ArrowRight'] = false;
+          this.keyboard['KeyD'] = false;
+        } else if ((event.code === 'ArrowRight') || (event.code === this.keyboard['KeyD'])) {
+          this.keyboard['ArrowLeft'] = false;
+          this.keyboard['KeyA'] = false;
+        } else if ((event.code === 'ArrowUp') || (event.code === this.keyboard['KeyW'])) {
+          this.keyboard['ArrowDown'] = false;
+          this.keyboard['KeyS'] = false;
+        } else if ((event.code === 'ArrowDown') || (event.code === this.keyboard['KeyS'])) {
+          this.keyboard['ArrowUp'] = false;
+          this.keyboard['KeyW'] = false;
+        } else if (event.code === 'KeyZ') {
+          this.keyboard['KeyX'] = false;
+        } else if (event.code === 'KeyX') {
+          this.keyboard['KeyZ'] = false;
+        }
       }
     });
     document.addEventListener('keyup', (event) => { 
@@ -126,8 +145,7 @@ class HTML3D {
     }
     if (Array.isArray(scene?.panels)) {
       for (const panelData of scene.panels) {
-        const panel = new HTML3D.Panel(this, panelData);
-        this.panels.push(panel);
+        this.panels.push(new HTML3D.Panel(this, panelData));
       }
     }
     for (const panel of this.panels) {
@@ -141,11 +159,10 @@ class HTML3D {
     const innerWidth = this.container.clientWidth;
     const innerHeight = this.container.clientHeight;
     const focalLength = (0.5 * innerHeight) / Math.tan((this.camera.fov * 0.5 * Math.PI) / 180);
-    this.camera.viewMatrix.copy(this.camera.worldMatrix).invert();
-    this.sceneContainer.style.transform = `perspective(${focalLength}px) scale(1) translateZ(${focalLength}px) ${this.camera.viewMatrix.toCSSMatrixString()} translate(${innerWidth / 2}px, ${innerHeight / 2}px)`;
-    for (let i = 0; i < this.panels.length; i++) {
-      const panel = this.panels[i];
-      panel.render();
+    this.camera.viewMatrix.setMatrix(this.camera.worldMatrix).invert();
+    this.sceneContainer.style.transform = `perspective(${focalLength}px) translateZ(${focalLength}px) ${this.camera.viewMatrix.toCSSMatrixString()} translate(${innerWidth / 2}px, ${innerHeight / 2}px)`;
+    for (let i = 0, c = this.panels.length; i < c; i++) {
+      this.panels[i].render();
     }
   }
   _thread() {
@@ -156,7 +173,8 @@ class HTML3D {
       this.requestRender = false;
       this.render();
     }
-    for (const panel of this.panels) {
+    for (let i = 0, c = this.panels.length; i < c; i++) {
+      const panel = this.panels[i];
       if (panel.animate !== null) {
         panel.animate(this, panel);
       }
@@ -227,7 +245,7 @@ class HTML3D {
       new HTML3D.Vector3(targetPosition.x - halfCameraWidth, (targetPosition.y - 10), targetPosition.z - halfCameraWidth),
       new HTML3D.Vector3(targetPosition.x + halfCameraWidth, (targetPosition.y + this.camera.collisionHeight), targetPosition.z + halfCameraWidth)
     );
-    for (let i = 0; i < this.panels.length; i++) {
+    for (let i = 0, c = this.panels.length; i < c; i++) {
       const panel = this.panels[i];
       if (panel.boundingBox) {
         if (cameraBoundingBox.intersectsBox(panel.boundingBox)) {
@@ -306,7 +324,6 @@ class HTML3D {
         userSelect: ((this.interaction === true) ? 'auto' : 'none')
       });
       html3d.sceneContainer.appendChild(this.element);
-      this.element.draggable = false;
       if (this.innerHTML !== null) {
         this.element.innerHTML = this.innerHTML;
       } else if ((this.iframeSrc !== null) || (this.iframeHtml !== null)) {
@@ -399,23 +416,21 @@ class HTML3D {
       if (this.relativeToId !== null) {
         const relativeToPanel = this.html3d.panels.find((panel) => panel.id === this.relativeToId);
         if (relativeToPanel) {
-          this.worldMatrix.copy(relativeToPanel.worldMatrix);
+          this.worldMatrix.setMatrix(relativeToPanel.worldMatrix);
         }
       }
-      this.worldMatrix.multiply(new HTML3D.Matrix4().setTranslate(this.x, this.y, this.z));
-      this.worldMatrix.multiply(new HTML3D.Matrix4().setRotateY(this.rotationY));
-      this.worldMatrix.multiply(new HTML3D.Matrix4().setRotateX(this.rotationX));
+      this.worldMatrix.multiply(new HTML3D.Matrix4().setTranslate(this.x, this.y, this.z)).multiply(new HTML3D.Matrix4().setRotateY(this.rotationY)).multiply(new HTML3D.Matrix4().setRotateX(this.rotationX));
       if (this.obstruction === true) {
-        const aboveAndBelow = 10;
+        const eitherSide = 10;
         if (this.anchorCenter === true) {
           this.boundingBox = new HTML3D.BoundingBox(
-            new HTML3D.Vector3(-this.width / 2, -this.height / 2, -aboveAndBelow),
-            new HTML3D.Vector3(this.width / 2, this.height / 2, aboveAndBelow)
+            new HTML3D.Vector3(-this.width / 2, -this.height / 2, -eitherSide),
+            new HTML3D.Vector3(this.width / 2, this.height / 2, eitherSide)
           );
         } else {
           this.boundingBox = new HTML3D.BoundingBox(
-            new HTML3D.Vector3(0, 0, -aboveAndBelow),
-            new HTML3D.Vector3(this.width, this.height, aboveAndBelow)
+            new HTML3D.Vector3(0, 0, -eitherSide),
+            new HTML3D.Vector3(this.width, this.height, eitherSide)
           );
         }
         this.boundingBox.applyMatrix4(this.worldMatrix);
@@ -429,7 +444,7 @@ class HTML3D {
       }
     }
     render() {
-      this.element.style.transform = 'translate(-50%, -50%) ' + this.worldMatrix.toCSSMatrixString() + ((this.anchorCenter === false) ? ' translate(50%, 50%)' : '');
+      this.element.style.transform = `translate(-50%, -50%) ${this.worldMatrix.toCSSMatrixString()}${this.anchorCenter ? '' : ' translate(50%, 50%)'}`;
     }
   }
   HTML3D.Vector3 = class Vector3 {
@@ -524,14 +539,14 @@ class HTML3D {
       te[3] = n41; te[7] = n42; te[11] = n43; te[15] = n44;
       return this;
     }
+    setMatrix(m) {
+      this.elements = [...m.elements];
+      return this;
+    }
     clone() {
       const newMatrix = new HTML3D.Matrix4();
       newMatrix.elements = [...this.elements];
       return newMatrix;
-    }
-    copy(m) {
-      this.elements = [...m.elements];
-      return this;
     }
     setTranslate(x, y, z) {
       return this.set(
@@ -2444,7 +2459,7 @@ const scene_HTML3Ddemo = {
       interaction: true,
       backgroundColor: 'transparent',
       innerHTML: `
-        <div id="arcadeCabinetFrontBottomImportSceneButton_div" title="Import a copy of your scene into the game.\nEverything will be in the same state, except the game in the game is not yet started." style="position: absolute; left: 10px; top: 10px; width: 240px; height: 60px; border: 5px solid #00FFDF; border-radius: 10px; background-color: transparent; box-shadow: 0 0 5px #00FFDF; text-shadow: 0 0 2px #00FFDF; cursor: pointer;">
+        <div id="arcadeCabinetFrontBottomImportSceneButton_div" title="Import a copy of your scene into the game.\nEverything will be in the same state, except the game in the game is not yet started. This is to prevent endless recursion." style="position: absolute; left: 10px; top: 10px; width: 240px; height: 60px; border: 5px solid #00FFDF; border-radius: 10px; background-color: transparent; box-shadow: 0 0 5px #00FFDF; text-shadow: 0 0 2px #00FFDF; cursor: pointer;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 5px; top: 10px; width: 40px; height: 40px;" fill="#ffffff" stroke="none">
             <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"></path>
           </svg>
@@ -2480,13 +2495,13 @@ const scene_HTML3Ddemo = {
       interaction: true,
       backgroundColor: 'transparent',
       innerHTML: `
-        <div id="arcadeCabinetFrontBottomExportSceneButton_div" title="Make a copy of the game scene and make it your scene.\nEverything will be in the same state, except the game in the game is not yet started." style="position: absolute; left: 10px; top: 10px; width: 240px; height: 60px; border: 5px solid #00FFDF; border-radius: 10px; background-color: transparent; box-shadow: 0 0 5px #00FFDF; text-shadow: 0 0 2px #00FFDF; cursor: pointer;">
+        <div id="arcadeCabinetFrontBottomExportSceneButton_div" title="Make a copy of the game scene and make it your scene." style="position: absolute; left: 10px; top: 10px; width: 240px; height: 60px; border: 5px solid #00FFDF; border-radius: 10px; background-color: transparent; box-shadow: 0 0 5px #00FFDF; text-shadow: 0 0 2px #00FFDF; cursor: pointer;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 5px; top: 10px; width: 40px; height: 40px;" fill="#ffffff" stroke="none">
-            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"></path>
+            <path d="M14 12L10 8V11H2V13H10V16M22 12A10 10 0 0 1 2.46 15H4.59A8 8 0 1 0 4.59 9H2.46A10 10 0 0 1 22 12Z"></path>
           </svg>
           <div style="position: absolute; left: 60px; top: 10px; width: 180px; height: 40px; line-height: 20px; color: #ffffff; text-align: left; font-size: 18px; font-family: Arial; font-weight: bold; white-space: nowrap; overflow: hidden;">
-            copy game scene<br />
-            into your scene
+            teleport into the<br />
+            game scene
           </div>
         </div>
       `,
