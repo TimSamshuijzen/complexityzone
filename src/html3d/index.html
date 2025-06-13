@@ -28,6 +28,14 @@
   </div>
   <script>
 
+// Code sections:
+//   HTML3D - A 3D engine for HTML elements.
+//   audio - Setup audio (used by the scene).
+//   scene - Define the 3D scene.
+
+// =====================================================================
+// HTML3D
+
 class HTML3D {
   constructor(container, scene) {
     this.camera = {
@@ -691,7 +699,6 @@ Sounds.newGame.volume = 0.15;
 Sounds.copyIntoGame.volume = 0.15;
 Sounds.teleportIntoGame.volume = 0.15;
 
-
 // =====================================================================
 // scene
 
@@ -705,9 +712,6 @@ const firstFloorWallDepth = 200;
 const firstFloorWindowWidth = (buildingWidth / 2) - 1000;
 const firstFloorWindowHeight = 1000;
 const pageCode = document.documentElement.outerHTML;
-
-
-
 const scene_HTML3Ddemo = {
   camera: {
     x: doorWidth / 2,
