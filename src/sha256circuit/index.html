@@ -481,7 +481,7 @@ const View = {
     this.components.containerCenter.appendChild(this.components.canvas);
     this.ctx = this.components.canvas.getContext('2d');
     this.components.outputHashLabel = document.createElement('div');
-    this.components.outputHashLabel.innerHTML = 'hash';
+    this.components.outputHashLabel.innerHTML = 'SHA-256 hash';
     Object.assign(this.components.outputHashLabel.style, {
       display: 'block',
       position: 'absolute',
