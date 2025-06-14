@@ -339,7 +339,7 @@ class HTML3D {
       } else if ((this.iframeSrc !== null) || (this.iframeHtml !== null)) {
         this.element.style.width = (this.width - 6) + 'px';
         this.element.style.height = (this.height - 6) + 'px';
-        this.element.style.border = '3px solid #000000';
+        this.element.style.border = '3px solid ' + this.backgroundColor;
         this.iframe = document.createElement('iframe');
         this.iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
         if (this.iframeSrc !== null) {
@@ -2135,7 +2135,6 @@ const SCENE = {
           if (panel.userData.idHasFocus !== activeElId) {
             if (panel.userData.idHasFocus !== null) {
               document.getElementById(panel.userData.idHasFocus).style.backgroundColor = '#ffffff';
-              panel.userData.idHasFocus = null;
             }
             panel.userData.idHasFocus = activeElId;
             document.activeElement.style.backgroundColor = '#99ddff';
@@ -2294,7 +2293,7 @@ const SCENE = {
       rotationY: 0,
       obstruction: false,
       interaction: false,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#333333',
       userData: {
         arcadeStarted: false,
         hasFocus: false
@@ -2352,7 +2351,7 @@ const SCENE = {
         } else {
           if (panel.userData.hasFocus) {
             panel.userData.hasFocus = false;
-            panel.element.style.borderColor = '#000000';
+            panel.element.style.borderColor = '#333333';
           }
         }
       }
