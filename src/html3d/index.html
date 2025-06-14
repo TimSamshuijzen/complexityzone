@@ -2711,7 +2711,9 @@ const scene_HTML3Ddemo = {
             if ((y > panel.userData.canvas.height) || (Math.random() > 0.98)) {
               panel.userData.drops[i] = 0;
             }
-            panel.userData.drops[i]++;
+            if (Math.random() < 0.8) {
+              panel.userData.drops[i]++;
+            }
           }
         }
       }
