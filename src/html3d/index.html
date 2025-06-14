@@ -395,7 +395,7 @@ class HTML3D {
         opacity: (this.opacity !== null) ? this.opacity : undefined,
         obstruction: (this.obstruction !== null) ? this.obstruction : undefined,
         interaction: (this.interaction !== null) ? this.interaction : undefined,
-        innerHTML: (this.innerHTML !== null) ? this.innerHTML : undefined,
+        innerHTML: (this.innerHTML !== null) ? this.innerHTML.trim() : undefined,
         iframeSrc: (this.iframeSrc !== null) ? this.iframeSrc : undefined,
         iframeHtml: (this.iframeHtml !== null) ? this.iframeHtml : undefined
       };
@@ -701,7 +701,7 @@ Sounds.newGame.volume = 0.15;
 Sounds.copyIntoGame.volume = 0.15;
 Sounds.teleportIntoGame.volume = 0.15;
 window.soundEnabled = function() {
-  return audioCtxMainGainVolume > 0;
+  return (audioCtxMainGainVolume > 0);
 };
 window.enableSound = function(enable) {
   const toggleSoundButton = document.getElementById('toggleSound');
@@ -731,11 +731,7 @@ window.enableSound = function(enable) {
 };
 enableSound(true);
 document.getElementById('toggleSound').addEventListener('click', () => {
-  if (audioCtxMainGainVolume === 0) {
-    enableSound(true);
-  } else {
-    enableSound(false);
-  }
+  enableSound(!soundEnabled());
 });
 
 // =====================================================================
