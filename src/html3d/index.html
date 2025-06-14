@@ -698,7 +698,7 @@ const AUDIO = {
     this.samples.copyIntoGame.volume = 0.15;
     this.samples.teleportIntoGame.volume = 0.15;
   },
-  initContext() {
+  resumeContext() {
     if (this.audioCtx.state === 'suspended') {
       return this.audioCtx.resume();
     }
@@ -1275,7 +1275,7 @@ const scene_HTML3Ddemo = {
             panel.userData.closing = true;
           }
           panel.userData.waitAnimate = true;
-          AUDIO.initContext().then(() => {
+          AUDIO.resumeContext().then(() => {
             {
               const gainNode1 = AUDIO.audioCtx.createGain();
               gainNode1.connect(AUDIO.audioCtxMainGain);
@@ -1707,7 +1707,7 @@ const scene_HTML3Ddemo = {
             elevatorObject.userData.goingDown = true;
           }
           elevatorObject.userData.waitAnimate = true;
-          AUDIO.initContext().then(() => {
+          AUDIO.resumeContext().then(() => {
             {
               const gainNode1 = AUDIO.audioCtx.createGain();
               gainNode1.connect(AUDIO.audioCtxMainGain);
@@ -1793,7 +1793,7 @@ const scene_HTML3Ddemo = {
             elevatorObject.userData.goingDown = true;
           }
           elevatorObject.userData.waitAnimate = true;
-          AUDIO.initContext().then(() => {
+          AUDIO.resumeContext().then(() => {
             {
               const gainNode1 = audioCtx.createGain();
               gainNode1.connect(AUDIO.audioCtxMainGain);
