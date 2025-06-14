@@ -1958,6 +1958,9 @@ const SCENE = {
             </svg>
           </div>
       `,
+      userData: {
+        idHasFocus: null
+      },
       init(html3d, panel) {
         const testPanel = html3d.panels.find((so) => so.id === 'testPanel');
         const testPanelContainer = document.getElementById('testPanelContainer');
@@ -2118,6 +2121,30 @@ const SCENE = {
           anchorCenterCheck.style.display = 'block';
         } else {
           anchorCenterCheck.style.display = 'none';
+        }
+      },
+      animate(html3d, panel) {
+        const activeElId = document.activeElement?.id;
+        if (activeElId === 'testPanelControllerPanel_width' ||
+            activeElId === 'testPanelControllerPanel_height' ||
+            activeElId === 'testPanelControllerPanel_x' ||
+            activeElId === 'testPanelControllerPanel_y' ||
+            activeElId === 'testPanelControllerPanel_z' ||
+            activeElId === 'testPanelControllerPanel_rotationXdegrees' ||
+            activeElId === 'testPanelControllerPanel_rotationYdegrees') {
+          if (panel.userData.idHasFocus !== activeElId) {
+            if (panel.userData.idHasFocus !== null) {
+              document.getElementById(panel.userData.idHasFocus).style.backgroundColor = '#ffffff';
+              panel.userData.idHasFocus = null;
+            }
+            panel.userData.idHasFocus = activeElId;
+            document.activeElement.style.backgroundColor = '#99ddff';
+          }
+        } else {
+          if (panel.userData.idHasFocus !== null) {
+            document.getElementById(panel.userData.idHasFocus).style.backgroundColor = '#ffffff';
+            panel.userData.idHasFocus = null;
+          }
         }
       }
     },
