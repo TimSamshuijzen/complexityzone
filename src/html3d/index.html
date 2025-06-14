@@ -2570,6 +2570,7 @@ const SCENE = {
           AUDIO.samples.newGame.play();
           iframePanel.element.style.pointerEvents = 'auto';
           iframePanel.element.style.userSelect = 'auto';
+          iframePanel.iframe.style.visibility = 'hidden';
           iframePanel.iframe.srcdoc = pageCode;
           setTimeout(() => {
             const iframePanel = html3d.panels.find((so) => so.id === 'arcadeCabinetIframe');
@@ -2578,6 +2579,7 @@ const SCENE = {
               iframeHtml3dInstance.camera.fov = 5;
               iframeHtml3dInstance.camera.updateWorldMatrix();
               iframeHtml3dInstance.requestRender = true;
+              iframePanel.iframe.style.visibility = 'visible';
               panel.userData.startupSequence = true;
             }
             if (iframePanel.iframe.contentWindow?.AUDIO_enable) {
