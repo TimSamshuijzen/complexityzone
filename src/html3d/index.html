@@ -25,6 +25,8 @@
     <div style="position: absolute; left: 220px; top: 0px; width: 200px; height: 40px; font-size: 18px; line-height: 40px; color: #cccccc;">
       HTML3D
     </div>
+    <div id="toggleSound" title="enable/disable sounds" style="position: absolute; left: 450px; top: 0px; width: 40px; height: 40px; background-color: transparent; overflow: hidden; cursor: pointer;">
+    </div>
   </div>
   <script>
 
@@ -680,7 +682,7 @@ class HTML3D {
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioCtx();
 const audioCtxMainGain = audioCtx.createGain();
-const audioCtxMainGainVolume = 0.6;
+let audioCtxMainGainVolume = 0.6;
 audioCtxMainGain.connect(audioCtx.destination);
 audioCtxMainGain.gain.setValueAtTime(audioCtxMainGainVolume, audioCtx.currentTime);
 function initAudioContext() {
@@ -698,6 +700,43 @@ const Sounds = {
 Sounds.newGame.volume = 0.15;
 Sounds.copyIntoGame.volume = 0.15;
 Sounds.teleportIntoGame.volume = 0.15;
+window.soundEnabled = function() {
+  return audioCtxMainGainVolume > 0;
+};
+window.enableSound = function(enable) {
+  const toggleSoundButton = document.getElementById('toggleSound');
+  if (enable) {
+    audioCtxMainGainVolume = 0.6;
+    audioCtxMainGain.gain.setValueAtTime(audioCtxMainGainVolume, audioCtx.currentTime);
+    Sounds.newGame.volume = 0.15;
+    Sounds.copyIntoGame.volume = 0.15;
+    Sounds.teleportIntoGame.volume = 0.15;
+    toggleSoundButton.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" style="position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; background-color: transparent;">
+        <path fill="#ffffff" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+      </svg>
+    `;
+  } else {
+    audioCtxMainGainVolume = 0;
+    audioCtxMainGain.gain.setValueAtTime(audioCtxMainGainVolume, audioCtx.currentTime);
+    Sounds.newGame.volume = 0;
+    Sounds.copyIntoGame.volume = 0;
+    Sounds.teleportIntoGame.volume = 0;
+    toggleSoundButton.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" style="position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; background-color: transparent;">
+        <path fill="#ffffff" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z" />
+      </svg>
+    `;
+  }
+};
+enableSound(true);
+document.getElementById('toggleSound').addEventListener('click', () => {
+  if (audioCtxMainGainVolume === 0) {
+    enableSound(true);
+  } else {
+    enableSound(false);
+  }
+});
 
 // =====================================================================
 // scene
@@ -2437,6 +2476,11 @@ const scene_HTML3Ddemo = {
           arcadeIframe.element.style.pointerEvents = 'auto';
           arcadeIframe.element.style.userSelect = 'auto';
           arcadeIframe.iframe.srcdoc = pageCode;
+          setTimeout(() => {
+            if (arcadeIframe.iframe.contentWindow?.enableSound) {
+              arcadeIframe.iframe.contentWindow.enableSound(audioCtxMainGainVolume > 0);
+            }
+          }, 100);
           const arcadeCabinetFrontBottomStartButton_div = document.getElementById('arcadeCabinetFrontBottomStartButton_div');
           arcadeCabinetFrontBottomStartButton_div.style.border = '5px solid #55F755';
           arcadeCabinetFrontBottomStartButton_div.style.boxShadow = '0 0 15px #00F700';
@@ -2493,11 +2537,12 @@ const scene_HTML3Ddemo = {
         importButton.style.visibility = 'hidden';
         const importButton_div = document.getElementById('arcadeCabinetFrontBottomImportSceneButton_div');
         importButton_div.addEventListener('click', () => {
-          const iframeHtml3dInstance = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow?.html3dInstance;
-          if (iframeHtml3dInstance) {
+          const iframeContentWindow = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow;
+          if (iframeContentWindow?.html3dInstance) {
+            iframeContentWindow.enableSound(audioCtxMainGainVolume > 0);
             Sounds.copyIntoGame.play();
             const sceneData = html3d.export();
-            iframeHtml3dInstance.import(sceneData);
+            iframeContentWindow.html3dInstance.import(sceneData);
           }
         });
       }
@@ -2530,10 +2575,11 @@ const scene_HTML3Ddemo = {
         exportButton.style.visibility = 'hidden';
         const exportButton_div = document.getElementById('arcadeCabinetFrontBottomExportSceneButton_div');
         exportButton_div.addEventListener('click', () => {
-          const iframeHtml3dInstance = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow?.html3dInstance;
-          if (iframeHtml3dInstance) {
+          const iframeContentWindow = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow;
+          if (iframeContentWindow?.html3dInstance) {
+            enableSound(iframeContentWindow.soundEnabled());
             Sounds.teleportIntoGame.play();
-            const sceneData = iframeHtml3dInstance.export();
+            const sceneData = iframeContentWindow?.html3dInstance.export();
             html3d.import(sceneData);
           }
         });
