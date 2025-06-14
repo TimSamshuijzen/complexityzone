@@ -35,6 +35,8 @@
 //   AUDIO - Setup audio
 //   SCENE - Define the 3D scene
 
+const pageCode = document.documentElement.outerHTML;
+
 // =====================================================================
 // HTML3D
 
@@ -765,7 +767,6 @@ const floorDepth = 200;
 const firstFloorWallDepth = 200;
 const firstFloorWindowWidth = (buildingWidth / 2) - 1000;
 const firstFloorWindowHeight = 1000;
-const pageCode = document.documentElement.outerHTML;
 const SCENE = {
   camera: {
     x: doorWidth / 2,
@@ -2537,17 +2538,50 @@ const SCENE = {
           </svg>
         </div>
       `,
+      userData: {
+        startupSequence: false
+      },
+      init(html3d, panel) {
+        panel.userData.startupSequence = false;
+      },
+      animate(html3d, panel) {
+        if (panel.userData.startupSequence) {
+          const iframePanel = html3d.panels.find((so) => so.id === 'arcadeCabinetIframe');
+          if (iframePanel.userData.arcadeStarted) {
+            if (iframePanel.iframe.contentWindow?.html3dInstance) {
+              const iframeHtml3dInstance = iframePanel.iframe.contentWindow.html3dInstance;
+              iframeHtml3dInstance.camera.fov += 1;
+              if (iframeHtml3dInstance.camera.fov > html3d.camera.fov) {
+                iframeHtml3dInstance.camera.fov = html3d.camera.fov;
+                panel.userData.startupSequence = false;
+              }
+              iframeHtml3dInstance.camera.updateWorldMatrix();
+              iframeHtml3dInstance.requestRender = true;
+            } else {
+              panel.userData.startupSequence = false;
+            }
+          }
+        }
+      },
       click(html3d, panel) {
-        const arcadeIframe = html3d.panels.find((so) => so.id === 'arcadeCabinetIframe');
-        if (arcadeIframe.userData.arcadeStarted !== true) {
-          arcadeIframe.userData.arcadeStarted = true;
+        const iframePanel = html3d.panels.find((so) => so.id === 'arcadeCabinetIframe');
+        if (iframePanel.userData.arcadeStarted !== true) {
+          iframePanel.userData.arcadeStarted = true;
           AUDIO.samples.newGame.play();
-          arcadeIframe.element.style.pointerEvents = 'auto';
-          arcadeIframe.element.style.userSelect = 'auto';
-          arcadeIframe.iframe.srcdoc = pageCode;
+          iframePanel.element.style.pointerEvents = 'auto';
+          iframePanel.element.style.userSelect = 'auto';
+          iframePanel.iframe.srcdoc = pageCode;
           setTimeout(() => {
-            if (arcadeIframe.iframe.contentWindow?.AUDIO_enable) {
-              arcadeIframe.iframe.contentWindow.AUDIO_enable(AUDIO_enabled());
+            const iframePanel = html3d.panels.find((so) => so.id === 'arcadeCabinetIframe');
+            if (iframePanel.iframe.contentWindow?.html3dInstance) {
+              const iframeHtml3dInstance = iframePanel.iframe.contentWindow.html3dInstance;
+              iframeHtml3dInstance.camera.fov = 10;
+              iframeHtml3dInstance.camera.updateWorldMatrix();
+              iframeHtml3dInstance.requestRender = true;
+              panel.userData.startupSequence = true;
+            }
+            if (iframePanel.iframe.contentWindow?.AUDIO_enable) {
+              iframePanel.iframe.contentWindow.AUDIO_enable(AUDIO_enabled());
             }
           }, 100);
           const arcadeCabinetFrontBottomStartButton_div = document.getElementById('arcadeCabinetFrontBottomStartButton_div');
@@ -2561,10 +2595,10 @@ const SCENE = {
           const exportButton = document.getElementById('arcadeCabinetFrontBottomExportSceneButton');
           exportButton.style.visibility = 'visible';
         } else {
-          arcadeIframe.userData.arcadeStarted = false;
-          arcadeIframe.element.style.pointerEvents = 'none';
-          arcadeIframe.element.style.userSelect = 'none';
-          arcadeIframe.iframe.srcdoc = arcadeIframe.iframeHtml;
+          iframePanel.userData.arcadeStarted = false;
+          iframePanel.element.style.pointerEvents = 'none';
+          iframePanel.element.style.userSelect = 'none';
+          iframePanel.iframe.srcdoc = iframePanel.iframeHtml;
           const arcadeCabinetFrontBottomStartButton_div = document.getElementById('arcadeCabinetFrontBottomStartButton_div');
           arcadeCabinetFrontBottomStartButton_div.style.border = '5px solid #FFDF00';
           arcadeCabinetFrontBottomStartButton_div.style.boxShadow = '0 0 15px #F77C00';
