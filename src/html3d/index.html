@@ -337,6 +337,9 @@ class HTML3D {
       if (this.innerHTML !== null) {
         this.element.innerHTML = this.innerHTML;
       } else if ((this.iframeSrc !== null) || (this.iframeHtml !== null)) {
+        this.element.style.width = (this.width - 6) + 'px';
+        this.element.style.height = (this.height - 6) + 'px';
+        this.element.style.border = '3px solid #000000';
         this.iframe = document.createElement('iframe');
         this.iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
         if (this.iframeSrc !== null) {
@@ -348,8 +351,8 @@ class HTML3D {
           position: 'absolute',
           left: '0px',
           top: '0px',
-          width: this.width + 'px',
-          height: this.height + 'px',
+          width: (this.width - 6) + 'px',
+          height: (this.height - 6) + 'px',
           border: 'none'
         });
         this.element.appendChild(this.iframe);
@@ -2266,7 +2269,8 @@ const SCENE = {
       interaction: false,
       backgroundColor: '#ffffff',
       userData: {
-        arcadeStarted: false
+        arcadeStarted: false,
+        hasFocus: false
       },
       iframeHtml: `
         <html>
@@ -2311,6 +2315,19 @@ const SCENE = {
       `,
       init(html3d, panel) {
         panel.userData.arcadeStarted = false;
+      },
+      animate(html3d, panel) {
+        if (document.activeElement === panel.iframe) {
+          if (!panel.userData.hasFocus) {
+            panel.userData.hasFocus = true;
+            panel.element.style.borderColor = '#0088ff';
+          }
+        } else {
+          if (panel.userData.hasFocus) {
+            panel.userData.hasFocus = false;
+            panel.element.style.borderColor = '#000000';
+          }
+        }
       }
     },
     {
@@ -2611,10 +2628,24 @@ const SCENE = {
       backgroundColor: '#000000',
       iframeSrc: 'about:blank',
       userData: {
-        isOn: false
+        isOn: false,
+        hasFocus: false
       },
       init(html3d, panel) {
         panel.userData.isOn = false;
+      },
+      animate(html3d, panel) {
+        if (document.activeElement === panel.iframe) {
+          if (!panel.userData.hasFocus) {
+            panel.userData.hasFocus = true;
+            panel.element.style.borderColor = '#0088ff';
+          }
+        } else {
+          if (panel.userData.hasFocus) {
+            panel.userData.hasFocus = false;
+            panel.element.style.borderColor = '#000000';
+          }
+        }
       }
     },
     {
