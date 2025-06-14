@@ -2594,10 +2594,12 @@ const SCENE = {
           arcadeCabinetFrontBottomStartButton_div.style.textShadow = '0 0 8px #55F755';
           const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
           arcadeCabinetFrontBottomDescription.style.visibility = 'visible';
-          const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
-          importButton.style.visibility = 'visible';
-          const exportButton = document.getElementById('arcadeCabinetFrontBottomExportSceneButton');
-          exportButton.style.visibility = 'visible';
+          setTimeout(() => {
+            const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
+            importButton.style.visibility = 'visible';
+            const exportButton = document.getElementById('arcadeCabinetFrontBottomExportSceneButton');
+            exportButton.style.visibility = 'visible';
+          }, 1500);
         } else {
           iframePanel.userData.arcadeStarted = false;
           iframePanel.element.style.pointerEvents = 'none';
@@ -2644,6 +2646,10 @@ const SCENE = {
         importButton.style.visibility = 'hidden';
         const importButton_div = document.getElementById('arcadeCabinetFrontBottomImportSceneButton_div');
         importButton_div.addEventListener('click', () => {
+          const arcadeCabinetFrontBottomStartButtonPanel = html3d.panels.find(p => p.id === 'arcadeCabinetFrontBottomStartButton'); 
+          if (arcadeCabinetFrontBottomStartButtonPanel.userData.startupSequence) {
+            return;
+          }
           const iframeContentWindow = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow;
           if (iframeContentWindow?.html3dInstance) {
             iframeContentWindow.AUDIO_enable(AUDIO_enabled());
@@ -2682,6 +2688,10 @@ const SCENE = {
         exportButton.style.visibility = 'hidden';
         const exportButton_div = document.getElementById('arcadeCabinetFrontBottomExportSceneButton_div');
         exportButton_div.addEventListener('click', () => {
+          const arcadeCabinetFrontBottomStartButtonPanel = html3d.panels.find(p => p.id === 'arcadeCabinetFrontBottomStartButton'); 
+          if (arcadeCabinetFrontBottomStartButtonPanel.userData.startupSequence) {
+            return;
+          }
           const iframeContentWindow = html3d.panels.find(p => p.id === 'arcadeCabinetIframe').iframe.contentWindow;
           if (iframeContentWindow?.html3dInstance) {
             AUDIO_enable(iframeContentWindow.AUDIO_enabled());
@@ -2689,6 +2699,7 @@ const SCENE = {
             const sceneData = iframeContentWindow?.html3dInstance.export();
             html3d.import(sceneData);
           }
+
         });
       }
     },
