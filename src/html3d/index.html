@@ -32,8 +32,8 @@
 
 // Code sections:
 //   HTML3D - Library for creating 3D scenes with HTML elements
-//   audio - Setup audio
-//   scene - Define the 3D scene
+//   AUDIO - Setup audio
+//   SCENE - Define the 3D scene
 
 // =====================================================================
 // HTML3D
@@ -677,7 +677,7 @@ class HTML3D {
 }
 
 // =====================================================================
-// audio
+// AUDIO
 
 const AUDIO = {
   init() {
@@ -743,7 +743,7 @@ document.getElementById('toggleSound').addEventListener('click', () => {
 });
 
 // =====================================================================
-// scene
+// SCENE
 
 const cameraHeight = 900;
 const buildingWidth = 10000;
@@ -755,7 +755,7 @@ const firstFloorWallDepth = 200;
 const firstFloorWindowWidth = (buildingWidth / 2) - 1000;
 const firstFloorWindowHeight = 1000;
 const pageCode = document.documentElement.outerHTML;
-const scene_HTML3Ddemo = {
+const SCENE = {
   camera: {
     x: doorWidth / 2,
     y: -cameraHeight,
@@ -2726,7 +2726,7 @@ const scene_HTML3Ddemo = {
   ]
 };
 
-window.html3dInstance = new HTML3D(document.getElementById('container'), scene_HTML3Ddemo);
+window.html3dInstance = new HTML3D(document.getElementById('container'), SCENE);
 
 // DOWNLOADLINKSTART
 // This code is removed in the downloaded html file.
