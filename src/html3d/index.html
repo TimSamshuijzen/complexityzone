@@ -2550,7 +2550,7 @@ const SCENE = {
           if (iframePanel.userData.arcadeStarted) {
             if (iframePanel.iframe.contentWindow?.html3dInstance) {
               const iframeHtml3dInstance = iframePanel.iframe.contentWindow.html3dInstance;
-              iframeHtml3dInstance.camera.fov += 1;
+              iframeHtml3dInstance.camera.fov += 0.7;
               if (iframeHtml3dInstance.camera.fov > html3d.camera.fov) {
                 iframeHtml3dInstance.camera.fov = html3d.camera.fov;
                 panel.userData.startupSequence = false;
@@ -2575,7 +2575,7 @@ const SCENE = {
             const iframePanel = html3d.panels.find((so) => so.id === 'arcadeCabinetIframe');
             if (iframePanel.iframe.contentWindow?.html3dInstance) {
               const iframeHtml3dInstance = iframePanel.iframe.contentWindow.html3dInstance;
-              iframeHtml3dInstance.camera.fov = 10;
+              iframeHtml3dInstance.camera.fov = 5;
               iframeHtml3dInstance.camera.updateWorldMatrix();
               iframeHtml3dInstance.requestRender = true;
               panel.userData.startupSequence = true;
