@@ -2688,6 +2688,7 @@ const scene_HTML3Ddemo = {
         for (let i = 0; i < columns; i++) {
           panel.userData.drops[i] = (Math.random() * panel.userData.canvas.height) / panel.userData.fontSize;
         }
+        panel.userData.lastAnimateMs = 0;
       },
       animate(html3d, panel) {
         if (performance.now() - panel.userData.lastAnimateMs > panel.userData.animateIntervalMs) {
