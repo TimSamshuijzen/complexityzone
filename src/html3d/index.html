@@ -2671,7 +2671,7 @@ const scene_HTML3Ddemo = {
       obstruction: false,
       interaction: false,
       backgroundColor: '#000000',
-      opacity: 0.5,
+      opacity: 0.6,
       innerHTML: `
         <canvas id="digitalRain_canvas" width=${2500} height=${wallHeight} style="display: block; position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"></canvas>
       `,
@@ -2690,14 +2690,14 @@ const scene_HTML3Ddemo = {
         const columns = Math.floor(panel.userData.canvas.width / panel.userData.fontSize);
         panel.userData.drops = [];
         for (let i = 0; i < columns; i++) {
-          panel.userData.drops[i] = Math.random() * panel.userData.canvas.height / panel.userData.fontSize;
+          panel.userData.drops[i] = (Math.random() * panel.userData.canvas.height) / panel.userData.fontSize;
         }
       },
       animate(html3d, panel) {
         if (performance.now() - panel.userData.lastAnimateMs > panel.userData.animateIntervalMs) {
           panel.userData.lastAnimateMs = performance.now();
           const ctx = panel.userData.ctx;
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
           ctx.fillRect(0, 0, panel.userData.canvas.width, panel.userData.canvas.height);
           ctx.fillStyle = '#00ff00';
           ctx.font = panel.userData.fontSize + 'px monospace';
@@ -2708,7 +2708,7 @@ const scene_HTML3Ddemo = {
             const brightness = (Math.random() * 0.5) + 0.5;
             ctx.fillStyle = `rgba(0, ${Math.floor(255 * brightness)}, 0, ${brightness})`;
             ctx.fillText(character, x, y);
-            if ((y > panel.userData.canvas.height) && (Math.random() > 0.976)) {
+            if ((y > panel.userData.canvas.height) || (Math.random() > 0.98)) {
               panel.userData.drops[i] = 0;
             }
             panel.userData.drops[i]++;
