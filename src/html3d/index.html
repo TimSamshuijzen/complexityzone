@@ -1795,7 +1795,7 @@ const SCENE = {
           elevatorObject.userData.waitAnimate = true;
           AUDIO.resumeContext().then(() => {
             {
-              const gainNode1 = audioCtx.createGain();
+              const gainNode1 = AUDIO.audioCtx.createGain();
               gainNode1.connect(AUDIO.audioCtxMainGain);
               gainNode1.gain.setValueAtTime(0.30, AUDIO.audioCtx.currentTime);
               const oscillator1 = AUDIO.audioCtx.createOscillator();
