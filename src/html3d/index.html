@@ -2554,6 +2554,12 @@ const SCENE = {
               if (iframeHtml3dInstance.camera.fov > html3d.camera.fov) {
                 iframeHtml3dInstance.camera.fov = html3d.camera.fov;
                 panel.userData.startupSequence = false;
+
+                const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
+                importButton.style.visibility = 'visible';
+                const exportButton = document.getElementById('arcadeCabinetFrontBottomExportSceneButton');
+                exportButton.style.visibility = 'visible';
+
               }
               iframeHtml3dInstance.camera.updateWorldMatrix();
               iframeHtml3dInstance.requestRender = true;
@@ -2594,13 +2600,8 @@ const SCENE = {
           arcadeCabinetFrontBottomStartButton_div.style.textShadow = '0 0 8px #55F755';
           const arcadeCabinetFrontBottomDescription = document.getElementById('arcadeCabinetFrontBottomDescription');
           arcadeCabinetFrontBottomDescription.style.visibility = 'visible';
-          setTimeout(() => {
-            const importButton = document.getElementById('arcadeCabinetFrontBottomImportSceneButton');
-            importButton.style.visibility = 'visible';
-            const exportButton = document.getElementById('arcadeCabinetFrontBottomExportSceneButton');
-            exportButton.style.visibility = 'visible';
-          }, 1500);
         } else {
+          panel.userData.startupSequence = false;
           iframePanel.userData.arcadeStarted = false;
           iframePanel.element.style.pointerEvents = 'none';
           iframePanel.element.style.userSelect = 'none';
