@@ -2589,7 +2589,7 @@ const scene_HTML3Ddemo = {
       id: 'firstFloorTelevision',
       width: 1800,
       height: 1000,
-      x: 1020,
+      x: (buildingWidth / 4) - 900,
       y: ((-(wallHeight + floorDepth)) - ((wallHeight / 2) + 500)),
       z: (-buildingDepth / 2) + 100,
       rotationX: 0,
@@ -2609,7 +2609,7 @@ const scene_HTML3Ddemo = {
       id: 'firstFloorTelevisionControls',
       width: 160,
       height: 160,
-      x: 2880,
+      x: (buildingWidth / 4) + 900 + 40,
       y: ((-(wallHeight + floorDepth)) - ((wallHeight / 2) + 80)),
       z: (-buildingDepth / 2) + 100,
       rotationX: 0,
@@ -2643,6 +2643,76 @@ const scene_HTML3Ddemo = {
           onOffButton.style.border = '5px solid #FFDF00';
           onOffButton.style.boxShadow = '0 0 15px #F77C00';
           onOffButton.style.textShadow = '0 0 8px #F77C00';
+        }
+      }
+    },
+    {
+      id: 'firstFloorWall',
+      width: (buildingDepth - 2700),
+      height: wallHeight,
+      x: 0,
+      y: (-(wallHeight + floorDepth + wallHeight)),
+      z: -(buildingDepth / 2),
+      rotationX: 0,
+      rotationY: -(Math.PI / 2),
+      obstruction: true,
+      interaction: true,
+      backgroundColor: '#F4F4F4'
+    },
+    {
+      id: 'digitalRain',
+      width: 2700,
+      height: wallHeight,
+      x: 0,
+      y: (-(wallHeight + floorDepth + wallHeight)),
+      z: (buildingDepth / 2) - 2700,
+      rotationX: 0,
+      rotationY: -(Math.PI / 2),
+      obstruction: false,
+      interaction: false,
+      backgroundColor: '#000000',
+      opacity: 0.5,
+      innerHTML: `
+        <canvas id="digitalRain_canvas" width=${2700} height=${wallHeight} style="display: block; position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"></canvas>
+      `,
+      userData: {
+        canvas: null,
+        ctx: null,
+        fontSize: 40,
+        characters: 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+        drops: [],
+        lastAnimateMs: 0,
+        animateInterval: 100 // milliseconds
+      },
+      init(html3d, panel) {
+        panel.userData.canvas = document.getElementById('digitalRain_canvas');
+        panel.userData.ctx = panel.userData.canvas.getContext('2d');
+        const columns = Math.floor(panel.userData.canvas.width / panel.userData.fontSize);
+        panel.userData.drops = [];
+        for (let i = 0; i < columns; i++) {
+          panel.userData.drops[i] = Math.random() * panel.userData.canvas.height / panel.userData.fontSize;
+        }
+      },
+      animate(html3d, panel) {
+        if (Date.now() - panel.userData.lastAnimateMs > panel.userData.animateInterval) {
+          panel.userData.lastAnimateMs = Date.now();
+          const ctx = panel.userData.ctx;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+          ctx.fillRect(0, 0, panel.userData.canvas.width, panel.userData.canvas.height);
+          ctx.fillStyle = '#00ff00';
+          ctx.font = panel.userData.fontSize + 'px monospace';
+          for (let i = 0; i < panel.userData.drops.length; i++) {
+            const character = panel.userData.characters[Math.floor(Math.random() * panel.userData.characters.length)];
+            const x = i * panel.userData.fontSize;
+            const y = panel.userData.drops[i] * panel.userData.fontSize;
+            const brightness = (Math.random() * 0.5) + 0.5;
+            ctx.fillStyle = `rgba(0, ${Math.floor(255 * brightness)}, 0, ${brightness})`;
+            ctx.fillText(character, x, y);
+            if ((y > panel.userData.canvas.height) && (Math.random() > 0.976)) {
+              panel.userData.drops[i] = 0;
+            }
+            panel.userData.drops[i]++;
+          }
         }
       }
     }
