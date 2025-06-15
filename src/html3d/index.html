@@ -2865,17 +2865,17 @@ if (window.location.protocol === 'https:') {
     position: 'absolute',
     left: '430px',
     top: '0px',
-    width: '400px',
+    width: '330px',
     height: '40px'
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'HTML3D is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file and run it offline.';
+  downloadlink.title = 'HTML3D is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file and run/edit it offline.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '10px',
     top: '8px',
-    width: '400px',
+    width: '320px',
     height: '24px',
     cursor: 'pointer'
   });
@@ -2900,7 +2900,7 @@ if (window.location.protocol === 'https:') {
     position: 'absolute',
     left: '35px',
     top: '0px',
-    width: '365px',
+    width: '285px',
     height: '24px',
     color: '#cccccc',
     fontSize: '14px',
@@ -2931,7 +2931,7 @@ if (window.location.protocol === 'https:') {
       a.download = `html3d_${dateYYYYMMDD}.html`;
       a.click();
       URL.revokeObjectURL(url);
-      downloadlink_text.innerHTML = 'downloaded to your Downloads folder';
+      downloadlink_text.innerHTML = 'downloaded to Downloads folder';
       setTimeout(() => {
         downloadlink_text.innerHTML = '';
       }, 2000);
