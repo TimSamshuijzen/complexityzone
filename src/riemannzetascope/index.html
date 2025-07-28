@@ -65,6 +65,7 @@ class Zeta {
     this.nMod8isNot0Only = false;
     this.analyticContinuationRe = 0;
     this.analyticContinuationIm = 0;
+    this.analyticContinuationValid = false;
     this.maxTermCount = 10000;
     this.maxTInt = Math.floor(this.maxTermCount * Math.PI);
     this.terms = [];
@@ -169,11 +170,13 @@ class Zeta {
     if (denominator === 0) {
       this.analyticContinuationRe = 0;
       this.analyticContinuationIm = 0;
+      this.analyticContinuationValid = false;
     } else {
       const vectorRe = (1 - (Math.pow(2, 1 - this.sigma) * Math.cos(this.t * Math.log(2)))) / denominator;
       const vectorIm = -(Math.pow(2, 1 - this.sigma) * Math.sin(this.t * Math.log(2))) / denominator;
       this.analyticContinuationRe = ((etaEstimationRe * vectorRe) - (etaEstimationIm * vectorIm));
       this.analyticContinuationIm = ((etaEstimationRe * vectorIm) + (etaEstimationIm * vectorRe));
+      this.analyticContinuationValid = true;
     }
   }
 }
@@ -451,10 +454,12 @@ class ZetaView {
             positions.lastTermTo.y = currentPartialSum.y;
             // tracePoints
             if (this.doTrace) {
-              this.traceValues.push({
-                re: this.zeta.analyticContinuationRe,
-                im: this.zeta.analyticContinuationIm
-              });
+              if (this.analyticContinuationValid) {
+                this.traceValues.push({
+                  re: this.zeta.analyticContinuationRe,
+                  im: this.zeta.analyticContinuationIm
+                });
+              }
               if (this.traceValues.length > this.maxTraceValues) {
                 this.traceValues.splice(0, (this.traceValues.length - this.maxTraceValues));
               }
@@ -476,6 +481,7 @@ class ZetaView {
         positions.analyticContinuation = {};
         positions.analyticContinuation.x = positions.origin.x + (this.zeta.analyticContinuationRe * this.pixelsPerUnit);
         positions.analyticContinuation.y = positions.origin.y - (this.zeta.analyticContinuationIm * this.pixelsPerUnit);
+        positions.analyticContinuation.valid = this.zeta.analyticContinuationValid;
         transformPointsList.push(positions.analyticContinuation);
       }
       // spiral numbers
@@ -740,10 +746,12 @@ class ZetaView {
       }
       // analytic continuation by Dirichlet eta
       if (this.drawAnalyticContinuation) {
-        canvasCtx.fillStyle = '#D4AF37';
-        canvasCtx.beginPath();
-        canvasCtx.ellipse(positions.analyticContinuation.x, positions.analyticContinuation.y, 8, 8, 0, 0, (2 * Math.PI));
-        canvasCtx.fill();
+        if (positions.analyticContinuation.valid) {
+          canvasCtx.fillStyle = '#D4AF37';
+          canvasCtx.beginPath();
+          canvasCtx.ellipse(positions.analyticContinuation.x, positions.analyticContinuation.y, 8, 8, 0, 0, (2 * Math.PI));
+          canvasCtx.fill();
+        }
       }
       // tracePoints
       if (this.doTrace) {
