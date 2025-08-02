@@ -1300,9 +1300,7 @@ const View = {
     panelZero10Button: null,
     panelPlayReverseButton: null,
     panelPlayButton: null,
-    panelRotationSpeedTrackBar: null,
-    bottomPanel: null,
-    bottomPanelImTrackBar: null
+    panelRotationSpeedTrackBar: null
   },
   styles: {
     onOffButton: {
@@ -1365,7 +1363,7 @@ const View = {
   canvasWidth: 1100,
   canvasHeight: 750,
   panelWidth: 330,
-  panelHeight: 800,
+  panelHeight: 750,
   ctx: null,
   zeta: null,
   zetaView: null,
@@ -1997,7 +1995,7 @@ const View = {
       });
       subRunningY += 31;
       this.components.panelDisplaySection.style.height = subRunningY + 'px';      
-      runningY += subRunningY + 27;
+      runningY += subRunningY + 14;
     }
     // ==================================================================
     // zeta section
@@ -2392,7 +2390,7 @@ const View = {
       this.components.panelZetaResult.appendChild(this.components.panelZetaResult_equation_right);
       subRunningY += 34;
       this.components.panelZetaSection.style.height = subRunningY + 'px';      
-      runningY += subRunningY + 27;
+      runningY += subRunningY + 14;
     }
     // ==================================================================
     // N section
@@ -2711,7 +2709,7 @@ const View = {
       });
       subRunningY += 26;
       this.components.panelNSection.style.height = subRunningY + 'px';      
-      runningY += subRunningY + 27;
+      runningY += subRunningY + 14;
     }
     // ==================================================================
     // sigma section
@@ -2906,7 +2904,7 @@ const View = {
       });
       subRunningY += 30;
       this.components.panelSigmaSection.style.height = subRunningY + 'px';      
-      runningY += subRunningY + 27;
+      runningY += subRunningY + 14;
     }
     // ==================================================================
     // t section
@@ -2985,7 +2983,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelImAdd2PIDIVLN2Button = document.createElement('button');
@@ -3011,7 +3008,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelImSetN2PIDIVLN2Button = document.createElement('button');
@@ -3039,7 +3035,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelImSet2PIDIVLNNButton = document.createElement('button');
@@ -3066,7 +3061,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       subRunningY += 25;
@@ -3092,7 +3086,6 @@ const View = {
         this.zeta.setT(parseFloat(this.components.panelImIntTrackBar.value) + parseFloat(this.components.panelImFracTrackBar.value));
         this.checkTermCountAuto();
         this.zetaView.draw();
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;        
         this.render();
       });
       this.components.panelImIntDecButton = document.createElement('button');
@@ -3118,7 +3111,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelImIntIncButton = document.createElement('button');
@@ -3144,7 +3136,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       subRunningY += 23;
@@ -3170,7 +3161,6 @@ const View = {
         this.zeta.setT(parseFloat(this.components.panelImIntTrackBar.value) + parseFloat(this.components.panelImFracTrackBar.value));
         this.checkTermCountAuto();
         this.zetaView.draw();
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelImFracDecButton = document.createElement('button');
@@ -3196,7 +3186,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelImFracIncButton = document.createElement('button');
@@ -3222,7 +3211,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       subRunningY += 28;
@@ -3250,7 +3238,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero2Button = document.createElement('button');
@@ -3277,7 +3264,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero3Button = document.createElement('button');
@@ -3304,7 +3290,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero4Button = document.createElement('button');
@@ -3331,7 +3316,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero5Button = document.createElement('button');
@@ -3358,7 +3342,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       subRunningY += 20;
@@ -3386,7 +3369,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero7Button = document.createElement('button');
@@ -3413,7 +3395,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero8Button = document.createElement('button');
@@ -3440,7 +3421,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero9Button = document.createElement('button');
@@ -3467,7 +3447,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       this.components.panelZero10Button = document.createElement('button');
@@ -3494,7 +3473,6 @@ const View = {
         this.components.panelReTrackBar.value = this.zeta.sigma;
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       });
       subRunningY += 27;
@@ -3565,46 +3543,6 @@ const View = {
       subRunningY += 30;
       this.components.panelTSection.style.height = subRunningY + 'px';      
     }
-    // ==================================================================
-    // bottomPanel
-    this.components.bottomPanel = document.createElement('div');
-    Object.assign(this.components.bottomPanel.style, {
-      position: 'absolute',
-      left: containerHorizontalSpacing + 'px',
-      top: (containerVerticalSpacing + this.canvasHeight + 10) + 'px',
-      width: ((this.canvasWidth + containerHorizontalSpacing) + 1) + 'px',
-      height: (this.panelHeight - (this.canvasHeight + 10)) + 'px',
-      overflow: 'hidden',
-      backgroundColor: '#B1B4C4'
-    });
-    this.components.scope.appendChild(this.components.bottomPanel);
-    this.components.bottomPanelImTrackBar = document.createElement('input');
-    this.components.bottomPanelImTrackBar.type = 'range';
-    this.components.bottomPanelImTrackBar.min = 0;
-    this.components.bottomPanelImTrackBar.max = this.zeta.maxTInt + 0.999;
-    this.components.bottomPanelImTrackBar.step = 0.001;
-    this.components.bottomPanelImTrackBar.value = this.zeta.t;
-    Object.assign(this.components.bottomPanelImTrackBar.style, {
-      position: 'absolute',
-      left: 10 + 'px',
-      top: 10 + 'px',
-      width: (((this.canvasWidth + containerHorizontalSpacing) + 1) - 10) + 'px',
-      height: '20px',
-      overflow: 'hidden',
-      '-webkit-appearance': 'none',
-      accentColor: '#666666',
-      backgroundColor: '#cccccc'
-    });
-    this.components.bottomPanel.appendChild(this.components.bottomPanelImTrackBar);
-    this.components.bottomPanel.title = 'Set t, from 0 to 10000π';
-    this.components.bottomPanelImTrackBar.addEventListener('input', () => {
-      this.zeta.setT(parseFloat(this.components.bottomPanelImTrackBar.value));
-      this.checkTermCountAuto();
-      this.zetaView.draw();
-      this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
-      this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-      this.render();
-    });
     // ==================================================================
     this.checkTermCountAuto();
     this.zetaView.draw();
@@ -3719,7 +3657,6 @@ const View = {
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
-        this.components.bottomPanelImTrackBar.value = this.zeta.t;
         this.render();
       }
     }
