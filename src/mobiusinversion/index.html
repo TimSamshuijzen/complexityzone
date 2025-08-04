@@ -37,7 +37,7 @@
 </head>
 <body>
   <div style="height: 50px; padding: 10px; padding-left: 20px; background-color: #333333; font-size: 22px;">
-    <a href="https://complexity.zone/"><span style="color: #80cccc; margin-right: 50px; font-size: 18px;">complexity.zone</span></a> Möbius Inversion of a Square Wave&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 13px;">View page source to see source code.</span>
+    <a href="https://complexity.zone/"><span style="color: #80cccc; margin-right: 50px; font-size: 18px;">complexity.zone</span></a> Möbius Inversion of a Square Wave&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 13px;" title="All the JavaScript code is in the html file. Feel free to download and tinker.">View page source to see source code</span>
   </div>
   <div style="position: relative; width: 1050px; height: 840px; background-color: #000000; margin-left: auto; margin-right: auto;">
     <canvas id="canvas" width="1050" height="840" style="display: block; position: absolute; left: 0px; top: 0px; width: 1050px; height: 840px;"></canvas>
@@ -96,7 +96,7 @@ class Waves {
     for (let hi = 0; hi < this.harmonics.length; hi++) {
       const harmonic = this.harmonics[hi];
       // Fourier series of a square wave in the complex plane.
-      // This alternating series projects square waves on both real and imaginary axes.
+      // This alternating series of odd harmonics projects square waves on real and imaginary axes.
       const frequency = ((hi * 2) + 1);
       const direction = (((hi % 2) === 0) ? 1 : -1);
       const phase = ((direction === 1) ? 0 : Math.PI);
@@ -200,7 +200,6 @@ class Waves {
         canvasCtx.fillRect((harmonicCenterX - amplitude), (harmonicCenterY - amplitude), (2 * amplitude), (2 * amplitude));
         canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
         canvasCtx.strokeRect((harmonicCenterX - amplitude), (harmonicCenterY - amplitude), (2 * amplitude), (2 * amplitude));
-        // line
         canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
         canvasCtx.beginPath();
         canvasCtx.moveTo(harmonicCenterX, harmonicCenterY);
@@ -218,7 +217,7 @@ class Waves {
           harmonicX += harmonic.x;
           harmonicY += harmonic.y;
         }
-        // round wheel
+        // circular wheel
         canvasCtx.fillStyle = 'rgb(30, 30, 30)';
         canvasCtx.beginPath();
         canvasCtx.ellipse(harmonicCenterX, harmonicCenterY, amplitude, amplitude, 0, 0, (2 * Math.PI));
@@ -227,7 +226,6 @@ class Waves {
         canvasCtx.beginPath();
         canvasCtx.ellipse(harmonicCenterX, harmonicCenterY, amplitude, amplitude, 0, 0, (2 * Math.PI));
         canvasCtx.stroke();
-        // line
         canvasCtx.beginPath();
         canvasCtx.moveTo(harmonicCenterX, harmonicCenterY);
         canvasCtx.lineTo(harmonicX, harmonicY);
@@ -378,7 +376,7 @@ const animate = () => {
   ctx.fillStyle = 'rgb(0, 0, 0)';
   ctx.fillText('constructing a square with circular wheels', centerX1 - 180, centerY1 - 155);
   ctx.fillText('constructing a circle with square wheels', centerX4 - 180, centerY4 - 155);
-  ctx.strokeStyle = 'rgb(244, 254, 253)'; //'rgb(114, 242, 235)';
+  ctx.strokeStyle = 'rgb(244, 254, 253)';
   ctx.lineWidth = 1;
   ctx.strokeRect(centerX1 - 190, centerY1 - 175, 380, 320);
   ctx.strokeRect(centerX4 - 190, centerY4 - 175, 380, 320);
