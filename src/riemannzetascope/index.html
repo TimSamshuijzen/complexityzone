@@ -923,7 +923,7 @@ class ZetaView {
             canvasCtx.textAlign = 'center';
             for (let hi = (this.zeta.terms.length - 1); hi >= 0; hi--) {
               const term = this.zeta.terms[hi];
-              if (term.radius > 0.00001) {
+              if ((term.radius > 0.00001) || (term.radius < -0.00001)) {
                 if ((hi < 99) || (hi === hiOfSpiral1) || (hi === (this.zeta.terms.length - 1))) {
                   const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
                   const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
@@ -940,7 +940,7 @@ class ZetaView {
                   } else if (hi === (this.zeta.terms.length - 1)) {
                     canvasCtx.fillStyle = 'rgb(244, 241, 0)';
                   }
-                  canvasCtx.fillText('' + (hi + 1), endPointX, (endPointY + 5) + ((this.zeta.terms.length - 1) ? -10 : 0));
+                  canvasCtx.fillText('' + (hi + 1), endPointX, (endPointY - 5));
                   if (hi === hiOfSpiral1) {
                     // draw dot halfway between center and end point
                     canvasCtx.fillStyle = '#72E06B';
@@ -990,10 +990,11 @@ class ZetaView {
                 canvasCtx.lineWidth = 1;
               }
             }
-          }          
+          }
+          /*
           if (this.drawGrid) {
-            // the origin (a representation of)
-            // work in progress, currently only works when N is set to auto and none of the formula manipulation buttons are set
+            // draw the origin
+            // proof-of-concept: currently only works when N is set to auto and none of the formula manipulation buttons are set
             if ((View.termCountAuto === true) && (this.zeta.terms.length > 1)) {
               canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
               canvasCtx.lineWidth = 4;
@@ -1003,6 +1004,7 @@ class ZetaView {
               canvasCtx.lineWidth = 1;
             }
           }
+          */
         }
         canvasCtx.restore();
         // polar window border
@@ -1192,6 +1194,8 @@ class ZetaView {
       if ((result > 1) && ((result % 2) === 1)) {
         result--;
       }
+    } else if (this.zeta.mobiusRadius) {
+      result = this.zeta.maxTermCount;
     } else if (this.zeta.nMod8is0Only) {
       result = ((Math.ceil((t * 8) / Math.PI)) | 0);
       if ((result > 8) && ((result % 8) !== 0)) {
@@ -2215,7 +2219,7 @@ const View = {
         fontSize: '11px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelMobiusRadiusButton);
-      this.components.panelMobiusRadiusButton.title = 'Filter: Multiply radii by μ(n).\nThe resulting sum is the reciprocal of ζ(s).';
+      this.components.panelMobiusRadiusButton.title = 'Filter: Multiply terms by μ(n), to obtain the reciprocal of ζ(s).';
       this.components.panelMobiusRadiusButton.innerHTML = 'μ(n)';
       this.components.panelMobiusRadiusButton.addEventListener('click', () => {
         this.zeta.mobiusRadius = !this.zeta.mobiusRadius;
@@ -2498,7 +2502,7 @@ const View = {
         '  ζ(s, 1/2): N = ⌈t/π⌉\n' +
         '  odd-only: N = ⌈2t/π⌉\n' +
         '  even-only: N = [2t/π]\n' +
-        '  n mod 8 = 0: N = ⌈8t/π⌉\n' +
+        '  μ(n): N = max\n' +
         '  n mod 8 != 0: N = ⌈8t/π⌉\n';
       this.components.panelTermCountAutoButton.innerHTML = 'N=auto';
       this.components.panelTermCountAutoButton.addEventListener('click', () => {
