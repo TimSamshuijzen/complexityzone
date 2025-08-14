@@ -13,8 +13,7 @@
       margin: 0px;
       padding: 0px;
     }
-    div
-    {
+    div {
       margin: 0;
       padding: 0;
       border: 0;
@@ -22,22 +21,19 @@
       white-space: normal; 
       text-align: left;
     }
-    div span
-    {
+    div span {
       margin: 0;
       padding: 0;
       border: 0;
     }
-    a, a:link, a:visited, a:hover, a:active
-    {
+    a, a:link, a:visited, a:hover, a:active {
       text-decoration: inherit;
       font-family: inherit;
       font-size: inherit;
       background-color: inherit;
       color: inherit;
     }
-    .panel
-    {
+    .panel {
       display: inline-block;
       position: relative;
       margin: 16px;
@@ -46,16 +42,14 @@
       background-color: #333333;
       cursor: pointer;
     }
-    .panelHeader
-    {
+    .panelHeader {
       position: absolute;
       left: 0;
       top: 0;
       width: 220px;
       height: 220px;
     }
-    .panelContent
-    {
+    .panelContent {
       position: absolute;
       left: 220px;
       top: 0;
@@ -116,12 +110,12 @@
   </div>
   <div id="content" style="background-color: #222222;">
 
-    <div class="panel" title="html3d.com" onclick="window.location = 'https://html3d.com/';">
+    <div class="panel" title="html3d.com" onclick="window.open('https://html3d.com/'); return false;">
       <div class="panelHeader">
-        <a href="https://html3d.com/"><img src="./html3d/img/html3dthumbnail.png" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
+        <a href="https://html3d.com/" target="_blank"><img src="./html3d/img/html3dthumbnail.png" width="200" style="position: absolute; left: 10px; top: 10px; width: 200px;" /></a>
       </div>
       <div class="panelContent">
-        <a href="https://html3d.com/">
+        <a href="https://html3d.com/" target="_blank">
           <b>HTML3D</b><br />
           2025<br />
           <br />
