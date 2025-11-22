@@ -40,14 +40,69 @@
     <a href="https://complexity.zone/"><span style="color: #80cccc; margin-right: 50px; font-size: 18px;">complexity.zone</span></a> Möbius Inversion of a Square Wave&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 13px;" title="All the JavaScript code is in the html file. Feel free to download and tinker.">View page source to see source code</span>
   </div>
   <div style="position: relative; width: 1050px; height: 840px; background-color: #000000; margin-left: auto; margin-right: auto;">
-    <canvas id="canvas" width="1050" height="840" style="display: block; position: absolute; left: 0px; top: 0px; width: 1050px; height: 840px;"></canvas>
+    <div width="1050" height="840" style="display: block; position: absolute; left: 0px; top: 0px; width: 1050px; height: 840px;">
+      <canvas id="canvas" width="1050" height="840" style="display: block; position: absolute; left: 0px; top: 0px; width: 1050px; height: 840px;"></canvas>
+      <div style="position: absolute; left: 89px; top: 59px; width: 280px; height: 280px; border: 1px solid #ffffff; background-color: transparent;">
+      </div>
+      <div style="position: absolute; left: 89px; top: 29px; width: 280px; height: 30px; border: 1px solid #ffffff; background-color: #ffffff; color: #000000; font-size: 15px; text-align: center; line-height: 30px;">
+        construct a square with circular wheels
+      </div>
+      <div style="position: absolute; left: 679px; top: 509px; width: 280px; height: 280px; border: 1px solid #ffffff; background-color: transparent; visibility: visible;">
+      </div>
+      <div style="position: absolute; left: 679px; top: 479px; width: 280px; height: 30px; border: 1px solid #ffffff; background-color: #ffffff; color: #000000; font-size: 15px; text-align: center; line-height: 30px; visibility: visible;">
+        construct a circle with square wheels
+      </div>
+      <div style="position: absolute; left: 210px; top: 370px; width: 40px; height: 80px; background-color: transparent;">
+        <svg width="40" height="80">
+          <line x1="20" y1="0" x2="20" y2="70" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="10" y1="50" x2="20" y2="70" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="30" y1="50" x2="20" y2="70" style="stroke:#ffffff; stroke-width:1" />
+        </svg>
+      </div>
+      <div style="position: absolute; left: 250px; top: 380px; width: 200px; height: 60px; background-color: transparent; color: #a0a0a0; font-size: 18px; white-space: nowrap; overflow: visible;">
+        replace circular wheels<br />
+        with square wheels
+      </div>
+      <div style="position: absolute; left: 800px; top: 370px; width: 40px; height: 80px; background-color: transparent;">
+        <svg width="40" height="80">
+          <line x1="20" y1="0" x2="20" y2="70" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="10" y1="50" x2="20" y2="70" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="30" y1="50" x2="20" y2="70" style="stroke:#ffffff; stroke-width:1" />
+        </svg>
+      </div>
+      <div style="position: absolute; left: 840px; top: 380px; width: 200px; height: 60px; background-color: transparent; color: #a0a0a0; font-size: 18px; white-space: nowrap; overflow: visible;">
+        replace circular wheels<br />
+        with square wheels
+      </div>
+      <div style="position: absolute; left: 445px; top: 175px; width: 170px; height: 40px; background-color: transparent;">
+        <svg width="170" height="40">
+          <line x1="0" y1="20" x2="160" y2="20" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="140" y1="10" x2="160" y2="20" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="140" y1="30" x2="160" y2="20" style="stroke:#ffffff; stroke-width:1" />
+        </svg>
+      </div>
+      <div style="position: absolute; left: 445px; top: 215px; width: 200px; height: 60px; background-color: transparent; color: #a0a0a0; font-size: 18px; white-space: nowrap; overflow: visible;">
+        multiply wheels with<br />
+        Möbius function μ
+      </div>
+      <div style="position: absolute; left: 445px; top: 625px; width: 170px; height: 40px; background-color: transparent;">
+        <svg width="170" height="40">
+          <line x1="0" y1="20" x2="160" y2="20" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="140" y1="10" x2="160" y2="20" style="stroke:#ffffff; stroke-width:1" />
+          <line x1="140" y1="30" x2="160" y2="20" style="stroke:#ffffff; stroke-width:1" />
+        </svg>
+      </div>
+      <div style="position: absolute; left: 445px; top: 665px; width: 200px; height: 60px; background-color: transparent; color: #a0a0a0; font-size: 18px; white-space: nowrap; overflow: visible;">
+        multiply wheels with<br />
+        Möbius function μ
+      </div>
+    </div>
   </div>
   <div style="height: 70px; padding: 10px; padding-left: 20px; background-color: #333333; font-size: 36px;">
   </div>
   <script>
 
 // Möbius inversion of a square wave as a sum of sinusoidal waves, into a sinusoidal wave as a sum of square waves.
-// Tim Samshuijzen
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -96,7 +151,7 @@ class Waves {
     for (let hi = 0; hi < this.harmonics.length; hi++) {
       const harmonic = this.harmonics[hi];
       // Fourier series of a square wave in the complex plane.
-      // This alternating series of odd harmonics projects square waves on real and imaginary axes.
+      // This alternating series of odd harmonics project square waves on real and imaginary axes.
       const frequency = ((hi * 2) + 1);
       const direction = (((hi % 2) === 0) ? 1 : -1);
       const phase = ((direction === 1) ? 0 : Math.PI);
@@ -196,7 +251,7 @@ class Waves {
           harmonicY += harmonic.blockY;
         }
         // square wheel
-        canvasCtx.fillStyle = 'rgb(30, 30, 30)';
+        canvasCtx.fillStyle = 'rgb(50, 50, 50)';
         canvasCtx.fillRect((harmonicCenterX - amplitude), (harmonicCenterY - amplitude), (2 * amplitude), (2 * amplitude));
         canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
         canvasCtx.strokeRect((harmonicCenterX - amplitude), (harmonicCenterY - amplitude), (2 * amplitude), (2 * amplitude));
@@ -218,7 +273,7 @@ class Waves {
           harmonicY += harmonic.y;
         }
         // circular wheel
-        canvasCtx.fillStyle = 'rgb(30, 30, 30)';
+        canvasCtx.fillStyle = 'rgb(50, 50, 50)';
         canvasCtx.beginPath();
         canvasCtx.ellipse(harmonicCenterX, harmonicCenterY, amplitude, amplitude, 0, 0, (2 * Math.PI));
         canvasCtx.fill();
@@ -235,7 +290,7 @@ class Waves {
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = 'rgb(244, 241, 0)';
         canvasCtx.beginPath();
-        canvasCtx.ellipse(harmonicX, harmonicY, 13, 13, 0, 0, (2 * Math.PI));
+        canvasCtx.ellipse(harmonicX, harmonicY, 10, 10, 0, 0, (2 * Math.PI));
         canvasCtx.stroke();
         canvasCtx.lineWidth = 1;
       }
@@ -288,9 +343,9 @@ class Waves {
 }
 // Set to false for higher precision, at the cost of very slow running.
 if (true) {
-  // 1..1000
+  // 1..500
   Waves.mobius = [
-    1, -1, -1, 0, -1, 1, -1, 0, 0, 1, -1, 0, -1, 1, 1, 0, -1, 0, -1, 0, 1, 1, -1, 0, 0, 1, 0, 0, -1, -1, -1, 0, 1, 1, 1, 0, -1, 1, 1, 0, -1, -1, -1, 0, 0, 1, -1, 0, 0, 0, 1, 0, -1, 0, 1, 0, 1, 1, -1, 0, -1, 1, 0, 0, 1, -1, -1, 0, 1, -1, -1, 0, -1, 1, 0, 0, 1, -1, -1, 0, 0, 1, -1, 0, 1, 1, 1, 0, -1, 0, 1, 0, 1, 1, 1, 0, -1, 0, 0, 0, -1, -1, -1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, -1, 0, 1, -1, -1, 0, 1, 1, 0, 0, -1, -1, -1, 0, 1, 1, 1, 0, 1, 1, 0, 0, -1, 0, -1, 0, 0, -1, 1, 0, -1, 1, 1, 0, 1, 0, -1, 0, -1, 1, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, 1, 1, -1, 0, -1, -1, 1, 0, 1, -1, 1, 0, 0, -1, -1, 0, -1, 1, -1, 0, -1, 0, -1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, -1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, -1, -1, 0, 0, 1, -1, 0, -1, -1, -1, 0, -1, 0, 1, 0, 1, -1, -1, 0, -1, 0, 0, 0, 0, -1, 1, 0, 1, 0, -1, 0, 1, 1, -1, 0, -1, -1, 1, 0, 0, 1, -1, 0, 1, -1, 1, 0, -1, 0, -1, 0, -1, 1, 0, 0, -1, 1, 0, 0, -1, -1, -1, 0, -1, -1, 1, 0, 0, -1, 1, 0, -1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, -1, 0, 1, -1, -1, 0, -1, 1, 0, 0, -1, -1, 1, 0, 1, -1, 1, 0, 0, 1, 1, 0, 1, 1, -1, 0, 0, 1, 1, 0, -1, 0, 1, 0, 1, 0, 0, 0, -1, 1, -1, 0, -1, 0, 0, 0, -1, -1, 1, 0, -1, 1, -1, 0, 0, 1, 0, 0, 1, -1, -1, 0, 0, -1, 1, 0, -1, -1, 0, 0, 1, 0, -1, 0, 1, 1, -1, 0, -1, 1, 0, 0, -1, 1, 1, 0, 1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, 0, -1, 1, 0, -1, -1, 1, 0, 1, 0, 1, 0, 1, -1, -1, 0, -1, 1, 0, 0, 0, -1, 1, 0, -1, -1, -1, 0, -1, -1, -1, 0, 1, -1, -1, 0, 0, -1, -1, 0, 1, 1, 1, 0, -1, 0, 1, 0, 1, 1, -1, 0, -1, 1, 0, 0, -1, 1, -1, 0, -1, 1, -1, 0, 1, -1, 1, 0, 1, -1, 0, 0, 0, 1, -1, 0, 1, 1, -1, 0, 1, 0, -1, 0, 1, 0, -1, 0, 1, -1, 0, 0, 1, -1, -1, 0, 1, 1, -1, 0, 1, -1, 0, 0, -1, 1, 1, 0, 0, 1, 1, 0, 1, -1, 1, 0, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, 0, 1, -1, 1, 0, 1, 1, 0, 0, -1, 1, 1, 0, 1, 1, -1, 0, 0, 0, 1, 0, 1, 1, -1, 0, -1, 0, 1, 0, -1, 1, -1, 0, 1, 1, 0, 0, -1, 1, -1, 0, 1, -1, 0, 0, -1, 0, 1, 0, 1, -1, 1, 0, 0, 1, -1, 0, 1, -1, 1, 0, -1, 0, -1, 0, 1, -1, -1, 0, -1, -1, 0, 0, 0, -1, -1, 0, -1, -1, 1, 0, -1, 1, -1, 0, -1, -1, -1, 0, 0, 1, 1, 0, 0, 1, -1, 0, 1, 0, -1, 0, 1, 1, 1, 0, 0, -1, 0, 0, -1, -1, -1, 0, -1, -1, -1, 0, 1, 0, -1, 0, -1, -1, 1, 0, 0, -1, -1, 0, -1, 1, -1, 0, -1, 0, 1, 0, 1, -1, 1, 0, -1, 1, 0, 0, -1, -1, 1, 0, 1, -1, -1, 0, 1, 0, 1, 0, 1, 1, -1, 0, 0, 1, 1, 0, 1, 1, 1, 0, -1, 0, 1, 0, -1, 1, 1, 0, -1, -1, 0, 0, 1, 1, -1, 0, 1, 1, -1, 0, 1, 0, 1, 0, 0, 0, -1, 0, 0, -1, 1, 0, -1, 1, 0, 0, 1, 0, -1, 0, -1, -1, -1, 0, 1, 1, 0, 0, 1, 0, -1, 0, 1, -1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, 0, 1, 1, 0, -1, 1, 1, 0, -1, 0, 0, 0, -1, 1, 1, 0, 1, -1, 0, 0, 1, -1, -1, 0, 1, -1, 1, 0, 1, 1, -1, 0, -1, 1, 1, 0, 0, 1, 1, 0, -1, -1, 1, 0, -1, 0, -1, 0, 1, -1, 1, 0, 1, 1, 0, 0, -1, -1, -1, 0, 0, -1, -1, 0, -1, -1, 1, 0, 0, -1, 1, 0, 0, 1, -1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1, 0, 0, -1, 1, -1, 0, -1, 1, -1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, -1, 0, 0, -1, 1, 1, 0, -1, 0, -1, 0, -1, 1, -1, 0, 1, -1, 0, 0, 1, -1, 1, 0, -1, 1, 1, 0, 1, -1, -1, 0, 1, -1, -1, 0, 0, 1, -1, 0, 1, 1, -1, 0, 1, 0, -1, 0, 1, 1, 1, 0, 0, 1, 0, 0, -1, 1, 0, 0, 1, 1, -1, 0, -1, -1, 1, 0, -1, -1, 1, 0, 0, -1, -1, 0, 1, 0, 1, 0, -1, 0, 1, 0, -1, 1, 1, 0, 0, -1, 0, 0, 1, 1, -1, 0, -1, -1, -1, 0, 1, 1, 0, 0, -1, -1, 1, 0, 0, 1, -1, 0, 1, -1, -1, 0, 1, 0, -1, 0, 1, -1, 1, 0, -1, 1, 0, 0
+    1, -1, -1, 0, -1, 1, -1, 0, 0, 1, -1, 0, -1, 1, 1, 0, -1, 0, -1, 0, 1, 1, -1, 0, 0, 1, 0, 0, -1, -1, -1, 0, 1, 1, 1, 0, -1, 1, 1, 0, -1, -1, -1, 0, 0, 1, -1, 0, 0, 0, 1, 0, -1, 0, 1, 0, 1, 1, -1, 0, -1, 1, 0, 0, 1, -1, -1, 0, 1, -1, -1, 0, -1, 1, 0, 0, 1, -1, -1, 0, 0, 1, -1, 0, 1, 1, 1, 0, -1, 0, 1, 0, 1, 1, 1, 0, -1, 0, 0, 0, -1, -1, -1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, -1, 0, 1, -1, -1, 0, 1, 1, 0, 0, -1, -1, -1, 0, 1, 1, 1, 0, 1, 1, 0, 0, -1, 0, -1, 0, 0, -1, 1, 0, -1, 1, 1, 0, 1, 0, -1, 0, -1, 1, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, 1, 1, -1, 0, -1, -1, 1, 0, 1, -1, 1, 0, 0, -1, -1, 0, -1, 1, -1, 0, -1, 0, -1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, -1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, -1, -1, 0, 0, 1, -1, 0, -1, -1, -1, 0, -1, 0, 1, 0, 1, -1, -1, 0, -1, 0, 0, 0, 0, -1, 1, 0, 1, 0, -1, 0, 1, 1, -1, 0, -1, -1, 1, 0, 0, 1, -1, 0, 1, -1, 1, 0, -1, 0, -1, 0, -1, 1, 0, 0, -1, 1, 0, 0, -1, -1, -1, 0, -1, -1, 1, 0, 0, -1, 1, 0, -1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, -1, 0, 1, -1, -1, 0, -1, 1, 0, 0, -1, -1, 1, 0, 1, -1, 1, 0, 0, 1, 1, 0, 1, 1, -1, 0, 0, 1, 1, 0, -1, 0, 1, 0, 1, 0, 0, 0, -1, 1, -1, 0, -1, 0, 0, 0, -1, -1, 1, 0, -1, 1, -1, 0, 0, 1, 0, 0, 1, -1, -1, 0, 0, -1, 1, 0, -1, -1, 0, 0, 1, 0, -1, 0, 1, 1, -1, 0, -1, 1, 0, 0, -1, 1, 1, 0, 1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, 0, -1, 1, 0, -1, -1, 1, 0, 1, 0, 1, 0, 1, -1, -1, 0, -1, 1, 0, 0, 0, -1, 1, 0, -1, -1, -1, 0, -1, -1, -1, 0, 1, -1, -1, 0, 0, -1, -1, 0, 1, 1, 1, 0, -1, 0, 1, 0, 1, 1, -1, 0, -1, 1, 0, 0, -1, 1, -1, 0, -1, 1, -1, 0, 1, -1, 1, 0, 1, -1, 0, 0, 0, 1, -1, 0, 1, 1, -1, 0, 1, 0, -1, 0, 1, 0, -1, 0, 1, -1, 0, 0, 1, -1, -1, 0
   ];
 } else {
   // 1..10000
@@ -316,70 +371,16 @@ const centerX3 = centerX1;
 const centerY3 = (centerY1 + 450);
 const centerX4 = centerX2;
 const centerY4 = centerY3;
-const rotationPerAnimation = 0.005;
-const primaryRadius = 100;
+const rotationPerAnimation = 0.004;
+const primaryRadius = 90;
 const waves = new Waves();
 waves.setRadius(primaryRadius);
 waves.setAngle(0);
 waves.maxLastPoints = ((4.6 / rotationPerAnimation) | 0);
-const drawArrowDown = (ctx, x, startY, endY) => {
-  ctx.beginPath();
-  ctx.moveTo(x, startY);
-  ctx.lineTo(x, endY);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x, endY);
-  ctx.lineTo(x - 10, (endY - 10));
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x, endY);
-  ctx.lineTo(x + 10, (endY - 10));
-  ctx.stroke();
-};
-const drawArrowRight = (ctx, y, startX, endX) => {
-  ctx.beginPath();
-  ctx.moveTo(startX, y);
-  ctx.lineTo(endX, y);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(endX, y);
-  ctx.lineTo((endX - 10), (y - 10));
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(endX, y);
-  ctx.lineTo((endX - 10), (y + 10));
-  ctx.stroke();
-};
 const animate = () => {
   ctx.fillStyle = 'rgb(0, 0, 0)';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   waves.setAngle(waves.angle + rotationPerAnimation);
-  ctx.strokeStyle = 'rgb(99, 167, 147)';
-  drawArrowDown(ctx, centerX1, 360, 360 + 40);
-  drawArrowRight(ctx, centerY1, (((centerX1 + centerX2) / 2) | 0) - 80, (((centerX1 + centerX2) / 2) | 0) + 60);
-  drawArrowDown(ctx, centerX2, 360, 360 + 40);
-  drawArrowRight(ctx, centerY3, (((centerX3 + centerX4) / 2) | 0) - 80, (((centerX3 + centerX4) / 2) | 0) + 60);
-  ctx.font = '17px Arial';
-  ctx.fillStyle = 'rgb(99, 167, 147)';
-  ctx.fillText('replace circular wheels', centerX1 - 90, (360 + 60));
-  ctx.fillText('with square wheels', centerX1 - 90, (360 + 60 + 20));
-  ctx.fillText('replace circular wheels', centerX2 - 90, (360 + 60));
-  ctx.fillText('with square wheels', centerX2 - 90, (360 + 60 + 20));
-  ctx.fillText('multiply wheels with', (((centerX1 + centerX2) / 2) | 0) - 80, centerY1 + 30);
-  ctx.fillText('Möbius function μ', (((centerX1 + centerX2) / 2) | 0) - 80, centerY1 + 30 + 20);
-  ctx.fillText('multiply wheels with', (((centerX3 + centerX4) / 2) | 0) - 80, centerY3 + 30);
-  ctx.fillText('Möbius function μ', (((centerX3 + centerX4) / 2) | 0) - 80, centerY3 + 30 + 20);
-  ctx.fillStyle = 'rgb(244, 254, 253)';
-  ctx.fillRect(centerX1 - 190, centerY1 - 175, 380, 30);
-  ctx.fillRect(centerX4 - 190, centerY4 - 175, 380, 30);
-  ctx.font = '19px Arial';
-  ctx.fillStyle = 'rgb(0, 0, 0)';
-  ctx.fillText('constructing a square with circular wheels', centerX1 - 180, centerY1 - 155);
-  ctx.fillText('constructing a circle with square wheels', centerX4 - 180, centerY4 - 155);
-  ctx.strokeStyle = 'rgb(244, 254, 253)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(centerX1 - 190, centerY1 - 175, 380, 320);
-  ctx.strokeRect(centerX4 - 190, centerY4 - 175, 380, 320);
   waves.draw(ctx, centerX1, centerY1, false, false);
   waves.draw(ctx, centerX2, centerY2, false, true);
   waves.draw(ctx, centerX3, centerY3, true, false);
