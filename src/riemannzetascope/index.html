@@ -1994,7 +1994,7 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelDrawEulerProductFormulaButton);
       this.components.panelDrawEulerProductFormulaButton.title = 
         'Show partial products of Euler\'s product formula for ζ.\n' +
-        'ζ(s) = Π(1 - p^(-s))^(-1)\n' +
+        'ζ(s) = Π(1 / (1 - (1 / p^(s))))\n' +
         'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are shown as alternating green and white lines.';
       this.components.panelDrawEulerProductFormulaButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;Π&nbsp;&nbsp;</span></span><span style="margin-left: 10px;">ζ Euler</span>';
       this.components.panelDrawEulerProductFormulaButton.addEventListener('click', () => {
@@ -2105,7 +2105,7 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelEtaButton);
       this.components.panelEtaButton.title = 
-        'Dirichlet eta η(s).\n' +
+        'Formula: Dirichlet eta η(s).\n' +
         'η(s) = 1^(-s) - 2^(-s) + 3^(-s) - 4^(-s) + 5^(-s) - ...\n' +
         'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0. It has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelEtaButton.innerHTML = 'η(s)';
@@ -2128,8 +2128,8 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelAltDirectionButton);
       this.components.panelAltDirectionButton.title = 
-        'Alternate direction of rotation. Odd terms rotate clockwise, even terms rotate anti-clockwise.\n' +
-        'It has the same non-trivial zeros as ζ at σ = 0.5. Its spiral 1 (a rhombus shape) is at the four terms at n=[2t/π].';
+        'Formula: Alternate direction of rotation of each term.\n' +
+        'Odd terms rotate clockwise, even terms rotate anti-clockwise. It has the same non-trivial zeros as ζ at σ = 0.5. Its spiral 1 (a rhombus shape) is near the center of the four terms surrounding n=[2t/π].';
       this.components.panelAltDirectionButton.innerHTML = 'alt dir';
       this.components.panelAltDirectionButton.addEventListener('click', () => {
         this.zeta.altDirection = !this.zeta.altDirection;
@@ -2150,7 +2150,7 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaNMinusHalfButton);
       this.components.panelZetaNMinusHalfButton.title = 
-        'Hurwitz zeta ζ(s, 1/2)\n' +
+        'Formula: Hurwitz zeta ζ(s, 1/2)\n' +
         'ζ(s, 1/2) is like ζ(s) but with 1/2 subtracted from n in the summation formula. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelZetaNMinusHalfButton.innerHTML = 'ζ(s, ½)';
       this.components.panelZetaNMinusHalfButton.addEventListener('click', () => {
@@ -2219,7 +2219,7 @@ const View = {
         fontSize: '11px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelMobiusRadiusButton);
-      this.components.panelMobiusRadiusButton.title = 'Filter: Multiply terms by μ(n), to obtain the reciprocal of ζ(s).';
+      this.components.panelMobiusRadiusButton.title = 'Filter: Multiply terms by Möbius function μ.';
       this.components.panelMobiusRadiusButton.innerHTML = 'μ(n)';
       this.components.panelMobiusRadiusButton.addEventListener('click', () => {
         this.zeta.mobiusRadius = !this.zeta.mobiusRadius;
@@ -3594,7 +3594,7 @@ const View = {
     Object.assign(this.components.panelNMod8isNot0Button.style, (this.zeta.nMod8isNot0Only ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     {
       // formula
-      this.components.panelFormula_sum_sub.innerHTML = (this.zeta.oddOnly ? 'n=1 odd' : (this.zeta.evenOnly ? 'n=2 even' : (this.zeta.nMod8is0Only ? 'n=8 (n%8=0)' : (this.zeta.nMod8isNot0Only ? 'n=8 (n%8!=0)' : 'n=1'))));
+      this.components.panelFormula_sum_sub.innerHTML = (this.zeta.oddOnly ? 'n=1 odd' : (this.zeta.evenOnly ? 'n=2 even' : (this.zeta.nMod8is0Only ? 'n=8 (n%8=0)' : (this.zeta.nMod8isNot0Only ? 'n=1 (n%8!=0)' : 'n=1'))));
       this.components.panelFormula_sum_sup.innerHTML = 'N=' + this.zeta.terms.length;
       let panelFormula_term = '';
       if (this.zeta.mobiusRadius) {
