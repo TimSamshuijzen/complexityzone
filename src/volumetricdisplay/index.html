@@ -25,7 +25,7 @@
       <span style="color: #cccccc; font-size: 14px; line-height: 40px;">Cubic Voxel Volumetric Display</span>
     </div>
     <div style="position: absolute; left: 500px; top: 0px; width: 400px; height: 40px; color: #cccccc;">
-      <span style="color: #cccccc; font-size: 13px; line-height: 40px;">left-mouse-drag = orbit around, mouse-wheel = closer/farther</span>
+      <span style="color: #cccccc; font-size: 13px; line-height: 40px;">mouse-drag = orbit around center, mouse-wheel = closer/farther</span>
     </div>
   </div>
   <script>
@@ -1233,8 +1233,9 @@ const VolumetricDisplayPrograms = {
       name: 'fire',
       descriptionHtml: `
         Doom fire algorithm with 3D voxels.
-        Best viewed from far away for a convincing effect.<br />
-        <b>Photosensitive seizure warning</b>: Do not zoom in too close to the bright rapid flashes of the fire.
+        Best viewed from far away.<br />
+        <b>Photosensitive seizure warning</b>: Do not zoom into the bright rapid flashes of the fire.<br />
+        <button id="pauseFire" title="pause/resume fire" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause fire</button>
       `, 
       localData: {
         paletteRgba: [
@@ -1246,9 +1247,28 @@ const VolumetricDisplayPrograms = {
           return { r: (x >> 24) & 255, g: (x >> 16) & 255, b: (x >> 8) & 255, a: x & 255 };
         }),
         fireVoxelsXyz: [],
-        lastTimeMs: 0
+        lastTimeMs: 0,
+        isPaused: false,
+        pauseFireButton: null
       },
       init() {
+        this.localData.isPaused = false;
+        this.localData.pauseFireButton = document.getElementById('pauseFire');
+        this.localData.pauseFireButton.innerText = 'pause fire';
+        this.localData.pauseFireButton.style.backgroundColor = '#000000';
+        this.localData.pauseFireButton.style.color = '#88ffff';
+        this.localData.pauseFireButton.addEventListener('click', () => {
+          this.localData.isPaused = !this.localData.isPaused;
+          if (this.localData.isPaused) {
+            this.localData.pauseFireButton.innerText = 'resume fire';
+            this.localData.pauseFireButton.style.backgroundColor = '#88ffff';
+            this.localData.pauseFireButton.style.color = '#000000';
+          } else {
+            this.localData.pauseFireButton.innerText = 'pause fire';
+            this.localData.pauseFireButton.style.backgroundColor = '#000000';
+            this.localData.pauseFireButton.style.color = '#88ffff';
+          }
+        });
         this.localData.fireVoxelsXyz = [];
         for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
           const xAr = [];
@@ -1268,6 +1288,9 @@ const VolumetricDisplayPrograms = {
         VolumetricDisplay.fill();
       },
       animate() {
+        if (this.localData.isPaused) {
+          return;
+        }
         const currentTimeMs = Date.now();
         if ((currentTimeMs - this.localData.lastTimeMs) > 0) {
           this.localData.lastTimeMs = currentTimeMs;
@@ -1408,7 +1431,7 @@ const VolumetricDisplayPrograms = {
     {
       name: 'cubic space division',
       descriptionHtml: `
-        A rendering of M.C. Escher\'s Cubic Space Division.<br />
+        M.C. Escher\'s Cubic Space Division.<br />
         <br />
         work in progress
       `, 
