@@ -1253,11 +1253,13 @@ const VolumetricDisplayPrograms = {
       },
       init() {
         this.localData.isPaused = false;
-        this.localData.pauseFireButton = document.getElementById('pauseFire');
+        this.localData.pauseFireButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseFire');
         this.localData.pauseFireButton.innerText = 'pause fire';
         this.localData.pauseFireButton.style.backgroundColor = '#000000';
         this.localData.pauseFireButton.style.color = '#88ffff';
-        this.localData.pauseFireButton.addEventListener('click', () => {
+        this.localData.pauseFireButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          event.preventDefault();
           this.localData.isPaused = !this.localData.isPaused;
           if (this.localData.isPaused) {
             this.localData.pauseFireButton.innerText = 'resume fire';
@@ -1269,6 +1271,7 @@ const VolumetricDisplayPrograms = {
             this.localData.pauseFireButton.style.color = '#88ffff';
           }
         });
+
         this.localData.fireVoxelsXyz = [];
         for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
           const xAr = [];
@@ -1324,9 +1327,7 @@ const VolumetricDisplayPrograms = {
     },
     {
       name: 'land and sea',
-      descriptionHtml: `
-        
-      `, 
+      descriptionHtml: ' ',
       init() {
         VolumetricDisplay.fill();
         // sea
@@ -1616,7 +1617,15 @@ const VolumetricDisplayControl = {
     if (this.isOn) {
       VolumetricDisplay.fill();
       this.uiDisplay.style.display = 'block';
-      VolumetricDisplayPrograms.programs[this.programIndex].init();
+      const program = VolumetricDisplayPrograms.programs[this.programIndex];
+      this.uiDisplayRightPanelHeader.innerText = program.name;
+      this.uiDisplayRightPanelBody.innerHTML = program.descriptionHtml;
+      if (program.descriptionHtml.length > 0) {
+        this.uiDisplayRightPanel.style.display = 'block';
+      } else {
+        this.uiDisplayRightPanel.style.display = 'none';
+      }
+      program.init();
     } else {
       VolumetricDisplay.fill({ r: 0, g: 0, b: 0, a: 0 });
       this.uiDisplay.style.display = 'none';
