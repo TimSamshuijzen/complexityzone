@@ -893,7 +893,6 @@ const VolumetricDisplay = {
       }
       this.layersZ.push(layer);
     }
-    // VolumetricDisplay.fill({ r: 0, g: 0, b: 0, a: 0 });
     const layerSpacingX = volumetricWidth / (this.layersX.length - 1);
     const layerSpacingY = volumetricHeight / (this.layersY.length - 1);
     const layerSpacingZ = volumetricDepth / (this.layersZ.length - 1);
@@ -1627,7 +1626,7 @@ const VolumetricDisplayControl = {
       }
       program.init();
     } else {
-      VolumetricDisplay.fill({ r: 0, g: 0, b: 0, a: 0 });
+      VolumetricDisplay.fill();
       this.uiDisplay.style.display = 'none';
     }
   },
