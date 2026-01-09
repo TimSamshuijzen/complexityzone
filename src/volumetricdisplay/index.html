@@ -1325,27 +1325,27 @@ const VolumetricDisplayPrograms = {
       }
     },
     {
-      name: 'land and sea',
+      name: 'land and ocean',
       descriptionHtml: ' ',
       init() {
         VolumetricDisplay.fill();
-        // sea
-        const seaLevelY = 15;
-        for (let y = 19; y >= seaLevelY; y--) {
+        // ocean
+        const oceanLevelY = 15;
+        for (let y = 19; y >= oceanLevelY; y--) {
           for (let z = 0; z < 20; z++) {
             for (let x = 0; x < 40; x++) { 
               VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: 78, g: 92, b: 204, a: 20 }); 
             }
           }
         }
-        // sea top
+        // ocean top
         for (let z = 0; z < 20; z++) {
           for (let x = 0; x < 40; x++) {
-            const square = VolumetricDisplay.layersY[seaLevelY].rows[z].squares[x];
+            const square = VolumetricDisplay.layersY[oceanLevelY].rows[z].squares[x];
             square.a = 90;
           }
         }
-        // sea bottom
+        // ocean bottom
         for (let z = 0; z < 20; z++) {
           for (let x = 0; x < 40; x++) {
             const square = VolumetricDisplay.layersY[20].rows[z].squares[x];
@@ -1388,7 +1388,7 @@ const VolumetricDisplayPrograms = {
         for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 13, r: 148, g: 106, b: 73, a: 255 }); }
         for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 12, r: 148, g: 106, b: 73, a: 255 }); }
         for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 11, r: 148, g: 106, b: 73, a: 255 }); }
-        // land 3 - shallow
+        // land 3
         for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 19, r: 206, g: 200, b: 146, a: 255 }); }
         for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 18, r: 206, g: 200, b: 146, a: 255 }); }
         for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 17, r: 206, g: 200, b: 146, a: 255 }); }
@@ -1427,7 +1427,8 @@ const VolumetricDisplayPrograms = {
       },
       animate() {
       }
-    },
+    }
+    /*,
     {
       name: 'cubic space division',
       descriptionHtml: `
@@ -1441,6 +1442,7 @@ const VolumetricDisplayPrograms = {
       animate() {
       }
     }
+    */
   ]
 };
 
