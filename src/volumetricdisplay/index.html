@@ -1555,6 +1555,85 @@ const VolumetricDisplayPrograms = {
       }
     },
     {
+      name: 'waves',
+      uiHtml: `
+        <span style="line-height: 30px;"><button id="pauseWaves" title="pause/resume waves" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause waves</button></span>
+      `,
+      instanceData: {
+        timeMs: 0,
+        lastTimeMs: 0,
+        isPaused: false,
+        pauseWavesButton: null
+      },
+      init() {
+        this.instanceData.isPaused = false;
+        this.instanceData.pauseWavesButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseWaves');
+        this.instanceData.pauseWavesButton.innerText = 'pause waves';
+        this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
+        this.instanceData.pauseWavesButton.style.color = '#88ffff';
+        this.instanceData.pauseWavesButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          this.instanceData.isPaused = !this.instanceData.isPaused;
+          if (this.instanceData.isPaused) {
+            this.instanceData.pauseWavesButton.innerText = 'resume waves';
+            this.instanceData.pauseWavesButton.style.backgroundColor = '#88ffff';
+            this.instanceData.pauseWavesButton.style.color = '#000000';
+          } else {
+            this.instanceData.lastTimeMs = Date.now();
+            this.instanceData.pauseWavesButton.innerText = 'pause waves';
+            this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
+            this.instanceData.pauseWavesButton.style.color = '#88ffff';
+          }
+        });        
+        VolumetricDisplay.fill();
+        VolumetricDisplay.update();
+      },
+      animate() {
+        if (this.instanceData.isPaused) {
+          return;
+        }
+        this.instanceData.timeMs += (Date.now() - this.instanceData.lastTimeMs) | 0;
+        this.instanceData.lastTimeMs = Date.now();
+        const timeMs = this.instanceData.timeMs;
+        VolumetricDisplay.fill();
+        const centerX = ((VolumetricDisplay.layersX.length - 1) / 2) | 0;
+        const centerY = ((VolumetricDisplay.layersY.length - 1) / 2) | 0;
+        const centerZ = ((VolumetricDisplay.layersZ.length - 1) / 2) | 0;
+        const bottomY = (VolumetricDisplay.layersY.length - 1);
+        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+          for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+            const distanceFromCenter = Math.sqrt(((x - centerX) * (x - centerX)) + ((z - centerZ) * (z - centerZ)));
+            const angle = ((0.5 * (timeMs / 1000)) - (distanceFromCenter / 10)) * Math.PI;
+            const sinVal = Math.sin(angle);
+            const cosVal = Math.cos(angle);
+            const yTop = bottomY - ((4.5 + (2.5 * sinVal)) | 0);
+            if ((yTop >= 0) && (yTop < (VolumetricDisplay.layersY.length - 1))) {
+              for (let y = yTop; y < (VolumetricDisplay.layersY.length - 1); y++) {
+                VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: 0, g: 200 + ((50 * (sinVal)) | 0), b: 200 + ((50 * (sinVal)) | 0), a: 30 });
+              }
+              const yNormCos = 0.5 + (0.5 * cosVal);
+              const square = VolumetricDisplay.layersY[yTop].rows[z].squares[x];
+              square.r = 0;
+              square.g = 150 + ((100 * yNormCos) | 0);
+              square.b = 150 + ((100 * yNormCos) | 0);
+              square.a = 200;
+            }
+          }
+        }
+        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+          for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+            const square = VolumetricDisplay.layersY[bottomY].rows[z].squares[x];
+            square.r = 0;
+            square.g = 125;
+            square.b = 125;
+            square.a = 255;
+          }
+        }
+        VolumetricDisplay.update();
+      }
+    },
+    {
       name: 'land and ocean',
       uiHtml: '',
       init() {
@@ -1657,86 +1736,7 @@ const VolumetricDisplayPrograms = {
       },
       animate() {
       }
-    },
-    {
-      name: 'waves',
-      uiHtml: `
-        <span style="line-height: 30px;"><button id="pauseWaves" title="pause/resume waves" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause waves</button></span>
-      `,
-      instanceData: {
-        timeMs: 0,
-        lastTimeMs: 0,
-        isPaused: false,
-        pauseWavesButton: null
-      },
-      init() {
-        this.instanceData.isPaused = false;
-        this.instanceData.pauseWavesButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseWaves');
-        this.instanceData.pauseWavesButton.innerText = 'pause waves';
-        this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
-        this.instanceData.pauseWavesButton.style.color = '#88ffff';
-        this.instanceData.pauseWavesButton.addEventListener('click', (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          this.instanceData.isPaused = !this.instanceData.isPaused;
-          if (this.instanceData.isPaused) {
-            this.instanceData.pauseWavesButton.innerText = 'resume waves';
-            this.instanceData.pauseWavesButton.style.backgroundColor = '#88ffff';
-            this.instanceData.pauseWavesButton.style.color = '#000000';
-          } else {
-            this.instanceData.lastTimeMs = Date.now();
-            this.instanceData.pauseWavesButton.innerText = 'pause waves';
-            this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
-            this.instanceData.pauseWavesButton.style.color = '#88ffff';
-          }
-        });        
-        VolumetricDisplay.fill();
-        VolumetricDisplay.update();
-      },
-      animate() {
-        if (this.instanceData.isPaused) {
-          return;
-        }
-        this.instanceData.timeMs += (Date.now() - this.instanceData.lastTimeMs) | 0;
-        this.instanceData.lastTimeMs = Date.now();
-        const timeMs = this.instanceData.timeMs;
-        VolumetricDisplay.fill();
-        const centerX = ((VolumetricDisplay.layersX.length - 1) / 2) | 0;
-        const centerY = ((VolumetricDisplay.layersY.length - 1) / 2) | 0;
-        const centerZ = ((VolumetricDisplay.layersZ.length - 1) / 2) | 0;
-        const bottomY = (VolumetricDisplay.layersY.length - 1);
-        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-          for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-            const distanceFromCenter = Math.sqrt(((x - centerX) * (x - centerX)) + ((z - centerZ) * (z - centerZ)));
-            const angle = ((0.5 * (timeMs / 1000)) - (distanceFromCenter / 10)) * Math.PI;
-            const sinVal = Math.sin(angle);
-            const cosVal = Math.cos(angle);
-            const yTop = bottomY - ((4.5 + (2.5 * sinVal)) | 0);
-            if ((yTop >= 0) && (yTop < (VolumetricDisplay.layersY.length - 1))) {
-              for (let y = yTop; y < (VolumetricDisplay.layersY.length - 1); y++) {
-                VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: 0, g: 200 + ((50 * (sinVal)) | 0), b: 200 + ((50 * (sinVal)) | 0), a: 30 });
-              }
-              const yNormCos = 0.5 + (0.5 * cosVal);
-              const square = VolumetricDisplay.layersY[yTop].rows[z].squares[x];
-              square.r = 0;
-              square.g = 150 + ((100 * yNormCos) | 0);
-              square.b = 150 + ((100 * yNormCos) | 0);
-              square.a = 200;
-            }
-          }
-        }
-        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-          for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-            const square = VolumetricDisplay.layersY[bottomY].rows[z].squares[x];
-            square.r = 0;
-            square.g = 125;
-            square.b = 125;
-            square.a = 255;
-          }
-        }
-        VolumetricDisplay.update();
-      }
-    }
+    }    
   ]
 };
 
