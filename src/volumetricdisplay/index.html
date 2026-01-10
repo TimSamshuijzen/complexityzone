@@ -1191,277 +1191,6 @@ const VolumetricDisplay = {
 };
 VolumetricDisplay.init();
 
-const VolumetricDisplayPrograms = {
-  programs: [
-    {
-      name: 'transparent white',
-      uiHtml: 'All pixels = #FFFFFF06',
-      init() {
-        VolumetricDisplay.fill({ r: 255, g: 255, b: 255, a: 6 });
-        VolumetricDisplay.update();
-      },
-      animate() {
-      }
-    },
-    {
-      name: 'color cube',
-      uiHtml: `
-        x pixels = #FF00000A (red)<br />
-        y pixels = #00FF000A (green)<br />
-        z pixels = #0000FF0A (blue)<br />
-        <br />
-        Look at the display from different angles to see the colors.
-      `, 
-      init() {
-        for (let i = 0, ic = VolumetricDisplay.layersX.length; i < ic; i++) {
-          const layer = VolumetricDisplay.layersX[i];
-          for (let j = 0, jc = layer.rows.length; j < jc; j++) {
-            const row = layer.rows[j];
-            for (let k = 0, kc = row.squares.length; k < kc; k++) {
-              const square = row.squares[k];
-              square.r = 255;
-              square.g = 0;
-              square.b = 0;
-              square.a = 10;
-            }
-          }
-        }
-        for (let i = 0, ic = VolumetricDisplay.layersY.length; i < ic; i++) {
-          const layer = VolumetricDisplay.layersY[i];
-          for (let j = 0, jc = layer.rows.length; j < jc; j++) {
-            const row = layer.rows[j];
-            for (let k = 0, kc = row.squares.length; k < kc; k++) {
-              const square = row.squares[k];
-              square.r = 0;
-              square.g = 255;
-              square.b = 0;
-              square.a = 10;
-            }
-          }
-        }
-        for (let i = 0, ic = VolumetricDisplay.layersZ.length; i < ic; i++) {
-          const layer = VolumetricDisplay.layersZ[i];
-          for (let j = 0, jc = layer.rows.length; j < jc; j++) {
-            const row = layer.rows[j];
-            for (let k = 0, kc = row.squares.length; k < kc; k++) {
-              const square = row.squares[k];
-              square.r = 0;
-              square.g = 0;
-              square.b = 255;
-              square.a = 10;
-            }
-          }
-        }
-        VolumetricDisplay.update();
-      },
-      animate() {
-      }
-    },
-    {
-      name: 'fire',
-      uiHtml: `
-        Doom fire algorithm with 3D voxels.
-        Best viewed from far away.<br />
-        <b>Photosensitive seizure warning</b>: Do not zoom into the bright rapid flashes of the fire.<br />
-        <span style="line-height: 30px;"><button id="pauseFire" title="pause/resume fire" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause fire</button></span>
-      `, 
-      instanceData: {
-        paletteRgba: [
-          '#07070700', /*'#1F070704', '#671F0704',*/ '#771F0704', '#8F270708', '#9F2F0710',
-          '#BF470710', '#C7470710', '#D75F0710', '#D7670F10', '#CF6F0F10', '#CF871F20',
-          '#EF9F1F20', '#F7B73F20', '#FFEF8830', '#FFEFCC40'
-        ].map(color => {
-          const x = parseInt(color.slice(1), 16);
-          return { r: (x >> 24) & 255, g: (x >> 16) & 255, b: (x >> 8) & 255, a: x & 255 };
-        }),
-        fireVoxelsXyz: [],
-        lastTimeMs: 0,
-        isPaused: false,
-        pauseFireButton: null
-      },
-      init() {
-        this.instanceData.lastTimeMs = Date.now();
-        this.instanceData.isPaused = false;
-        this.instanceData.pauseFireButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseFire');
-        this.instanceData.pauseFireButton.innerText = 'pause fire';
-        this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
-        this.instanceData.pauseFireButton.style.color = '#88ffff';
-        this.instanceData.pauseFireButton.addEventListener('click', (event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          this.instanceData.isPaused = !this.instanceData.isPaused;
-          if (this.instanceData.isPaused) {
-            this.instanceData.pauseFireButton.innerText = 'resume fire';
-            this.instanceData.pauseFireButton.style.backgroundColor = '#88ffff';
-            this.instanceData.pauseFireButton.style.color = '#000000';
-          } else {
-            this.instanceData.pauseFireButton.innerText = 'pause fire';
-            this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
-            this.instanceData.pauseFireButton.style.color = '#88ffff';
-          }
-        });
-        this.instanceData.fireVoxelsXyz = [];
-        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-          const xAr = [];
-          for (let y = 0, yc = (VolumetricDisplay.layersY.length - 1); y < yc; y++) {
-            const yAr = [];
-            for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-              if (y === (yc - 1)) {
-                yAr.push(this.instanceData.paletteRgba.length - 1);
-              } else {
-                yAr.push(0);
-              }
-            }
-            xAr.push(yAr);
-          }
-          this.instanceData.fireVoxelsXyz.push(xAr);
-        }
-        VolumetricDisplay.fill();
-        VolumetricDisplay.update();
-      },
-      animate() {
-        if (this.instanceData.isPaused) {
-          return;
-        }
-        const currentTimeMs = Date.now();
-        if ((currentTimeMs - this.instanceData.lastTimeMs) > 0) {
-          this.instanceData.lastTimeMs = currentTimeMs;
-          for (let y = 0, yc = (VolumetricDisplay.layersY.length - 2); y < yc; y++) {
-            for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-              for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-                const fireVoxelSource = this.instanceData.fireVoxelsXyz[x][y+1][z];
-                const decay = (Math.random() * 3) | 0;
-                const destX = (xc + x + ((Math.random() * 3) | 0) - 1) % xc;
-                const destZ = (zc + z + ((Math.random() * 3) | 0) - 1) % zc;
-                const heat = Math.max(0, fireVoxelSource - decay);
-                this.instanceData.fireVoxelsXyz[destX][y][destZ] = heat;
-              }
-            }
-          }
-          VolumetricDisplay.fill();
-          for (let x = 0, xc = this.instanceData.fireVoxelsXyz.length; x < xc; x++) {
-            const xAr = this.instanceData.fireVoxelsXyz[x];
-            for (let y = (xAr.length - 1); y >= 0; y--) {
-              const yAr = xAr[y];
-              for (let z = 0, zc = yAr.length; z < zc; z++) {
-                const color = this.instanceData.paletteRgba[yAr[z]];
-                if (color.a > 0) {
-                  VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: color.r, g: color.g, b: color.b, a: color.a });
-                }
-              }
-            }
-          }
-          VolumetricDisplay.update();
-        }
-      }
-    },
-    {
-      name: 'land and ocean',
-      uiHtml: '',
-      init() {
-        VolumetricDisplay.fill();
-        // ocean
-        const oceanLevelY = 15;
-        for (let y = 19; y >= oceanLevelY; y--) {
-          for (let z = 0; z < 20; z++) {
-            for (let x = 0; x < 40; x++) { 
-              VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: 78, g: 92, b: 204, a: 20 }); 
-            }
-          }
-        }
-        // ocean top
-        for (let z = 0; z < 20; z++) {
-          for (let x = 0; x < 40; x++) {
-            const square = VolumetricDisplay.layersY[oceanLevelY].rows[z].squares[x];
-            square.a = 90;
-          }
-        }
-        // ocean bottom
-        for (let z = 0; z < 20; z++) {
-          for (let x = 0; x < 40; x++) {
-            const square = VolumetricDisplay.layersY[20].rows[z].squares[x];
-            square.r = 100;
-            square.g = 77;
-            square.b = 61;
-            square.a = 255;
-          }
-        }
-        // land 0
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 19, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 18, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 17, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 16, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 15, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 14, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 13, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 12, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 11, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 10, r: 118, g: 83, b: 56, a: 255 }); }
-        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 9, r: 118, g: 83, b: 56, a: 255 }); }
-        // land 1
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 19, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 18, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 17, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 16, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 15, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 14, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 13, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 12, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 11, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 10, r: 148, g: 106, b: 73, a: 255 }); }
-        // land 2
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 19, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 18, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 17, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 16, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 15, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 14, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 13, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 12, r: 148, g: 106, b: 73, a: 255 }); }
-        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 11, r: 148, g: 106, b: 73, a: 255 }); }
-        // land 3
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 19, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 18, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 17, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 16, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 15, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 14, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 13, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 12, r: 206, g: 200, b: 146, a: 255 }); }
-        // land 4 - beach
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 19, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 18, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 17, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 16, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 15, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 14, r: 206, g: 200, b: 146, a: 255 }); }
-        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 13, r: 206, g: 200, b: 146, a: 255 }); }
-        // land 5
-        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 19, r: 183, g: 131, b: 90, a: 255 }); }
-        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 18, r: 183, g: 131, b: 90, a: 255 }); }
-        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 17, r: 183, g: 131, b: 90, a: 255 }); }
-        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 16, r: 183, g: 131, b: 90, a: 255 }); }
-        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 15, r: 183, g: 131, b: 90, a: 255 }); }
-        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 14, r: 183, g: 131, b: 90, a: 255 }); }
-        // land 6 - green
-        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 19, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 18, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 17, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 16, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 15, r: 90, g: 154, b: 48, a: 255 }); }
-        // land 7 - green
-        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 19, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 18, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 17, r: 90, g: 154, b: 48, a: 255 }); }
-        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 16, r: 90, g: 154, b: 48, a: 255 }); }
-        VolumetricDisplay.update();
-      },
-      animate() {
-      }
-    }
-  ]
-};
-
 const VolumetricDisplayControl = {
   isOn: false,
   programIndex: 0,
@@ -1642,8 +1371,358 @@ const VolumetricDisplayControl = {
     requestAnimationFrame(() => this.thread());
   }
 };
-VolumetricDisplayControl.init();
 
+const VolumetricDisplayPrograms = {
+  programs: [
+    {
+      name: 'transparent white',
+      uiHtml: 'All pixels = #FFFFFF06',
+      init() {
+        VolumetricDisplay.fill({ r: 255, g: 255, b: 255, a: 6 });
+        VolumetricDisplay.update();
+      },
+      animate() {
+      }
+    },
+    {
+      name: 'color cube',
+      uiHtml: `
+        x pixels = #FF00000A (red)<br />
+        y pixels = #00FF000A (green)<br />
+        z pixels = #0000FF0A (blue)<br />
+        <br />
+        Look at the display from different angles to see the colors.
+      `, 
+      init() {
+        for (let i = 0, ic = VolumetricDisplay.layersX.length; i < ic; i++) {
+          const layer = VolumetricDisplay.layersX[i];
+          for (let j = 0, jc = layer.rows.length; j < jc; j++) {
+            const row = layer.rows[j];
+            for (let k = 0, kc = row.squares.length; k < kc; k++) {
+              const square = row.squares[k];
+              square.r = 255;
+              square.g = 0;
+              square.b = 0;
+              square.a = 10;
+            }
+          }
+        }
+        for (let i = 0, ic = VolumetricDisplay.layersY.length; i < ic; i++) {
+          const layer = VolumetricDisplay.layersY[i];
+          for (let j = 0, jc = layer.rows.length; j < jc; j++) {
+            const row = layer.rows[j];
+            for (let k = 0, kc = row.squares.length; k < kc; k++) {
+              const square = row.squares[k];
+              square.r = 0;
+              square.g = 255;
+              square.b = 0;
+              square.a = 10;
+            }
+          }
+        }
+        for (let i = 0, ic = VolumetricDisplay.layersZ.length; i < ic; i++) {
+          const layer = VolumetricDisplay.layersZ[i];
+          for (let j = 0, jc = layer.rows.length; j < jc; j++) {
+            const row = layer.rows[j];
+            for (let k = 0, kc = row.squares.length; k < kc; k++) {
+              const square = row.squares[k];
+              square.r = 0;
+              square.g = 0;
+              square.b = 255;
+              square.a = 10;
+            }
+          }
+        }
+        VolumetricDisplay.update();
+      },
+      animate() {
+      }
+    },
+    {
+      name: 'fire',
+      uiHtml: `
+        Doom fire algorithm with 3D voxels.
+        Best viewed from far away.<br />
+        <b>Photosensitive seizure warning</b>: Do not zoom into the bright rapid flashes of the fire.<br />
+        <span style="line-height: 30px;"><button id="pauseFire" title="pause/resume fire" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause fire</button></span>
+      `,
+      instanceData: {
+        paletteRgba: [
+          '#07070700', /*'#1F070704', '#671F0704',*/ '#771F0704', '#8F270708', '#9F2F0710',
+          '#BF470710', '#C7470710', '#D75F0710', '#D7670F10', '#CF6F0F10', '#CF871F20',
+          '#EF9F1F20', '#F7B73F20', '#FFEF8830', '#FFEFCC40'
+        ].map(color => {
+          const x = parseInt(color.slice(1), 16);
+          return { r: (x >> 24) & 255, g: (x >> 16) & 255, b: (x >> 8) & 255, a: x & 255 };
+        }),
+        fireVoxelsXyz: [],
+        lastTimeMs: 0,
+        isPaused: false,
+        pauseFireButton: null
+      },
+      init() {
+        this.instanceData.lastTimeMs = Date.now();
+        this.instanceData.isPaused = false;
+        this.instanceData.pauseFireButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseFire');
+        this.instanceData.pauseFireButton.innerText = 'pause fire';
+        this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
+        this.instanceData.pauseFireButton.style.color = '#88ffff';
+        this.instanceData.pauseFireButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          this.instanceData.isPaused = !this.instanceData.isPaused;
+          if (this.instanceData.isPaused) {
+            this.instanceData.pauseFireButton.innerText = 'resume fire';
+            this.instanceData.pauseFireButton.style.backgroundColor = '#88ffff';
+            this.instanceData.pauseFireButton.style.color = '#000000';
+          } else {
+            this.instanceData.pauseFireButton.innerText = 'pause fire';
+            this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
+            this.instanceData.pauseFireButton.style.color = '#88ffff';
+          }
+        });
+        this.instanceData.fireVoxelsXyz = [];
+        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+          const xAr = [];
+          for (let y = 0, yc = (VolumetricDisplay.layersY.length - 1); y < yc; y++) {
+            const yAr = [];
+            for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+              if (y === (yc - 1)) {
+                yAr.push(this.instanceData.paletteRgba.length - 1);
+              } else {
+                yAr.push(0);
+              }
+            }
+            xAr.push(yAr);
+          }
+          this.instanceData.fireVoxelsXyz.push(xAr);
+        }
+        VolumetricDisplay.fill();
+        VolumetricDisplay.update();
+      },
+      animate() {
+        if (this.instanceData.isPaused) {
+          return;
+        }
+        const currentTimeMs = Date.now();
+        if ((currentTimeMs - this.instanceData.lastTimeMs) > 0) {
+          this.instanceData.lastTimeMs = currentTimeMs;
+          for (let y = 0, yc = (VolumetricDisplay.layersY.length - 2); y < yc; y++) {
+            for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+              for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+                const fireVoxelSource = this.instanceData.fireVoxelsXyz[x][y+1][z];
+                const decay = (Math.random() * 3) | 0;
+                const destX = (xc + x + ((Math.random() * 3) | 0) - 1) % xc;
+                const destZ = (zc + z + ((Math.random() * 3) | 0) - 1) % zc;
+                const heat = Math.max(0, fireVoxelSource - decay);
+                this.instanceData.fireVoxelsXyz[destX][y][destZ] = heat;
+              }
+            }
+          }
+          VolumetricDisplay.fill();
+          for (let x = 0, xc = this.instanceData.fireVoxelsXyz.length; x < xc; x++) {
+            const xAr = this.instanceData.fireVoxelsXyz[x];
+            for (let y = (xAr.length - 1); y >= 0; y--) {
+              const yAr = xAr[y];
+              for (let z = 0, zc = yAr.length; z < zc; z++) {
+                const color = this.instanceData.paletteRgba[yAr[z]];
+                if (color.a > 0) {
+                  VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: color.r, g: color.g, b: color.b, a: color.a });
+                }
+              }
+            }
+          }
+          VolumetricDisplay.update();
+        }
+      }
+    },
+    {
+      name: 'land and ocean',
+      uiHtml: '',
+      init() {
+        VolumetricDisplay.fill();
+        // ocean
+        const oceanLevelY = 15;
+        for (let y = 19; y >= oceanLevelY; y--) {
+          for (let z = 0; z < 20; z++) {
+            for (let x = 0; x < 40; x++) { 
+              VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: 52, g: 125, b: 204, a: 20 }); 
+            }
+          }
+        }
+        // ocean top
+        for (let z = 0; z < 20; z++) {
+          for (let x = 0; x < 40; x++) {
+            const square = VolumetricDisplay.layersY[oceanLevelY].rows[z].squares[x];
+            square.a = 90;
+          }
+        }
+        // ocean bottom
+        for (let z = 0; z < 20; z++) {
+          for (let x = 0; x < 40; x++) {
+            const square = VolumetricDisplay.layersY[20].rows[z].squares[x];
+            square.r = 10;
+            square.g = 77;
+            square.b = 100;
+            square.a = 255;
+          }
+        }
+        // land 0
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 19, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 18, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 17, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 16, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 15, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 14, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 13, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 12, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 11, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 10, r: 118, g: 83, b: 56, a: 255 }); }
+        for (let x = 19; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 19, z: 9, r: 118, g: 83, b: 56, a: 255 }); }
+        // land 1
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 19, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 18, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 17, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 16, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 15, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 14, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 13, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 12, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 11, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 20; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 18, z: 10, r: 148, g: 106, b: 73, a: 255 }); }
+        // land 2
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 19, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 18, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 17, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 16, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 15, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 14, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 13, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 12, r: 148, g: 106, b: 73, a: 255 }); }
+        for (let x = 21; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 17, z: 11, r: 148, g: 106, b: 73, a: 255 }); }
+        // land 3
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 19, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 18, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 17, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 16, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 15, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 14, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 13, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 22; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 16, z: 12, r: 206, g: 200, b: 146, a: 255 }); }
+        // land 4 - beach
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 19, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 18, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 17, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 16, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 15, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 14, r: 206, g: 200, b: 146, a: 255 }); }
+        for (let x = 23; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 15, z: 13, r: 206, g: 200, b: 146, a: 255 }); }
+        // land 5
+        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 19, r: 183, g: 131, b: 90, a: 255 }); }
+        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 18, r: 183, g: 131, b: 90, a: 255 }); }
+        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 17, r: 183, g: 131, b: 90, a: 255 }); }
+        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 16, r: 183, g: 131, b: 90, a: 255 }); }
+        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 15, r: 183, g: 131, b: 90, a: 255 }); }
+        for (let x = 24; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 14, z: 14, r: 183, g: 131, b: 90, a: 255 }); }
+        // land 6 - green
+        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 19, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 18, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 17, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 16, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 25; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 13, z: 15, r: 90, g: 154, b: 48, a: 255 }); }
+        // land 7 - green
+        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 19, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 18, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 17, r: 90, g: 154, b: 48, a: 255 }); }
+        for (let x = 26; x < 40; x++) { VolumetricDisplay.fillVoxel({ x: x, y: 12, z: 16, r: 90, g: 154, b: 48, a: 255 }); }
+        VolumetricDisplay.update();
+      },
+      animate() {
+      }
+    },
+    {
+      name: 'waves',
+      uiHtml: `
+        <span style="line-height: 30px;"><button id="pauseWaves" title="pause/resume waves" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause waves</button></span>
+      `,
+      instanceData: {
+        timeMs: 0,
+        lastTimeMs: 0,
+        isPaused: false,
+        pauseWavesButton: null
+      },
+      init() {
+        this.instanceData.isPaused = false;
+        this.instanceData.pauseWavesButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseWaves');
+        this.instanceData.pauseWavesButton.innerText = 'pause waves';
+        this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
+        this.instanceData.pauseWavesButton.style.color = '#88ffff';
+        this.instanceData.pauseWavesButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          this.instanceData.isPaused = !this.instanceData.isPaused;
+          if (this.instanceData.isPaused) {
+            this.instanceData.pauseWavesButton.innerText = 'resume waves';
+            this.instanceData.pauseWavesButton.style.backgroundColor = '#88ffff';
+            this.instanceData.pauseWavesButton.style.color = '#000000';
+          } else {
+            this.instanceData.lastTimeMs = Date.now();
+            this.instanceData.pauseWavesButton.innerText = 'pause waves';
+            this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
+            this.instanceData.pauseWavesButton.style.color = '#88ffff';
+          }
+        });        
+        VolumetricDisplay.fill();
+        VolumetricDisplay.update();
+      },
+      animate() {
+        if (this.instanceData.isPaused) {
+          return;
+        }
+        this.instanceData.timeMs += (Date.now() - this.instanceData.lastTimeMs) | 0;
+        this.instanceData.lastTimeMs = Date.now();
+        const timeMs = this.instanceData.timeMs;
+        VolumetricDisplay.fill();
+        const centerX = ((VolumetricDisplay.layersX.length - 1) / 2) | 0;
+        const centerY = ((VolumetricDisplay.layersY.length - 1) / 2) | 0;
+        const centerZ = ((VolumetricDisplay.layersZ.length - 1) / 2) | 0;
+        const bottomY = (VolumetricDisplay.layersY.length - 1);
+        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+          for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+            const distanceFromCenter = Math.sqrt(((x - centerX) * (x - centerX)) + ((z - centerZ) * (z - centerZ)));
+            const angle = ((0.5 * (timeMs / 1000)) - (distanceFromCenter / 10)) * Math.PI;
+            const sinVal = Math.sin(angle);
+            const cosVal = Math.cos(angle);
+            const yTop = bottomY - ((4.5 + (2.5 * sinVal)) | 0);
+            if ((yTop >= 0) && (yTop < (VolumetricDisplay.layersY.length - 1))) {
+              for (let y = yTop; y < (VolumetricDisplay.layersY.length - 1); y++) {
+                VolumetricDisplay.fillVoxel({ x: x, y: y, z: z, r: 0, g: 200 + ((50 * (sinVal)) | 0), b: 200 + ((50 * (sinVal)) | 0), a: 30 });
+              }
+              const yNormCos = 0.5 + (0.5 * cosVal);
+              const square = VolumetricDisplay.layersY[yTop].rows[z].squares[x];
+              square.r = 0;
+              square.g = 150 + ((100 * yNormCos) | 0);
+              square.b = 150 + ((100 * yNormCos) | 0);
+              square.a = 200;
+            }
+          }
+        }
+        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+          for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+            const square = VolumetricDisplay.layersY[bottomY].rows[z].squares[x];
+            square.r = 0;
+            square.g = 125;
+            square.b = 125;
+            square.a = 255;
+          }
+        }
+        VolumetricDisplay.update();
+      }
+    }
+  ]
+};
+
+VolumetricDisplayControl.init();
 window.html3dInstance = new HTML3D(document.getElementById('container'), SCENE);
 
 </script>
