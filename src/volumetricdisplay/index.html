@@ -1387,7 +1387,7 @@ const VolumetricDisplayControl = {
 const VolumetricDisplayPrograms = {
   programs: [
     {
-      name: 'transparent white',
+      name: 'white glass',
       uiHtml: 'All pixels = #FFFFFF06',
       init() {
         VolumetricDisplay.fill({ r: 255, g: 255, b: 255, a: 6 });
@@ -1559,35 +1559,35 @@ const VolumetricDisplayPrograms = {
       }
     },
     {
-      name: 'waves',
+      name: 'ripple',
       uiHtml: `
-        <span style="line-height: 30px;"><button id="pauseWaves" title="pause/resume waves" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause waves</button></span>
+        <span style="line-height: 30px;"><button id="pauseRipple" title="pause/resume ripple" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause ripple</button></span>
       `,
       instanceData: {
         timeMs: 0,
         lastTimeMs: 0,
         isPaused: false,
-        pauseWavesButton: null
+        pauseRippleButton: null
       },
       init() {
         this.instanceData.isPaused = false;
-        this.instanceData.pauseWavesButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseWaves');
-        this.instanceData.pauseWavesButton.innerText = 'pause waves';
-        this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
-        this.instanceData.pauseWavesButton.style.color = '#88ffff';
-        this.instanceData.pauseWavesButton.addEventListener('click', (event) => {
+        this.instanceData.pauseRippleButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseRipple');
+        this.instanceData.pauseRippleButton.innerText = 'pause ripple';
+        this.instanceData.pauseRippleButton.style.backgroundColor = '#000000';
+        this.instanceData.pauseRippleButton.style.color = '#88ffff';
+        this.instanceData.pauseRippleButton.addEventListener('click', (event) => {
           event.stopPropagation();
           event.preventDefault();
           this.instanceData.isPaused = !this.instanceData.isPaused;
           if (this.instanceData.isPaused) {
-            this.instanceData.pauseWavesButton.innerText = 'resume waves';
-            this.instanceData.pauseWavesButton.style.backgroundColor = '#88ffff';
-            this.instanceData.pauseWavesButton.style.color = '#000000';
+            this.instanceData.pauseRippleButton.innerText = 'resume ripple';
+            this.instanceData.pauseRippleButton.style.backgroundColor = '#88ffff';
+            this.instanceData.pauseRippleButton.style.color = '#000000';
           } else {
             this.instanceData.lastTimeMs = Date.now();
-            this.instanceData.pauseWavesButton.innerText = 'pause waves';
-            this.instanceData.pauseWavesButton.style.backgroundColor = '#000000';
-            this.instanceData.pauseWavesButton.style.color = '#88ffff';
+            this.instanceData.pauseRippleButton.innerText = 'pause ripple';
+            this.instanceData.pauseRippleButton.style.backgroundColor = '#000000';
+            this.instanceData.pauseRippleButton.style.color = '#88ffff';
           }
         });        
         VolumetricDisplay.fill();
