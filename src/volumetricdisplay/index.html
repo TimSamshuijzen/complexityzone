@@ -27,6 +27,9 @@
     <div style="position: absolute; left: 500px; top: 0px; width: 400px; height: 40px; color: #cccccc;">
       <span style="color: #cccccc; font-size: 13px; line-height: 40px;">mouse-drag = orbit around center, mouse-wheel = closer/farther</span>
     </div>
+    <div style="position: absolute; left: 950px; top: 0px; width: 150px; height: 40px; color: #cccccc;">
+      <span style="color: #cccccc; font-size: 13px; line-height: 40px;">made with <a href="https://html3d.com/" target="_blank" title="html3d.com" style="text-decoration: underline;">HTML3D</a></span>
+    </div>
   </div>
   <script>
 
@@ -762,7 +765,7 @@ const SCENE = {
       width: volumetricWidth,
       height: volumetricDepth,
       x: 0,
-      y: 0,
+      y: 1,
       z: -volumetricDepth,
       rotationX: Math.PI / 2,
       rotationY: 0,
@@ -1448,9 +1451,9 @@ const VolumetricDisplayPrograms = {
       `,
       instanceData: {
         paletteRgba: [
-          '#07070700', /*'#1F070704', '#671F0704',*/ '#771F0704', '#8F270708', '#9F2F0710',
+          '#07070700', '#1F060604', /*'#671F0704', '#771F0706',*/ '#8F270708', '#9F2F0710',
           '#BF470710', '#C7470710', '#D75F0710', '#D7670F10', '#CF6F0F10', '#CF871F20',
-          '#EF9F1F20', '#F7B73F20', '#FFEF8830', '#FFEFCC40'
+          '#EF9F1F20', '#F7B73F20', '#FFEF8830', '#FFFFE840'
         ].map(color => {
           const x = parseInt(color.slice(1), 16);
           return { r: (x >> 24) & 255, g: (x >> 16) & 255, b: (x >> 8) & 255, a: x & 255 };
@@ -1505,7 +1508,7 @@ const VolumetricDisplayPrograms = {
           return;
         }
         const currentTimeMs = Date.now();
-        if ((currentTimeMs - this.instanceData.lastTimeMs) > 0) {
+        if ((currentTimeMs - this.instanceData.lastTimeMs) > 30) {
           this.instanceData.lastTimeMs = currentTimeMs;
           for (let y = 0, yc = (VolumetricDisplay.layersY.length - 2); y < yc; y++) {
             for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
