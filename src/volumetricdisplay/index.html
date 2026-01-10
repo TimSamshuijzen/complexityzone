@@ -1526,7 +1526,7 @@ const VolumetricDisplayPrograms = {
             for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
               for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
                 const fireVoxelSource = this.instanceData.fireVoxelsXyz[x][y+1][z];
-                const decay = (Math.random() * 2.5) | 0;
+                const decay = (Math.random() * 2.7) | 0;
                 const destX = (xc + x + (((Math.random() * 2) | 0) - 1)) % xc;
                 const destZ = (zc + z + (((Math.random() * 2) | 0) - 1)) % zc;
                 const heat = Math.max(0, fireVoxelSource - decay);
