@@ -1398,9 +1398,9 @@ const VolumetricDisplayPrograms = {
     {
       name: 'color cube',
       uiHtml: `
-        x pixels = #FF00000A (red)<br />
-        y pixels = #00FF000A (green)<br />
-        z pixels = #0000FF0A (blue)<br />
+        x-pixels = #FF00000A (red)<br />
+        y-pixels = #00FF000A (green)<br />
+        z-pixels = #0000FF0A (blue)<br />
         <br />
         Look at the display from different angles to see the colors.
       `, 
@@ -1597,14 +1597,21 @@ const VolumetricDisplayPrograms = {
         timeMs: 0,
         lastTimeMs: 0,
         isPaused: false,
+        requestAnimate: false,
         pauseRippleButton: null
       },
       init() {
-        this.instanceData.isPaused = false;
         this.instanceData.pauseRippleButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseRipple');
-        this.instanceData.pauseRippleButton.innerText = 'pause ripple';
-        this.instanceData.pauseRippleButton.style.backgroundColor = '#000000';
-        this.instanceData.pauseRippleButton.style.color = '#88ffff';
+        if (this.instanceData.isPaused) {
+          this.instanceData.pauseRippleButton.innerText = 'resume ripple';
+          this.instanceData.pauseRippleButton.style.backgroundColor = '#88ffff';
+          this.instanceData.pauseRippleButton.style.color = '#000000';
+        } else {
+          this.instanceData.lastTimeMs = Date.now();
+          this.instanceData.pauseRippleButton.innerText = 'pause ripple';
+          this.instanceData.pauseRippleButton.style.backgroundColor = '#000000';
+          this.instanceData.pauseRippleButton.style.color = '#88ffff';
+        }
         this.instanceData.pauseRippleButton.addEventListener('click', (event) => {
           event.stopPropagation();
           event.preventDefault();
@@ -1613,6 +1620,7 @@ const VolumetricDisplayPrograms = {
             this.instanceData.pauseRippleButton.innerText = 'resume ripple';
             this.instanceData.pauseRippleButton.style.backgroundColor = '#88ffff';
             this.instanceData.pauseRippleButton.style.color = '#000000';
+            this.instanceData.requestAnimate = true;
           } else {
             this.instanceData.lastTimeMs = Date.now();
             this.instanceData.pauseRippleButton.innerText = 'pause ripple';
@@ -1622,12 +1630,19 @@ const VolumetricDisplayPrograms = {
         });        
         VolumetricDisplay.fill();
         VolumetricDisplay.update();
+        if (this.instanceData.isPaused) {
+          this.instanceData.requestAnimate = true;
+        } else {
+          this.instanceData.lastTimeMs = Date.now();
+        }
       },
       animate() {
-        if (this.instanceData.isPaused) {
+        if (this.instanceData.isPaused && !this.instanceData.requestAnimate) {
           return;
         }
-        this.instanceData.timeMs += (Date.now() - this.instanceData.lastTimeMs) | 0;
+        if (!this.instanceData.isPaused) {
+          this.instanceData.timeMs += (Date.now() - this.instanceData.lastTimeMs) | 0;
+        }
         this.instanceData.lastTimeMs = Date.now();
         const timeMs = this.instanceData.timeMs;
         VolumetricDisplay.fill();
@@ -1665,6 +1680,7 @@ const VolumetricDisplayPrograms = {
           }
         }
         VolumetricDisplay.update();
+        this.instanceData.requestAnimate = false;
       }
     },
     {
