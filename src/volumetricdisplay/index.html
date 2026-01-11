@@ -746,7 +746,6 @@ const SCENE = {
         panel.instanceData.plate = panel.element.querySelector('#volumetricDisplay_plate');
         const numberOfPixels = ((VolumetricDisplay.numberOfLayersX * (VolumetricDisplay.numberOfLayersY - 1) * (VolumetricDisplay.numberOfLayersZ - 1)) + (VolumetricDisplay.numberOfLayersY * (VolumetricDisplay.numberOfLayersX - 1) * (VolumetricDisplay.numberOfLayersZ - 1)) + (VolumetricDisplay.numberOfLayersZ * (VolumetricDisplay.numberOfLayersX - 1) * (VolumetricDisplay.numberOfLayersY - 1)));
         const numberOfVoxels = ((VolumetricDisplay.numberOfLayersX - 1) * (VolumetricDisplay.numberOfLayersY - 1) * (VolumetricDisplay.numberOfLayersZ - 1));
-        panel.instanceData.plate.title = `Specs: 3D grid of ${numberOfVoxels} voxels with ${numberOfPixels} x 32 bit RGBA canvas pixels, positioned in space with CSS 3D transforms.`;
         panel.instanceData.plate.innerHTML = `
           ${numberOfPixels} pixels<br />
           ${numberOfVoxels} voxels
@@ -1470,15 +1469,21 @@ const VolumetricDisplayPrograms = {
         fireVoxelsXyz: [],
         lastTimeMs: 0,
         isPaused: false,
+        requestAnimate: false,
         pauseFireButton: null
       },
       init() {
         this.instanceData.lastTimeMs = Date.now();
-        this.instanceData.isPaused = false;
         this.instanceData.pauseFireButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseFire');
-        this.instanceData.pauseFireButton.innerText = 'pause fire';
-        this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
-        this.instanceData.pauseFireButton.style.color = '#88ffff';
+        if (this.instanceData.isPaused) {
+          this.instanceData.pauseFireButton.innerText = 'resume fire';
+          this.instanceData.pauseFireButton.style.backgroundColor = '#88ffff';
+          this.instanceData.pauseFireButton.style.color = '#000000';
+        } else {
+          this.instanceData.pauseFireButton.innerText = 'pause fire';
+          this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
+          this.instanceData.pauseFireButton.style.color = '#88ffff';
+        }
         this.instanceData.pauseFireButton.addEventListener('click', (event) => {
           event.stopPropagation();
           event.preventDefault();
@@ -1491,43 +1496,49 @@ const VolumetricDisplayPrograms = {
             this.instanceData.pauseFireButton.innerText = 'pause fire';
             this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
             this.instanceData.pauseFireButton.style.color = '#88ffff';
+            this.instanceData.requestAnimate = true;
           }
         });
-        this.instanceData.fireVoxelsXyz = [];
-        for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-          const xAr = [];
-          for (let y = 0, yc = (VolumetricDisplay.layersY.length - 1); y < yc; y++) {
-            const yAr = [];
-            for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-              if (y === (yc - 1)) {
-                yAr.push(this.instanceData.paletteRgba.length - 1);
-              } else {
-                yAr.push(0);
+        if (this.instanceData.fireVoxelsXyz.length === 0) {
+          for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+            const xAr = [];
+            for (let y = 0, yc = (VolumetricDisplay.layersY.length - 1); y < yc; y++) {
+              const yAr = [];
+              for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+                if (y === (yc - 1)) {
+                  yAr.push(this.instanceData.paletteRgba.length - 1);
+                } else {
+                  yAr.push(0);
+                }
               }
+              xAr.push(yAr);
             }
-            xAr.push(yAr);
+            this.instanceData.fireVoxelsXyz.push(xAr);
           }
-          this.instanceData.fireVoxelsXyz.push(xAr);
+        } else {
+          this.instanceData.requestAnimate = true;
         }
         VolumetricDisplay.fill();
         VolumetricDisplay.update();
       },
       animate() {
-        if (this.instanceData.isPaused) {
+        if (this.instanceData.isPaused && !this.instanceData.requestAnimate) {
           return;
         }
         const currentTimeMs = Date.now();
-        if ((currentTimeMs - this.instanceData.lastTimeMs) > 30) {
+        if (((currentTimeMs - this.instanceData.lastTimeMs) > 30) || this.instanceData.requestAnimate) {
           this.instanceData.lastTimeMs = currentTimeMs;
-          for (let y = 0, yc = (VolumetricDisplay.layersY.length - 2); y < yc; y++) {
-            for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-              for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-                const fireVoxelSource = this.instanceData.fireVoxelsXyz[x][y+1][z];
-                const decay = (Math.random() * 2.7) | 0;
-                const destX = (xc + x + (((Math.random() * 2) | 0) - 1)) % xc;
-                const destZ = (zc + z + (((Math.random() * 2) | 0) - 1)) % zc;
-                const heat = Math.max(0, fireVoxelSource - decay);
-                this.instanceData.fireVoxelsXyz[destX][y][destZ] = heat;
+          if (!this.instanceData.isPaused) {
+            for (let y = 0, yc = (VolumetricDisplay.layersY.length - 2); y < yc; y++) {
+              for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+                for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+                  const fireVoxelSource = this.instanceData.fireVoxelsXyz[x][y+1][z];
+                  const decay = (Math.random() * 2.7) | 0;
+                  const destX = (xc + x + (((Math.random() * 2) | 0) - 1)) % xc;
+                  const destZ = (zc + z + (((Math.random() * 2) | 0) - 1)) % zc;
+                  const heat = Math.max(0, fireVoxelSource - decay);
+                  this.instanceData.fireVoxelsXyz[destX][y][destZ] = heat;
+                }
               }
             }
           }
@@ -1556,6 +1567,7 @@ const VolumetricDisplayPrograms = {
           }
           VolumetricDisplay.update();
         }
+        this.instanceData.requestAnimate = false;
       }
     },
     {
@@ -1761,7 +1773,7 @@ if (window.location.protocol === 'https:') {
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'Download the html file with all the code and run it local.';
+  downloadlink.title = 'Download html file with all the code and run it local.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '8px',
