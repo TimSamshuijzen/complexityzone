@@ -1475,7 +1475,7 @@ const VolumetricDisplayPrograms = {
         resetFireButton: null
       },
       init() {
-        const buildFirePixels = () => {
+        const buildFireVoxels = () => {
           this.instanceData.fireVoxelsXyz = [];
           for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
             const xAr = [];
@@ -1522,13 +1522,11 @@ const VolumetricDisplayPrograms = {
         this.instanceData.resetFireButton.addEventListener('click', (event) => {
           event.stopPropagation();
           event.preventDefault();
-          VolumetricDisplay.fill();
-          VolumetricDisplay.update();
-          buildFirePixels();
+          buildFireVoxels();
           this.instanceData.requestAnimate = true;
         });
         if (this.instanceData.fireVoxelsXyz.length === 0) {
-          buildFirePixels();
+          buildFireVoxels();
         } else {
           this.instanceData.requestAnimate = true;
         }
@@ -1539,9 +1537,9 @@ const VolumetricDisplayPrograms = {
         if (this.instanceData.isPaused && !this.instanceData.requestAnimate) {
           return;
         }
-        const currentTimeMs = Date.now();
-        if (((currentTimeMs - this.instanceData.lastTimeMs) > 30) || this.instanceData.requestAnimate) {
-          this.instanceData.lastTimeMs = currentTimeMs;
+        const timeMs = Date.now();
+        if (((timeMs - this.instanceData.lastTimeMs) > 30) || this.instanceData.requestAnimate) {
+          this.instanceData.lastTimeMs = timeMs;
           if (!this.instanceData.isPaused) {
             for (let y = 0, yc = (VolumetricDisplay.layersY.length - 2); y < yc; y++) {
               for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
