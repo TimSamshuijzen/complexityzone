@@ -1456,6 +1456,7 @@ const VolumetricDisplayPrograms = {
         Best viewed from far away.<br />
         <b>Photosensitive seizure warning</b>: Do not zoom into the bright rapid flashes of the fire.<br />
         <span style="line-height: 30px;"><button id="pauseFire" title="pause/resume fire" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">pause fire</button></span>
+        <span style="line-height: 30px;"><button id="resetFire" title="reset fire" style="border: 1px solid #88ffff; background-color: #000000; color: #88ffff; cursor: pointer;">reset fire</button></span>
       `,
       instanceData: {
         paletteRgba: [
@@ -1470,9 +1471,28 @@ const VolumetricDisplayPrograms = {
         lastTimeMs: 0,
         isPaused: false,
         requestAnimate: false,
-        pauseFireButton: null
+        pauseFireButton: null,
+        resetFireButton: null
       },
       init() {
+        const buildFirePixels = () => {
+          this.instanceData.fireVoxelsXyz = [];
+          for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
+            const xAr = [];
+            for (let y = 0, yc = (VolumetricDisplay.layersY.length - 1); y < yc; y++) {
+              const yAr = [];
+              for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
+                if (y === (yc - 1)) {
+                  yAr.push(this.instanceData.paletteRgba.length - 1);
+                } else {
+                  yAr.push(0);
+                }
+              }
+              xAr.push(yAr);
+            }
+            this.instanceData.fireVoxelsXyz.push(xAr);
+          }
+        };
         this.instanceData.lastTimeMs = Date.now();
         this.instanceData.pauseFireButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#pauseFire');
         if (this.instanceData.isPaused) {
@@ -1496,25 +1516,19 @@ const VolumetricDisplayPrograms = {
             this.instanceData.pauseFireButton.innerText = 'pause fire';
             this.instanceData.pauseFireButton.style.backgroundColor = '#000000';
             this.instanceData.pauseFireButton.style.color = '#88ffff';
-            this.instanceData.requestAnimate = true;
           }
         });
+        this.instanceData.resetFireButton = VolumetricDisplayControl.uiDisplayRightPanelBody.querySelector('#resetFire');
+        this.instanceData.resetFireButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          VolumetricDisplay.fill();
+          VolumetricDisplay.update();
+          buildFirePixels();
+          this.instanceData.requestAnimate = true;
+        });
         if (this.instanceData.fireVoxelsXyz.length === 0) {
-          for (let x = 0, xc = (VolumetricDisplay.layersX.length - 1); x < xc; x++) {
-            const xAr = [];
-            for (let y = 0, yc = (VolumetricDisplay.layersY.length - 1); y < yc; y++) {
-              const yAr = [];
-              for (let z = 0, zc = (VolumetricDisplay.layersZ.length - 1); z < zc; z++) {
-                if (y === (yc - 1)) {
-                  yAr.push(this.instanceData.paletteRgba.length - 1);
-                } else {
-                  yAr.push(0);
-                }
-              }
-              xAr.push(yAr);
-            }
-            this.instanceData.fireVoxelsXyz.push(xAr);
-          }
+          buildFirePixels();
         } else {
           this.instanceData.requestAnimate = true;
         }
