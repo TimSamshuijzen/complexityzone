@@ -1524,6 +1524,12 @@ const VolumetricDisplayPrograms = {
           event.preventDefault();
           buildFireVoxels();
           this.instanceData.requestAnimate = true;
+          this.instanceData.resetFireButton.style.backgroundColor = '#88ffff';
+          this.instanceData.resetFireButton.style.color = '#000000';
+          setTimeout(() => {
+            this.instanceData.resetFireButton.style.backgroundColor = '#000000';
+            this.instanceData.resetFireButton.style.color = '#88ffff';
+          }, 200);
         });
         if (this.instanceData.fireVoxelsXyz.length === 0) {
           buildFireVoxels();
