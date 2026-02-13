@@ -24,8 +24,11 @@
 </head>
 <body>
   <div id="headerpanel" style="position: relative; height: 40px; background-color: #333333;">
-    <div style="position: absolute; left: 20px; top: 0px; width: 200px; height: 40px;">
+    <div style="position: absolute; left: 20px; top: 0px; width: 160px; height: 40px; color: #cccccc;">
       <a href="https://complexity.zone/"><span style="color: #80cccc; font-size: 16px; line-height: 40px;">complexity.zone</span></a>
+    </div>
+    <div style="position: absolute; left: 180px; top: 0px; width: 220px; height: 40px; font-size: 22px; line-height: 40px; color: #cccccc; white-space: nowrap;">
+      Riemann Zeta Scope
     </div>
   </div>
   <div style="height: 10px; background-color: #333333;">
@@ -3679,19 +3682,19 @@ if (window.location.protocol === 'https:') {
   const headerpaneldownloadlink = document.createElement('div');
   Object.assign(headerpaneldownloadlink.style, {
     position: 'absolute',
-    left: '270px',
+    left: '420px',
     top: '0px',
-    width: '400px',
+    width: '370px',
     height: '40px'
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'Riemann Zeta Scope is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file, run it local, and tinker with the code.';
+  downloadlink.title = 'All the JavaScript code is in the html file.\nClick here to download the html file, if you want to run it local and tinker with the code.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '10px',
     top: '8px',
-    width: '400px',
+    width: '350px',
     height: '24px',
     cursor: 'pointer'
   });
@@ -3700,13 +3703,13 @@ if (window.location.protocol === 'https:') {
   Object.assign(downloadlink_svg.style, {
     position: 'absolute',
     left: '0px',
-    top: '0px',
-    width: '24px',
-    height: '24px',
+    top: '4px',
+    width: '20px',
+    height: '20px',
     cursor: 'pointer'
   });
   downloadlink_svg.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
       <path fill="#cccccc" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
     </svg>
   `;
@@ -3714,16 +3717,16 @@ if (window.location.protocol === 'https:') {
   const downloadlink_text = document.createElement('div');
   Object.assign(downloadlink_text.style, {
     position: 'absolute',
-    left: '35px',
-    top: '0px',
-    width: '365px',
-    height: '24px',
+    left: '25px',
+    top: '4px',
+    width: '315px',
+    height: '20px',
     color: '#cccccc',
-    fontSize: '16px',
-    lineHeight: '24px',
+    fontSize: '13px',
+    lineHeight: '20px',
     whiteSpace: 'nowrap'
   });
-  downloadlink_text.innerHTML = 'Download Riemann Zeta Scope';
+  downloadlink_text.innerHTML = 'Download';
   downloadlink.appendChild(downloadlink_text);
   let downloaded = false;
   downloadlink.addEventListener('click', async () => {
@@ -3734,7 +3737,7 @@ if (window.location.protocol === 'https:') {
     downloadlink.title = '';
     downloadlink.style.cursor = 'default';
     downloadlink_svg.style.display = 'none';
-    downloadlink_text.innerHTML = 'downloading Riemann Zeta Scope...';
+    downloadlink_text.innerHTML = 'downloading html file...';
     try {
       const response = await fetch(window.location.href);
       let html = await response.text();

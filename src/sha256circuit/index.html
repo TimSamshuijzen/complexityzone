@@ -574,17 +574,17 @@ if (window.location.protocol === 'https:') {
     position: 'absolute',
     left: '430px',
     top: '0px',
-    width: '400px',
+    width: '370px',
     height: '40px'
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'SHA-256 Circuit is a portable web app. All the JavaScript code is in the html file.\nClick here to download the html file. Feel free to tinker and make it your own.';
+  downloadlink.title = 'All the JavaScript code is in the html file.\nClick here to download the html file, if you want to run it local and tinker with the code.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '10px',
     top: '8px',
-    width: '400px',
+    width: '350px',
     height: '24px',
     cursor: 'pointer'
   });
@@ -593,13 +593,13 @@ if (window.location.protocol === 'https:') {
   Object.assign(downloadlink_svg.style, {
     position: 'absolute',
     left: '0px',
-    top: '0px',
-    width: '24px',
-    height: '24px',
+    top: '4px',
+    width: '20px',
+    height: '20px',
     cursor: 'pointer'
   });
   downloadlink_svg.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
       <path fill="#cccccc" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
     </svg>
   `;
@@ -607,16 +607,16 @@ if (window.location.protocol === 'https:') {
   const downloadlink_text = document.createElement('div');
   Object.assign(downloadlink_text.style, {
     position: 'absolute',
-    left: '35px',
-    top: '0px',
-    width: '365px',
-    height: '24px',
+    left: '25px',
+    top: '4px',
+    width: '315px',
+    height: '20px',
     color: '#cccccc',
-    fontSize: '16px',
-    lineHeight: '24px',
+    fontSize: '13px',
+    lineHeight: '20px',
     whiteSpace: 'nowrap'
   });
-  downloadlink_text.innerHTML = 'Download SHA-256 Circuit';
+  downloadlink_text.innerHTML = 'Download';
   downloadlink.appendChild(downloadlink_text);
   let downloaded = false;
   downloadlink.addEventListener('click', async () => {
@@ -627,7 +627,7 @@ if (window.location.protocol === 'https:') {
     downloadlink.title = '';
     downloadlink.style.cursor = 'default';
     downloadlink_svg.style.display = 'none';
-    downloadlink_text.innerHTML = 'downloading SHA-256 Circuit...';
+    downloadlink_text.innerHTML = 'downloading html file...';
     try {
       const response = await fetch(window.location.href);
       let html = await response.text();
