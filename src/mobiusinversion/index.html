@@ -466,7 +466,7 @@ if (window.location.protocol === 'https:') {
       const a = document.createElement('a');
       const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       a.href = url;
-      a.download = `mobiusinversionofasquarewave_${dateYYYYMMDD}.html`;
+      a.download = `MobiusInversionOfASquareWave_${dateYYYYMMDD}.html`;
       a.click();
       URL.revokeObjectURL(url);
       downloadlink_text.innerHTML = 'downloaded to your Downloads folder';
