@@ -1,6 +1,6 @@
 # complexity.zone
 
-complexity.zone static website at:
+Coding and math projects by Tim Samshuijzen
 
 https://complexity.zone
 
