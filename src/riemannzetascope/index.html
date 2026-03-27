@@ -27,7 +27,7 @@
     <div style="position: absolute; left: 20px; top: 0px; width: 160px; height: 40px; color: #cccccc;">
       <a href="https://complexity.zone/"><span style="color: #80cccc; font-size: 16px; line-height: 40px;">complexity.zone</span></a>
     </div>
-    <div style="position: absolute; left: 180px; top: 0px; width: 220px; height: 40px; font-size: 22px; line-height: 40px; color: #cccccc; white-space: nowrap;">
+    <div style="position: absolute; left: 180px; top: 0px; width: 220px; height: 40px; font-size: 20px; line-height: 40px; color: #cccccc; white-space: nowrap;">
       Riemann Zeta Scope
     </div>
   </div>
@@ -121,12 +121,12 @@ class Zeta {
     this.calcAnalyticContinuation();
   }
   calcAnalyticContinuation() {
-    // Determine zeta by analytic continuation, by using the Dirichlet eta function, which is convergent for Re(s) > 0.
+    // Estimate zeta by analytic continuation, by using the Dirichlet eta function, the alternating zeta function, which is convergent for Re(s) > 0.
     // zeta(s) = (1 / (1 - 2^(1-s))) * eta(s)
     // Approach:
     // Step 1. Calculate 40000 partial sums of eta.
     // Step 2. Estimate eta by taking the average of the halfway points of the last 4 terms.
-    // Step 3. Multiply the estimation of eta by 1 / (1 - 2^(1-s))
+    // Step 3. Multiply this estimation of eta by 1 / (1 - 2^(1-s)), to get an estimation of zeta.
     const partialSums = [
       {
         re: 0,
@@ -1951,7 +1951,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawAnalyticContinuationButton);
-      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at ζ(σ + i·t)\nMethod of analytic continuation: ζ(s) = η(s) / (1 - 2^(1 - s))\nImplementation is an estimation, inaccuracy is visible when zooming in.';
+      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at ζ(σ + i·t)\nMethod of analytic continuation: ζ(s) = η(s) / (1 - 2^(1 - s))\nη is the Dirichlet eta function, which is convergent for Re(s) > 0. The value of η is estimated using a simple method, inaccuracy is visible when zoomed in.';
       this.components.panelDrawAnalyticContinuationButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #D4AF37;">&nbsp;&nbsp;⬤&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">ζ analytic</span>';
       this.components.panelDrawAnalyticContinuationButton.addEventListener('click', () => {
         this.zetaView.drawAnalyticContinuation = !this.zetaView.drawAnalyticContinuation;
@@ -2049,7 +2049,7 @@ const View = {
         cursor: 'pointer'
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaSectionReportDownloadButton);
-      this.components.panelZetaSectionReportDownloadButton.title = 'Take snapshot of terms\' properties and download as tab-delimited file.\nYou can copy and paste the file contents into a spreadsheet program like Excel or Google Sheets.';
+      this.components.panelZetaSectionReportDownloadButton.title = 'Take snapshot of terms\' properties and download as tab-delimited file.\nYou can copy and paste the file contents into a spreadsheet like Excel or Google Sheets.';
       this.components.panelZetaSectionReportDownloadButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" stroke="none" style="position: absolute; left: 5px; top: 1px; width: 12px; height: 12px;">
           <path d="M14,2L20,8V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2H14M18,20V9H13V4H6V20H18M12,19L8,15H10.5V12H13.5V15H16L12,19Z" />
@@ -3689,7 +3689,7 @@ if (window.location.protocol === 'https:') {
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'All the JavaScript code is in the html file.\nClick here to download the html file, if you want to run it local and tinker with the code.';
+  downloadlink.title = 'Download Riemann Zeta Scope html file, if you want to use it offline and/or tinker with the code.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '10px',
@@ -3726,7 +3726,7 @@ if (window.location.protocol === 'https:') {
     lineHeight: '20px',
     whiteSpace: 'nowrap'
   });
-  downloadlink_text.innerHTML = 'Download';
+  downloadlink_text.innerHTML = ''; // 'Download';
   downloadlink.appendChild(downloadlink_text);
   let downloaded = false;
   downloadlink.addEventListener('click', async () => {
