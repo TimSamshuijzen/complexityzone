@@ -1951,7 +1951,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawAnalyticContinuationButton);
-      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at estimation of ζ(σ + i·t)\nMethod of analytic continuation: ζ(s) = η(s) / (1 - 2^(1 - s))\nη is the Dirichlet eta function, which is convergent for Re(s) > 0.\nη is estimated using a simple method.\nThe inaccuracy is visible when zoomed in.';
+      this.components.panelDrawAnalyticContinuationButton.title = 'Show gold circle at estimation of ζ(σ + i·t).\nζ(s) is estimated by estimating η(s) in:\nζ(s) = η(s) / (1 - 2^(1 - s))\nwhere η is the Dirichlet eta function, which is convergent for Re(s) > 0.\nη is estimated with simple code. Inaccuracy is visible when zoomed in.';
       this.components.panelDrawAnalyticContinuationButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #D4AF37;">&nbsp;&nbsp;⬤&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">ζ analytic</span>';
       this.components.panelDrawAnalyticContinuationButton.addEventListener('click', () => {
         this.zetaView.drawAnalyticContinuation = !this.zetaView.drawAnalyticContinuation;
@@ -3615,8 +3615,7 @@ const View = {
     this.components.panelZetaResult_equation_right.innerHTML = ((this.zetaView.zeta.analyticContinuationRe >= 0) ? '&nbsp;' : '-') + Math.abs(this.zetaView.zeta.analyticContinuationRe).toFixed(3) + ' ' + ((this.zetaView.zeta.analyticContinuationIm >= 0) ? '+' : '-') + ' i·' + Math.abs(this.zetaView.zeta.analyticContinuationIm).toFixed(3);
     if ((this.zeta.eta === false) && (this.zeta.altDirection === false) && (this.zeta.zetaNMinusHalf === false) && (this.zeta.oddOnly === false) && (this.zeta.evenOnly === false) && (this.zeta.nMod8is0Only === false) && (this.zeta.nMod8isNot0Only === false) && (this.zeta.mobiusRadius === false)) {
       this.components.panelZetaResult.title =
-        'Estimation of ζ(s) by analytic continuation.\n' +
-        'Method used:\n' +
+        'Estimation of ζ(s) by estimating η in:\n' +
         'ζ(s) = η(s) / (1 - 2^(1 - s))';
       this.components.panelZetaResult_equation_left.style.display = 'block';
       this.components.panelZetaResult_equation_approximation.style.display = 'block';
