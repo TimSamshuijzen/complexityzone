@@ -1788,7 +1788,8 @@ window.html3dInstance = new HTML3D(document.getElementById('container'), SCENE);
 
 // DOWNLOADLINKSTART
 // This code is removed in the downloaded html file.
-if (window.location.protocol === 'https:') {
+//if (window.location.protocol === 'https:') {
+{
   const headerpanel = document.getElementById('headerpanel');
   const headerpaneldownloadlink = document.createElement('div');
   Object.assign(headerpaneldownloadlink.style, {
@@ -1800,7 +1801,7 @@ if (window.location.protocol === 'https:') {
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'Download html file with all the code and run it local.';
+  downloadlink.title = 'Click here to download the html file with all the code, if you want to run it offline and/or tinker with the code.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '8px',
@@ -1820,7 +1821,7 @@ if (window.location.protocol === 'https:') {
     cursor: 'pointer'
   });
   downloadlink_svg.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute: left: 0px; top: 0px; width: 24px; height: 24px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 24px; height: 24px;">
       <path fill="#ffffff" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
     </svg>
   `;
