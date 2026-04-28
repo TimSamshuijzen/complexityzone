@@ -90,7 +90,7 @@ class Zeta {
   setSigma(sigma) {
     this.sigma = Math.min(Math.max(-2, sigma), 2);
     const zetaNMinusHalf = (this.zetaNMinusHalf ? -0.5 : 0);
-    for (let hi = 0; hi < this.terms.length; hi++) {
+    for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
       const term = this.terms[hi];
       const direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
       let radiusFactor = 1;
@@ -116,7 +116,7 @@ class Zeta {
   }
   setT(t) {
     this.t = Math.min(Math.max(0, t), (this.maxTInt + 0.999));
-    for (let hi = 0; hi < this.terms.length; hi++) {
+    for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
       const term = this.terms[hi];
       if (this.angleNonTrivialZeroLogT) {
         if (this.t === 0) {
@@ -2196,7 +2196,7 @@ const View = {
         fontSize: '10px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNaturalNumbersButton);
-      this.components.panelAngleNaturalNumbersButton.title = 'Sync: Set term frequency to 2·n·π.\nThe sum is a delta spike when t is a whole number, alternating signs even/odd.';
+      this.components.panelAngleNaturalNumbersButton.title = 'Sync: Set term n frequency to 2·n·π.\nThe sum is a delta spike when t is a whole number, alternating signs even/odd.';
       this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ(t)';
       this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
         this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
@@ -2220,7 +2220,7 @@ const View = {
         fontSize: '10px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
-      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Sync: Set term frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number or a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
+      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Sync: Set term n frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappy (narrow) spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
       this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ·ln(t)';
       this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
         this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
