@@ -2197,7 +2197,7 @@ const View = {
         fontSize: '10px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNaturalNumbersButton);
-      this.components.panelAngleNaturalNumbersButton.title = 'Tune: Set term frequency to 2·n·π.\nThe sum is a delta spike when t is a whole number, alternating signs.';
+      this.components.panelAngleNaturalNumbersButton.title = 'Sync: Set term frequency to 2·n·π.\nThe sum is a delta spike when t is a whole number, alternating signs even/odd.';
       this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ(t)';
       this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
         this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
@@ -2221,7 +2221,7 @@ const View = {
         fontSize: '10px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
-      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Tune: Set term frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number or a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
+      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Sync: Set term frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number or a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
       this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ·ln(t)';
       this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
         this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
