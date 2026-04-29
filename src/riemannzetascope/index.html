@@ -52,7 +52,7 @@ const ZetaNonTrivialZeros = [14.134725142,21.022039639,25.01085758,30.424876126,
 class Zeta {
   constructor() {
     this.sigma = 0.5;
-    this.t = 3141.748;
+    this.t = 0.0;
     this.eta = false;
     this.altDirection = false;
     this.zetaNMinusHalf = false;
@@ -1190,9 +1190,9 @@ const View = {
     panelGridButton: null,
     panelPolarWindowButton: null,
     panelPhaseWindowButton: null,
-    panelDrawSpiralNumbersButton: null,
+    panelFocusSpiral1Button: null,
     panelDrawSpiral1Button: null,
-    panelInverseOriginButton: null,
+    panelDrawSpiralNumbersButton: null,
     panelDrawAnalyticContinuationButton: null,
     panelTraceButton: null,
     panelDrawEulerProductFormulaButton: null,
@@ -1835,30 +1835,24 @@ const View = {
         this.render();
       });
       subRunningY += 27;
-      this.components.panelDrawSpiralNumbersButton = document.createElement('div');
-      Object.assign(this.components.panelDrawSpiralNumbersButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelDrawSpiralNumbersButton.style, {
+      this.components.panelFocusSpiral1Button = document.createElement('div');
+      Object.assign(this.components.panelFocusSpiral1Button.style, this.styles.onOffButton);
+      Object.assign(this.components.panelFocusSpiral1Button.style, {
         position: 'absolute',
         left: '10px',
         top: subRunningY + 'px',
         width: '90px',
         textAlign: 'left'
       });
-      this.components.panelDisplaySection.appendChild(this.components.panelDrawSpiralNumbersButton);
-      this.components.panelDrawSpiralNumbersButton.title = 
-        'Show spiral numbers.\n' +
-        'The partial sums of ζ form a chain of spirals. ' +
-        'The spirals emerge one by one as t increases, with spiral 1 leading the way. ' +
-        'Spiral 1 is the spiral at the end of the chain, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
-        'The halfway-point of term n=[t/π], at the center of spiral 1, is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases. ' +
-        'The term n=[t/π] at t is undergoing its first crossing with its prior term. ' +
-        'Similarly, the center of spiral 2, indicating the second crossing, is at term n=[t/3π], spiral 3 is at n=[t/5π], and so on. ' +
-        'In general, spiral number x of ζ is near the halfway point of term n=[t/((2x - 1)π)].\n' +
-        'Note that N has to be at least [t/π] for spiral 1 to be visible.\n' +
-        'The estimations of the spiral centers work ok for ζ and ζ(s, ½), but is noticeably off when used with η, alt dir or one of the filter buttons.';
-      this.components.panelDrawSpiralNumbersButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;❶&nbsp;</span></span><span style="margin-left: 10px;">spirals</span>';
-      this.components.panelDrawSpiralNumbersButton.addEventListener('click', () => {
-        this.zetaView.drawSpiralNumbers = !this.zetaView.drawSpiralNumbers;
+      this.components.panelDisplaySection.appendChild(this.components.panelFocusSpiral1Button);
+      this.components.panelFocusSpiral1Button.title = 
+        'Lock onto the main spiral (spiral 1) and keep it in center view.\n' +
+        'This allows you to zoom into ζ while running t.';
+      this.components.panelFocusSpiral1Button.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;⊕&nbsp;&nbsp;</span></span><span style="margin-left: 10px;">follow</span>';
+      this.components.panelFocusSpiral1Button.addEventListener('click', () => {
+        this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
+        this.zetaView.centerZoomOffsetRe = 0;
+        this.zetaView.centerZoomOffsetIm = 0;
         this.zetaView.draw();
         this.render();
       });
@@ -1879,24 +1873,29 @@ const View = {
         this.zetaView.draw();
         this.render();
       });
-      this.components.panelInverseOriginButton = document.createElement('div');
-      Object.assign(this.components.panelInverseOriginButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelInverseOriginButton.style, {
+      this.components.panelDrawSpiralNumbersButton = document.createElement('div');
+      Object.assign(this.components.panelDrawSpiralNumbersButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelDrawSpiralNumbersButton.style, {
         position: 'absolute',
         left: '220px',
         top: subRunningY + 'px',
         width: '90px',
         textAlign: 'left'
       });
-      this.components.panelDisplaySection.appendChild(this.components.panelInverseOriginButton);
-      this.components.panelInverseOriginButton.title = 
-        'Lock onto spiral 1 and keep it in center view.\n' +
-        'This allows you to zoom into ζ while running t.';
-      this.components.panelInverseOriginButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;⊕&nbsp;&nbsp;</span></span><span style="margin-left: 10px;">follow</span>';
-      this.components.panelInverseOriginButton.addEventListener('click', () => {
-        this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
-        this.zetaView.centerZoomOffsetRe = 0;
-        this.zetaView.centerZoomOffsetIm = 0;
+      this.components.panelDisplaySection.appendChild(this.components.panelDrawSpiralNumbersButton);
+      this.components.panelDrawSpiralNumbersButton.title = 
+        'Show spiral numbers.\n' +
+        'The partial sums of ζ form a chain of spirals. ' +
+        'The spirals emerge one by one as t increases, with spiral 1 leading the way. ' +
+        'Spiral 1 is the spiral at the end of the chain, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
+        'The halfway-point of term n=[t/π], at the center of spiral 1, is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases. ' +
+        'The term n=[t/π] at t is undergoing its first crossing with its prior term. ' +
+        'Similarly, the center of spiral 2, indicating the second crossing, is at term n=[t/3π], spiral 3 is at n=[t/5π], and so on. ' +
+        'In general, spiral number x of ζ is near the halfway point of term n=[t/((2x - 1)π)].\n' +
+        'Note that N has to be at least [t/π] for spiral 1 to be visible.';
+      this.components.panelDrawSpiralNumbersButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;❶&nbsp;</span></span><span style="margin-left: 10px;">spirals</span>';
+      this.components.panelDrawSpiralNumbersButton.addEventListener('click', () => {
+        this.zetaView.drawSpiralNumbers = !this.zetaView.drawSpiralNumbers;
         this.zetaView.draw();
         this.render();
       });
@@ -2193,11 +2192,11 @@ const View = {
         left: '238px',
         top: subRunningY + 'px',
         width: '34px',
-        fontSize: '10px'
+        fontSize: '11px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNaturalNumbersButton);
-      this.components.panelAngleNaturalNumbersButton.title = 'Sync: Set term n frequency to 2·n·π.\nThe sum is a delta spike when t is a whole number, alternating signs even/odd.';
-      this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ(t)';
+      this.components.panelAngleNaturalNumbersButton.title = 'Sync: Set term n frequency to 2·n·π, to align t with the natural numbers.\nThe sum is a delta spike when t is a whole number, with alternating signs even/odd.';
+      this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ';
       this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
         this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
         this.zeta.oddOnly = false;
@@ -2217,11 +2216,11 @@ const View = {
         left: '276px',
         top: subRunningY + 'px',
         width: '34px',
-        fontSize: '10px'
+        fontSize: '12px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
-      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Sync: Set term n frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappy (narrow) spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
-      this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ·ln(t)';
+      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Sync: Set term n frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ, to align t with the prime numbers.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
+      this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ';
       this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
         this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
         this.zeta.oddOnly = false;
@@ -3558,7 +3557,7 @@ const View = {
     Object.assign(this.components.panelPhaseWindowButton.style, (this.zetaView.phaseWindow ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelDrawSpiralNumbersButton.style, (this.zetaView.drawSpiralNumbers ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelSpiral1Button.style, (this.zetaView.drawSpiral1 ? this.styles.onOffButton_on : this.styles.onOffButton_off));
-    Object.assign(this.components.panelInverseOriginButton.style, (this.zetaView.focusSpiral1 ? this.styles.onOffButton_on : this.styles.onOffButton_off));
+    Object.assign(this.components.panelFocusSpiral1Button.style, (this.zetaView.focusSpiral1 ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelDrawAnalyticContinuationButton.style, (this.zetaView.drawAnalyticContinuation ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelTraceButton.style, (this.zetaView.doTrace ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelDrawEulerProductFormulaButton.style, (this.zetaView.drawEulerProductFormula ? this.styles.onOffButton_on : this.styles.onOffButton_off));
