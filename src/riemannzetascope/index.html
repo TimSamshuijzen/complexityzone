@@ -105,7 +105,7 @@ class Zeta {
       if (this.angleNaturalNumbers) {
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else if (this.angleNonTrivialZeroLogT) {
-        // angle depends on log(t), frequency is not used
+        // frequency depends on log(t), frequency is not used here
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else {
         term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
@@ -2059,7 +2059,7 @@ const View = {
       this.components.panelEtaButton.title = 
         'Formula: Dirichlet eta η(s).\n' +
         'η(s) = 1^(-s) - 2^(-s) + 3^(-s) - 4^(-s) + 5^(-s) - ...\n' +
-        'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0. It has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
+        'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0.\nIt has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelEtaButton.innerHTML = 'η(s)';
       this.components.panelEtaButton.addEventListener('click', () => {
         this.zeta.eta = !this.zeta.eta;
@@ -2245,7 +2245,7 @@ const View = {
         overflow: 'hidden'
       });
       this.components.panelZetaSection.appendChild(this.components.panelFormula);
-      this.components.panelFormula.title = 'Summation formula for ζ(σ + i·t).\nζ(σ + i·t) = ∑(n=1 to N) 1/n^(σ + i·t)';
+      this.components.panelFormula.title = 'Summation formula for ζ(σ + i·t).\nThe formula can be altered by clicking the buttons above.';
       this.components.panelFormula_sum = document.createElement('div');
       Object.assign(this.components.panelFormula_sum.style, {
         position: 'absolute',
@@ -3592,9 +3592,9 @@ const View = {
         panelFormula_term += '(-1)<sup>n-1</sup>·';
       }
       if (this.zeta.angleNaturalNumbers) {
-        panelFormula_term += '2·n·π·' + this.zeta.t.toFixed(3) + '/ln(n)';
+        panelFormula_term += '2·n·π·' + this.zeta.t.toFixed(3) + '/ln(n' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
       } else if (this.zeta.angleNonTrivialZeroLogT) {
-        panelFormula_term += 'ρn·ln(' + this.zeta.t.toFixed(3) + ')/ln(n)';
+        panelFormula_term += 'ρn·ln(' + this.zeta.t.toFixed(3) + ')/ln(n' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
       } else {
         panelFormula_term += this.zeta.t.toFixed(3);
       }
