@@ -105,7 +105,7 @@ class Zeta {
       if (this.angleNaturalNumbers) {
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else if (this.angleNonTrivialZeroLogT) {
-        // frequency depends on t, we do not use it here
+        // frequency depends on t, not used here
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else {
         term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
