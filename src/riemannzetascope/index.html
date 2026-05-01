@@ -53,7 +53,6 @@ class Zeta {
   constructor() {
     this.sigma = 0.5;
     this.t = 0.0;
-    this.eulerProduct = false;
     this.eta = false;
     this.altDirection = false;
     this.zetaNMinusHalf = false;
@@ -90,54 +89,47 @@ class Zeta {
   }
   setSigma(sigma) {
     this.sigma = Math.min(Math.max(-2, sigma), 2);
-    if (this.eulerProduct) {
-
-    } else {
-      const zetaNMinusHalf = (this.zetaNMinusHalf ? -0.5 : 0);
-      for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
-        const term = this.terms[hi];
-        const direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
-        let radiusFactor = 1;
-        if (this.oddOnly) {
-          radiusFactor *=  ((((hi + 1) % 2) === 0) ? 0 : 1);
-        } else if (this.evenOnly) {
-          radiusFactor *= ((((hi + 1) % 2) === 0) ? 1 : 0);
-        } else if (this.mobiusRadius) {
-          radiusFactor = Mobius[hi];
-        }
-        term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
-        if (this.angleNaturalNumbers) {
-          term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
-        } else if (this.angleNonTrivialZeroLogT) {
-          // frequency depends on t, not used here
-          term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
-        } else {
-          term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
-        }
-        term.phase = (this.eta ? (((hi % 2) === 0) ? 0 : Math.PI) : 0);
+    const zetaNMinusHalf = (this.zetaNMinusHalf ? -0.5 : 0);
+    for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
+      const term = this.terms[hi];
+      const direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
+      let radiusFactor = 1;
+      if (this.oddOnly) {
+        radiusFactor *=  ((((hi + 1) % 2) === 0) ? 0 : 1);
+      } else if (this.evenOnly) {
+        radiusFactor *= ((((hi + 1) % 2) === 0) ? 1 : 0);
+      } else if (this.mobiusRadius) {
+        radiusFactor = Mobius[hi];
       }
+      term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
+      if (this.angleNaturalNumbers) {
+        term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
+      } else if (this.angleNonTrivialZeroLogT) {
+        // frequency depends on t, not used here
+        term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
+      } else {
+        term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
+      }
+      term.phase = (this.eta ? (((hi % 2) === 0) ? 0 : Math.PI) : 0);
     }
     this.setT(this.t);
   }
   setT(t) {
     this.t = Math.min(Math.max(0, t), (this.maxTInt + 0.999));
-    if (this.eulerProduct) {
-    } else {
-      for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
-        const term = this.terms[hi];
-        if (this.angleNonTrivialZeroLogT) {
-          if (this.t === 0) {
-            term.angle = term.phase;
-          } else {
-            const direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
-            term.angle = (term.phase + (direction * (ZetaNonTrivialZeros[hi] * Math.log(this.t))));
-          }
+    for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
+      const term = this.terms[hi];
+      if (this.angleNonTrivialZeroLogT) {
+        if (this.t === 0) {
+          term.angle = term.phase;
         } else {
-          term.angle = (term.phase + (term.frequency * this.t));
+          const direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
+          term.angle = (term.phase + (direction * (ZetaNonTrivialZeros[hi] * Math.log(this.t))));
         }
-        term.re = (term.radius * Math.cos(term.angle));
-        term.im = (term.radius * Math.sin(term.angle));
+      } else {
+        term.angle = (term.phase + (term.frequency * this.t));
       }
+      term.re = (term.radius * Math.cos(term.angle));
+      term.im = (term.radius * Math.sin(term.angle));
     }
     this.calcAnalyticContinuation();
   }
