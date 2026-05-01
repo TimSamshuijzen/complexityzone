@@ -1892,13 +1892,13 @@ const View = {
         position: 'absolute',
         left: '165px',
         top: (subRunningY + 2) + 'px',
-        width: '130px',
+        width: '140px',
         height: '18px',
-        paddingLeft: '15px',
+        paddingLeft: '5px',
         backgroundColor: '#555555',
         color: '#dedb4b',
         fontFamily: 'monospace',
-        fontSize: '11px',
+        fontSize: '10px',
         lineHeight: '18px',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
@@ -1992,7 +1992,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaSectionCaption);
-      this.components.panelZetaSectionCaption.innerHTML = '<span style="margin-left: 10px;">ζ(σ + i·t)</span>';
+      this.components.panelZetaSectionCaption.innerHTML = '<span style="margin-left: 10px;">ζ(s)</span>';
       this.components.panelZetaSectionReportDownloadButton = document.createElement('div');
       Object.assign(this.components.panelZetaSectionReportDownloadButton.style, {
         position: 'absolute',
@@ -2058,7 +2058,7 @@ const View = {
         overflow: 'hidden'
       });
       this.components.panelZetaSection.appendChild(this.components.panelFormula);
-      this.components.panelFormula.title = 'Summation formula for ζ(σ + i·t).\nThe formula can be altered by clicking the buttons below.';
+      this.components.panelFormula.title = 'Summation formula for the Riemann zeta function ζ(σ + i·t).\nThe formula can be altered by clicking the buttons below.';
       this.components.panelFormula_sum = document.createElement('div');
       Object.assign(this.components.panelFormula_sum.style, {
         position: 'absolute',
@@ -2675,7 +2675,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelSigmaSection.appendChild(this.components.panelSigmaSectionCaption);
-      this.components.panelSigmaSectionCaption.innerHTML = '<span style="margin-left: 10px;">σ</span>';
+      this.components.panelSigmaSectionCaption.innerHTML = '<span style="margin-left: 10px;">σ = ℝe(s)</span>';
       subRunningY += 30;
       this.components.panelReLabel = document.createElement('div');
       Object.assign(this.components.panelReLabel.style, {
@@ -2870,7 +2870,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelTSection.appendChild(this.components.panelTSectionCaption);
-      this.components.panelTSectionCaption.innerHTML = '<span style="margin-left: 10px;">t</span>';
+      this.components.panelTSectionCaption.innerHTML = '<span style="margin-left: 10px;">t = 𝕀m(s)</span>';
       subRunningY += 30;
       this.components.panelImLabel = document.createElement('div');
       Object.assign(this.components.panelImLabel.style, {
@@ -3500,7 +3500,11 @@ const View = {
     Object.assign(this.components.panelDrawEulerProductFormulaButton.style, (this.zetaView.drawEulerProductFormula ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelDrawAnalyticContinuationButton.style, (this.zetaView.drawAnalyticContinuation ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelTraceButton.style, (this.zetaView.doTrace ? this.styles.onOffButton_on : this.styles.onOffButton_off));
-    this.components.panelAnalyticContinuationValue.innerHTML = ((this.zetaView.zeta.analyticContinuationRe >= 0) ? '&nbsp;' : '-') + Math.abs(this.zetaView.zeta.analyticContinuationRe).toFixed(3) + ' ' + ((this.zetaView.zeta.analyticContinuationIm >= 0) ? '+' : '-') + ' i·' + Math.abs(this.zetaView.zeta.analyticContinuationIm).toFixed(3);
+    this.components.panelAnalyticContinuationValue.innerHTML = 
+      'ζ(s)≈' +
+      ((this.zetaView.zeta.analyticContinuationRe >= 0) ? '&nbsp;' : '-') + 
+      Math.abs(this.zetaView.zeta.analyticContinuationRe).toFixed(3) + '' + 
+      ((this.zetaView.zeta.analyticContinuationIm >= 0) ? '+' : '-') + 'i·' + Math.abs(this.zetaView.zeta.analyticContinuationIm).toFixed(3);
     Object.assign(this.components.panelFocusSpiral1Button.style, (this.zetaView.focusSpiral1 ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelDrawSpiralNumbersButton.style, (this.zetaView.drawSpiralNumbers ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     {
