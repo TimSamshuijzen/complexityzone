@@ -2130,7 +2130,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelFormula.appendChild(this.components.panelFormula_term);
-      subRunningY += 58;
+      subRunningY += 54;
       this.components.panelEtaButton = document.createElement('div');
       Object.assign(this.components.panelEtaButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelEtaButton.style, {
@@ -2198,11 +2198,12 @@ const View = {
         this.zetaView.draw();
         this.render();
       });
+      subRunningY += 25;
       this.components.panelOddButton = document.createElement('div');
       Object.assign(this.components.panelOddButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelOddButton.style, {
         position: 'absolute',
-        left: '124px',
+        left: '10px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '11px'
@@ -2226,7 +2227,7 @@ const View = {
       Object.assign(this.components.panelEvenButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelEvenButton.style, {
         position: 'absolute',
-        left: '162px',
+        left: '48px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '11px'
@@ -2250,7 +2251,7 @@ const View = {
       Object.assign(this.components.panelMobiusRadiusButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelMobiusRadiusButton.style, {
         position: 'absolute',
-        left: '200px',
+        left: '86px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '12px'
@@ -2274,7 +2275,7 @@ const View = {
       Object.assign(this.components.panelAngleNaturalNumbersButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelAngleNaturalNumbersButton.style, {
         position: 'absolute',
-        left: '238px',
+        left: '124px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '11px'
@@ -2298,7 +2299,7 @@ const View = {
       Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, {
         position: 'absolute',
-        left: '276px',
+        left: '162px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '12px'
@@ -2319,7 +2320,6 @@ const View = {
         this.render();
       });
       subRunningY += 26;
-      subRunningY += 21;
       this.components.panelZetaSection.style.height = subRunningY + 'px';      
       runningY += subRunningY + 14;
     }
