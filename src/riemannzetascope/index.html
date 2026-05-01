@@ -1852,7 +1852,6 @@ const View = {
         this.render();
       });
       subRunningY += 27;
-
       this.components.panelDrawAnalyticContinuationButton = document.createElement('div');
       Object.assign(this.components.panelDrawAnalyticContinuationButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelDrawAnalyticContinuationButton.style, {
@@ -2059,7 +2058,7 @@ const View = {
         overflow: 'hidden'
       });
       this.components.panelZetaSection.appendChild(this.components.panelFormula);
-      this.components.panelFormula.title = 'Summation formula for ζ(σ + i·t).\nThe formula can be altered by clicking the buttons above.';
+      this.components.panelFormula.title = 'Summation formula for ζ(σ + i·t).\nThe formula can be altered by clicking the buttons below.';
       this.components.panelFormula_sum = document.createElement('div');
       Object.assign(this.components.panelFormula_sum.style, {
         position: 'absolute',
@@ -2305,7 +2304,7 @@ const View = {
         fontSize: '12px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
-      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Align t with prime numbers using non-trivial zeros of ζ\nSet term n frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
+      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Align t with prime numbers and prime powers using non-trivial zeros of ζ\nSet term n frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
       this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ';
       this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
         this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
@@ -2413,7 +2412,7 @@ const View = {
       this.components.panelTermCountAutoButton.title = 
         'Maintain N = term at spiral 1\n' +
         'This button ensures N corresponds with the term at spriral 1\'s center, automatically updating while running t.\n' +
-        'Calculation of N depends on which ζ formula button is enabled:\n' +
+        'Calculation of N depends on which formula button is enabled:\n' +
         '  default ζ: N = [t/π]\n' +
         '  Dirichlet η: N = [2t/π]\n' +
         '  alt direction: N = [2t/π]\n' +
@@ -2421,7 +2420,8 @@ const View = {
         '  odd-only: N = ⌈2t/π⌉\n' +
         '  even-only: N = [2t/π]\n' +
         '  μ(n): N = max\n' +
-        '  n mod 8 != 0: N = ⌈8t/π⌉\n';
+        '  ℕ: N = max\n' +
+        '  ρ: N = max\n';
       this.components.panelTermCountAutoButton.innerHTML = 'N=auto';
       this.components.panelTermCountAutoButton.addEventListener('click', () => {
         this.termCountAuto = !this.termCountAuto;
