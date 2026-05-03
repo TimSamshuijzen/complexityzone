@@ -2048,7 +2048,6 @@ const View = {
         downloadLink.remove();
       });
       subRunningY += 26;
-      subRunningY += 5;
       this.components.panelFormula = document.createElement('div');
       Object.assign(this.components.panelFormula.style, {
         position: 'absolute',
@@ -2304,7 +2303,7 @@ const View = {
         this.zetaView.draw();
         this.render();
       });
-      subRunningY += 26;
+      subRunningY += 28;
       this.components.panelZetaSection.style.height = subRunningY + 'px';      
       runningY += subRunningY + 14;
     }
@@ -2837,7 +2836,7 @@ const View = {
         overflow: 'hidden',
         backgroundColor: '#B1B4C4',
         border: '1px solid #F0F1F0',
-        borderRadius: '6px 6px 0px 0px'
+        borderRadius: '6px'
       });
       this.components.panel.appendChild(this.components.panelTSection);
       this.components.panelTSectionCaption = document.createElement('div');
@@ -3457,7 +3456,7 @@ const View = {
       this.components.panelRotationSpeedTrackBar.addEventListener('input', () => {
         this.deltaTPerAnimation = parseFloat(this.components.panelRotationSpeedTrackBar.value);
       });      
-      subRunningY += 30;
+      subRunningY += 33;
       this.components.panelTSection.style.height = subRunningY + 'px';      
     }
     // ==================================================================
