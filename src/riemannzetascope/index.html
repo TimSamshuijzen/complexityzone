@@ -98,8 +98,9 @@ class Zeta {
         radiusFactor *=  ((((hi + 1) % 2) === 0) ? 0 : 1);
       } else if (this.evenOnly) {
         radiusFactor *= ((((hi + 1) % 2) === 0) ? 1 : 0);
-      } else if (this.mobiusRadius) {
-        radiusFactor = Mobius[hi];
+      }
+      if (this.mobiusRadius) {
+        radiusFactor *= Mobius[hi];
       }
       term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
       if (this.angleNaturalNumbers) {
@@ -1141,7 +1142,13 @@ class ZetaView {
   }
   getTermCountForSpiral1AtT(t) {
     let result;
-    if (this.zeta.oddOnly) {
+    if (this.zeta.mobiusRadius) {
+      result = this.zeta.maxTermCount;
+    } else if (this.zeta.angleNaturalNumbers) {
+      result = this.zeta.maxTermCount;
+    } else if (this.zeta.angleNonTrivialZeroLogT) {
+      result = this.zeta.maxTermCount;
+    } else if (this.zeta.oddOnly) {
       result = ((Math.ceil((t * 2) / Math.PI)) | 0) + 1;
       if ((result > 1) && ((result % 2) === 0)) {
         result--;
@@ -1151,12 +1158,6 @@ class ZetaView {
       if ((result > 1) && ((result % 2) === 1)) {
         result--;
       }
-    } else if (this.zeta.mobiusRadius) {
-      result = this.zeta.maxTermCount;
-    } else if (this.zeta.angleNaturalNumbers) {
-      result = this.zeta.maxTermCount;
-    } else if (this.zeta.angleNonTrivialZeroLogT) {
-      result = this.zeta.maxTermCount;
     } else if (this.zeta.eta || this.zeta.altDirection) {
       result = Math.round((t * 2) / Math.PI);
     } else if (this.zeta.zetaNMinusHalf) {
@@ -1208,9 +1209,9 @@ const View = {
     panelEtaButton: null,
     panelAltDirectionButton: null,
     panelZetaNMinusHalfButton: null,
+    panelMobiusRadiusButton: null,
     panelOddButton: null,
     panelEvenButton: null,
-    panelMobiusRadiusButton: null,
     panelAngleNaturalNumbersButton: null,
     panelAngleNonTrivialZeroLogTButton: null,
     panelNSection: null,
@@ -2141,7 +2142,7 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelEtaButton);
       this.components.panelEtaButton.title = 
-        'Formula: Dirichlet eta η(s).\n' +
+        'Dirichlet eta η(s).\n' +
         'η(s) = 1^(-s) - 2^(-s) + 3^(-s) - 4^(-s) + 5^(-s) - ...\n' +
         'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0.\nIt has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelEtaButton.innerHTML = 'η(s)';
@@ -2164,7 +2165,7 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelAltDirectionButton);
       this.components.panelAltDirectionButton.title = 
-        'Formula: Alternate direction of rotation of each term.\n' +
+        'Alternate direction of rotation of each term.\n' +
         'Odd terms rotate clockwise, even terms rotate anti-clockwise. It has the same non-trivial zeros as ζ at σ = 0.5. Its spiral 1 (a rhombus shape) is near the center of the four terms surrounding n=[2t/π].';
       this.components.panelAltDirectionButton.innerHTML = 'alt dir';
       this.components.panelAltDirectionButton.addEventListener('click', () => {
@@ -2186,7 +2187,7 @@ const View = {
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaNMinusHalfButton);
       this.components.panelZetaNMinusHalfButton.title = 
-        'Formula: Hurwitz zeta ζ(s, 1/2)\n' +
+        'Hurwitz zeta ζ(s, 1/2)\n' +
         'ζ(s, 1/2) is like ζ(s) but with 1/2 subtracted from n in the summation formula. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
       this.components.panelZetaNMinusHalfButton.innerHTML = 'ζ(s,½)';
       this.components.panelZetaNMinusHalfButton.addEventListener('click', () => {
@@ -2197,6 +2198,26 @@ const View = {
         this.zetaView.draw();
         this.render();
       });
+      this.components.panelMobiusRadiusButton = document.createElement('div');
+      Object.assign(this.components.panelMobiusRadiusButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelMobiusRadiusButton.style, {
+        position: 'absolute',
+        left: '124px',
+        top: subRunningY + 'px',
+        width: '32px',
+        fontSize: '12px'
+      });
+      this.components.panelZetaSection.appendChild(this.components.panelMobiusRadiusButton);
+      this.components.panelMobiusRadiusButton.title = 'Multiply terms by the Möbius function μ.\nThe sum is the reciprocal of ζ.';
+      this.components.panelMobiusRadiusButton.innerHTML = 'μ';
+      this.components.panelMobiusRadiusButton.addEventListener('click', () => {
+        this.zeta.mobiusRadius = !this.zeta.mobiusRadius;
+        this.zeta.calc();
+        this.checkTermCountAuto();
+        this.zetaView.traceValues = [];
+        this.zetaView.draw();
+        this.render();
+      });      
       subRunningY += 25;
       this.components.panelOddButton = document.createElement('div');
       Object.assign(this.components.panelOddButton.style, this.styles.onOffButton);
@@ -2213,9 +2234,6 @@ const View = {
       this.components.panelOddButton.addEventListener('click', () => {
         this.zeta.oddOnly = !this.zeta.oddOnly;
         this.zeta.evenOnly = false;
-        this.zeta.mobiusRadius = false;
-        this.zeta.angleNaturalNumbers = false;
-        this.zeta.angleNonTrivialZeroLogT = false;
         this.zeta.calc();
         this.checkTermCountAuto();
         this.zetaView.traceValues = [];
@@ -2237,33 +2255,6 @@ const View = {
       this.components.panelEvenButton.addEventListener('click', () => {
         this.zeta.evenOnly = !this.zeta.evenOnly;
         this.zeta.oddOnly = false;
-        this.zeta.mobiusRadius = false;
-        this.zeta.angleNaturalNumbers = false;
-        this.zeta.angleNonTrivialZeroLogT = false;
-        this.zeta.calc();
-        this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
-        this.zetaView.draw();
-        this.render();
-      });
-      this.components.panelMobiusRadiusButton = document.createElement('div');
-      Object.assign(this.components.panelMobiusRadiusButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelMobiusRadiusButton.style, {
-        position: 'absolute',
-        left: '86px',
-        top: subRunningY + 'px',
-        width: '32px',
-        fontSize: '12px'
-      });
-      this.components.panelZetaSection.appendChild(this.components.panelMobiusRadiusButton);
-      this.components.panelMobiusRadiusButton.title = 'Filter: Multiply terms by the Möbius function μ.\nThe sum is the reciprocal of ζ.';
-      this.components.panelMobiusRadiusButton.innerHTML = 'μ';
-      this.components.panelMobiusRadiusButton.addEventListener('click', () => {
-        this.zeta.mobiusRadius = !this.zeta.mobiusRadius;
-        this.zeta.oddOnly = false;
-        this.zeta.evenOnly = false;
-        this.zeta.angleNaturalNumbers = false;
-        this.zeta.angleNonTrivialZeroLogT = false;
         this.zeta.calc();
         this.checkTermCountAuto();
         this.zetaView.traceValues = [];
@@ -2274,7 +2265,7 @@ const View = {
       Object.assign(this.components.panelAngleNaturalNumbersButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelAngleNaturalNumbersButton.style, {
         position: 'absolute',
-        left: '124px',
+        left: '86px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '11px'
@@ -2284,9 +2275,6 @@ const View = {
       this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ';
       this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
         this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
-        this.zeta.oddOnly = false;
-        this.zeta.evenOnly = false;
-        this.zeta.mobiusRadius = false;
         this.zeta.angleNonTrivialZeroLogT = false;
         this.zeta.calc();
         this.checkTermCountAuto();
@@ -2298,7 +2286,7 @@ const View = {
       Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, {
         position: 'absolute',
-        left: '162px',
+        left: '124px',
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '12px'
@@ -2308,9 +2296,6 @@ const View = {
       this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ';
       this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
         this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
-        this.zeta.oddOnly = false;
-        this.zeta.evenOnly = false;
-        this.zeta.mobiusRadius = false;
         this.zeta.angleNaturalNumbers = false;
         this.zeta.calc();
         this.checkTermCountAuto();
