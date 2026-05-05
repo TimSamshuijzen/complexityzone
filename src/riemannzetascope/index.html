@@ -1314,7 +1314,7 @@ const View = {
       opacity: '1'
     },
     playButton_off: {
-      border: '2px solid #b1b4c4',
+      border: '2px solid #88AA66',
       backgroundColor: '#B5DE8C',
       boxShadow: '0px 0px 5px 1px #A3CAE3 inset',
       color: '#2f7529',
@@ -1641,7 +1641,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#B1B4C4',
+        backgroundColor: '#C4C6D2',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -1724,7 +1724,7 @@ const View = {
         overflow: 'hidden',
         '-webkit-appearance': 'none',
         accentColor: '#666666',
-        backgroundColor: '#cccccc'
+        backgroundColor: '#F0F0F3'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelZoomTrackBar);
       this.components.panelZoomTrackBar.addEventListener('input', () => {
@@ -1972,7 +1972,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#B1B4C4',
+        backgroundColor: '#C4C6D2',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2319,7 +2319,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#B1B4C4',
+        backgroundColor: '#C4C6D2',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2364,16 +2364,16 @@ const View = {
       Object.assign(this.components.panelTermCountTPOW2Button.style, this.styles.playButton);
       Object.assign(this.components.panelTermCountTPOW2Button.style, {
         position: 'absolute',
-        left: '185px',
+        left: '180px',
         top: (subRunningY - 3) + 'px',
-        width: '50px',
+        width: '55px',
         height: '20px',
         lineHeight: '20px',
         fontSize: '13px',
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTPOW2Button);
       this.components.panelTermCountTPOW2Button.title = 'Maintain N = [t^2]\nWhen σ = 0.5, this button ensures just enough terms for the perimeter of zeta\'s spiral 1 to fit in a circle with a radius of 1.\nWith a limit of max N = 10000 terms, this button is only useful in the range t < 100.';
-      this.components.panelTermCountTPOW2Button.innerHTML = 'N=t^2';
+      this.components.panelTermCountTPOW2Button.innerHTML = 'N=[t^2]';
       this.components.panelTermCountTPOW2Button.addEventListener('click', () => {
         this.termCountLockTSquared = !this.termCountLockTSquared;
         this.termCountAuto = false;
@@ -2396,14 +2396,14 @@ const View = {
       this.components.panelNSection.appendChild(this.components.panelTermCountAutoButton);
       this.components.panelTermCountAutoButton.title = 
         'Maintain N = term at spiral 1\n' +
-        'This button ensures N corresponds with the term at spriral 1\'s center, automatically updating while running t.\n' +
+        'This button ensures N corresponds with the term at spriral 1\'s center, automatically updated while running t.\n' +
         'Calculation of N depends on which formula button is enabled:\n' +
         '  default ζ: N = [t/π]\n' +
         '  Dirichlet η: N = [2t/π]\n' +
-        '  alt direction: N = [2t/π]\n' +
+        '  alt dir: N = [2t/π]\n' +
         '  ζ(s, 1/2): N = ⌈t/π⌉\n' +
-        '  odd-only: N = ⌈2t/π⌉\n' +
-        '  even-only: N = [2t/π]\n' +
+        '  odd: N = ⌈2t/π⌉\n' +
+        '  even: N = [2t/π]\n' +
         '  μ(n): N = max\n' +
         '  ℕ: N = max\n' +
         '  ρ: N = max\n';
@@ -2431,7 +2431,7 @@ const View = {
         overflow: 'hidden',
         '-webkit-appearance': 'none',
         accentColor: '#666666',
-        backgroundColor: '#cccccc'
+        backgroundColor: '#F0F0F3'
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTrackBar);
       this.components.panelTermCountTrackBar.addEventListener('input', () => {
@@ -2639,7 +2639,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#B1B4C4',
+        backgroundColor: '#C4C6D2',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2764,7 +2764,7 @@ const View = {
         overflow: 'hidden',
         '-webkit-appearance': 'none',
         accentColor: '#666666',
-        backgroundColor: '#cccccc'
+        backgroundColor: '#F0F0F3'
       });
       this.components.panelSigmaSection.appendChild(this.components.panelReTrackBar);
       this.components.panelReTrackBar.addEventListener('input', () => {
@@ -2834,7 +2834,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#B1B4C4',
+        backgroundColor: '#C4C6D2',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2995,7 +2995,7 @@ const View = {
         overflow: 'hidden',
         '-webkit-appearance': 'none',
         accentColor: '#666666',
-        backgroundColor: '#cccccc'
+        backgroundColor: '#F0F0F3'
       });
       this.components.panelTSection.appendChild(this.components.panelImIntTrackBar);
       this.components.panelImIntTrackBar.addEventListener('input', () => {
@@ -3070,7 +3070,7 @@ const View = {
         overflow: 'hidden',
         '-webkit-appearance': 'none',
         accentColor: '#666666',
-        backgroundColor: '#cccccc'
+        backgroundColor: '#F0F0F3'
       });
       this.components.panelTSection.appendChild(this.components.panelImFracTrackBar);
       this.components.panelImFracTrackBar.addEventListener('input', () => {
@@ -3411,7 +3411,7 @@ const View = {
         this.render();
       });
       this.components.panelTSection.appendChild(this.components.panelPlayReverseButton);
-      this.components.panelPlayReverseButton.title = 'Run t in reverse.';
+      this.components.panelPlayReverseButton.title = 'Run t in reverse.\nMinimum value of t is 0.';
       this.components.panelPlayReverseButton.innerHTML = '&#9668;';
       this.components.panelPlayButton = document.createElement('div');
       Object.assign(this.components.panelPlayButton.style, this.styles.playButton);
@@ -3449,10 +3449,10 @@ const View = {
         overflow: 'hidden',
         '-webkit-appearance': 'none',
         accentColor: '#666666',
-        backgroundColor: '#cccccc'
+        backgroundColor: '#F0F0F3'
       });
       this.components.panelTSection.appendChild(this.components.panelRotationSpeedTrackBar);
-      this.components.panelRotationSpeedTrackBar.title = 'Set t run speed.';
+      this.components.panelRotationSpeedTrackBar.title = 't run speed.\nThis is the amount that t changes per animation frame when running.\nAdjust this to make t run faster or slower.';
       this.components.panelRotationSpeedTrackBar.addEventListener('input', () => {
         this.deltaTPerAnimation = parseFloat(this.components.panelRotationSpeedTrackBar.value);
       });      
