@@ -1192,12 +1192,12 @@ const View = {
     panelGridButton: null,
     panelPolarWindowButton: null,
     panelPhaseWindowButton: null,
-    panelDrawEulerProductFormulaButton: null,
     panelDrawAnalyticContinuationButton: null,
     panelTraceButton: null,
     panelAnalyticContinuationValue: null,
     panelFocusSpiral1Button: null,
     panelDrawSpiralNumbersButton: null,
+    panelDrawEulerProductFormulaButton: null,
     panelZetaSection: null,
     panelZetaSectionCaption: null,
     panelZetaSectionReportDownloadButton: null,
@@ -1738,7 +1738,7 @@ const View = {
         position: 'absolute',
         left: '10px',
         top: subRunningY + 'px',
-        width: '70px',
+        width: '146px',
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelGridButton);
@@ -1753,7 +1753,7 @@ const View = {
       Object.assign(this.components.panelPolarWindowButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelPolarWindowButton.style, {
         position: 'absolute',
-        left: '86px',
+        left: '165px',
         top: subRunningY + 'px',
         width: '70px',
         textAlign: 'left'
@@ -1795,7 +1795,7 @@ const View = {
       Object.assign(this.components.panelPhaseWindowButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelPhaseWindowButton.style, {
         position: 'absolute',
-        left: '162px',
+        left: '241px',
         top: subRunningY + 'px',
         width: '70px',
         textAlign: 'left'
@@ -1829,26 +1829,6 @@ const View = {
           this.zetaView.phaseWindow = false;
           this.zetaView.phaseWindowMaximized = false;
         }
-        this.zetaView.draw();
-        this.render();
-      });
-      this.components.panelDrawEulerProductFormulaButton = document.createElement('div');
-      Object.assign(this.components.panelDrawEulerProductFormulaButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelDrawEulerProductFormulaButton.style, {
-        position: 'absolute',
-        left: '238px',
-        top: subRunningY + 'px',
-        width: '70px',
-        textAlign: 'left'
-      });
-      this.components.panelDisplaySection.appendChild(this.components.panelDrawEulerProductFormulaButton);
-      this.components.panelDrawEulerProductFormulaButton.title = 
-        'Show overlay of partial products of Euler\'s product formula for ζ.\n' +
-        'ζ(s) = Π(1 / (1 - (1 / p^(s))))\n' +
-        'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are shown as alternating green and white lines.';
-      this.components.panelDrawEulerProductFormulaButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;Π&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">Π Euler</span>';
-      this.components.panelDrawEulerProductFormulaButton.addEventListener('click', () => {
-        this.zetaView.drawEulerProductFormula = !this.zetaView.drawEulerProductFormula;
         this.zetaView.draw();
         this.render();
       });
@@ -1891,9 +1871,9 @@ const View = {
       this.components.panelAnalyticContinuationValue = document.createElement('div');
       Object.assign(this.components.panelAnalyticContinuationValue.style, {
         position: 'absolute',
-        left: '165px',
+        left: '166px',
         top: (subRunningY + 2) + 'px',
-        width: '140px',
+        width: '143px',
         height: '18px',
         paddingLeft: '5px',
         backgroundColor: '#555555',
@@ -1908,21 +1888,23 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelAnalyticContinuationValue);
       this.components.panelAnalyticContinuationValue.title = 'Estimation of ζ(s) by analytic continuation, by estimating η in:\n' +
         'ζ(s) = η(s) / (1 - 2^(1 - s))';
-      subRunningY += 27;        
+      subRunningY += 27;
       this.components.panelFocusSpiral1Button = document.createElement('div');
       Object.assign(this.components.panelFocusSpiral1Button.style, this.styles.onOffButton);
       Object.assign(this.components.panelFocusSpiral1Button.style, {
         position: 'absolute',
         left: '10px',
         top: subRunningY + 'px',
-        width: '70px',
+        width: '146px',
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelFocusSpiral1Button);
       this.components.panelFocusSpiral1Button.title = 
         'Lock onto spiral 1 and keep it in center view.\n' +
         'This allows you to zoom into ζ while running t.';
-      this.components.panelFocusSpiral1Button.innerHTML = '<span style="font-size: 11px; margin-left: 7px;"><span style="background-color: #555555; color: #72FF6B;">&nbsp;&nbsp;⊕&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">follow</span>';
+      this.components.panelFocusSpiral1Button.innerHTML = `
+       <span style="font-size: 11px; margin-left: 7px;"><span style="background-color: #555555; color: #FFDDDD; font-size: 10px; line-height: 10px;">&nbsp;&nbsp;⊕&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">follow</span>
+      `;
       this.components.panelFocusSpiral1Button.addEventListener('click', () => {
         this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
         this.zetaView.centerZoomOffsetRe = 0;
@@ -1934,7 +1916,7 @@ const View = {
       Object.assign(this.components.panelDrawSpiralNumbersButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelDrawSpiralNumbersButton.style, {
         position: 'absolute',
-        left: '86px',
+        left: '165px',
         top: subRunningY + 'px',
         width: '70px',
         textAlign: 'left'
@@ -1950,9 +1932,29 @@ const View = {
         'Similarly, the center of spiral 2, indicating the second crossing, is at term n=[t/3π], spiral 3 is at n=[t/5π], and so on. ' +
         'In general, spiral number x of ζ is near the halfway point of term n=[t/((2x - 1)π)].\n' +
         'Note that N has to be at least [t/π] for spiral 1 to be visible.';
-      this.components.panelDrawSpiralNumbersButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;❶&nbsp;</span></span><span style="margin-left: 5px;">spirals</span>';
+      this.components.panelDrawSpiralNumbersButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B; font-size: 9px; line-height: 10px;">&nbsp;❶&nbsp;</span></span><span style="margin-left: 5px;">spirals</span>';
       this.components.panelDrawSpiralNumbersButton.addEventListener('click', () => {
         this.zetaView.drawSpiralNumbers = !this.zetaView.drawSpiralNumbers;
+        this.zetaView.draw();
+        this.render();
+      });
+      this.components.panelDrawEulerProductFormulaButton = document.createElement('div');
+      Object.assign(this.components.panelDrawEulerProductFormulaButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelDrawEulerProductFormulaButton.style, {
+        position: 'absolute',
+        left: '241px',
+        top: subRunningY + 'px',
+        width: '70px',
+        textAlign: 'left'
+      });
+      this.components.panelDisplaySection.appendChild(this.components.panelDrawEulerProductFormulaButton);
+      this.components.panelDrawEulerProductFormulaButton.title = 
+        'Show overlay of partial products of Euler\'s product formula for ζ.\n' +
+        'ζ(s) = Π(1 / (1 - (1 / p^(s))))\n' +
+        'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are shown as alternating green and white lines.';
+      this.components.panelDrawEulerProductFormulaButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;Π&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">Π Euler</span>';
+      this.components.panelDrawEulerProductFormulaButton.addEventListener('click', () => {
+        this.zetaView.drawEulerProductFormula = !this.zetaView.drawEulerProductFormula;
         this.zetaView.draw();
         this.render();
       });
