@@ -61,6 +61,7 @@ class Zeta {
     this.mobiusRadius = false;
     this.angleNaturalNumbers = false;
     this.angleNonTrivialZeroLogT = false;
+    this.fourierFrequencies = false;
     this.analyticContinuationRe = 0;
     this.analyticContinuationIm = 0;
     this.analyticContinuationValid = false;
@@ -92,7 +93,7 @@ class Zeta {
     const zetaNMinusHalf = (this.zetaNMinusHalf ? -0.5 : 0);
     for (let hi = 0, hc = this.terms.length; hi < hc; hi++) {
       const term = this.terms[hi];
-      const direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
+      let direction = (this.altDirection ? (((hi % 2) === 0) ? -1 : 1) : -1);
       let radiusFactor = 1;
       if (this.oddOnly) {
         radiusFactor *=  ((((hi + 1) % 2) === 0) ? 0 : 1);
@@ -102,12 +103,18 @@ class Zeta {
       if (this.mobiusRadius) {
         radiusFactor *= Mobius[hi];
       }
-      term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
+      if (this.fourierFrequencies) {
+        term.radius = (1 / Math.pow(((hi * 2) + 1 + zetaNMinusHalf), this.sigma)) * radiusFactor;
+      } else {
+        term.radius = (1 / Math.pow(((hi + 1) + zetaNMinusHalf), this.sigma)) * radiusFactor;
+      }
       if (this.angleNaturalNumbers) {
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else if (this.angleNonTrivialZeroLogT) {
         // frequency depends on t, not used here
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
+      } else if (this.fourierFrequencies) {
+        term.frequency = (((hi * 2) + 1 + zetaNMinusHalf) * direction * (Math.PI / 2));
       } else {
         term.frequency = Math.log((hi + 1) + zetaNMinusHalf) * direction;
       }
@@ -1148,6 +1155,8 @@ class ZetaView {
       result = this.zeta.maxTermCount;
     } else if (this.zeta.angleNonTrivialZeroLogT) {
       result = this.zeta.maxTermCount;
+    } else if (this.zeta.fourierFrequencies) {
+      result = this.zeta.maxTermCount;
     } else if (this.zeta.oddOnly) {
       result = ((Math.ceil((t * 2) / Math.PI)) | 0) + 1;
       if ((result > 1) && ((result % 2) === 0)) {
@@ -1214,6 +1223,7 @@ const View = {
     panelEvenButton: null,
     panelAngleNaturalNumbersButton: null,
     panelAngleNonTrivialZeroLogTButton: null,
+    panelAngleFourierFrequenciesButton: null,
     panelNSection: null,
     panelNSectionCaption: null,
     panelTermCountLabel: null,
@@ -2061,7 +2071,7 @@ const View = {
         overflow: 'hidden'
       });
       this.components.panelZetaSection.appendChild(this.components.panelFormula);
-      this.components.panelFormula.title = 'Summation formula for the Riemann zeta function.\nThe formula can be altered by clicking the buttons below.';
+      this.components.panelFormula.title = 'Summation formula for the Riemann zeta function.\nThe formula can be altered with the buttons below.';
       this.components.panelFormula_sum = document.createElement('div');
       Object.assign(this.components.panelFormula_sum.style, {
         position: 'absolute',
@@ -2278,6 +2288,7 @@ const View = {
       this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
         this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
         this.zeta.angleNonTrivialZeroLogT = false;
+        this.zeta.fourierFrequencies = false;
         this.zeta.calc();
         this.checkTermCountAuto();
         this.zetaView.traceValues = [];
@@ -2294,11 +2305,34 @@ const View = {
         fontSize: '12px'
       });
       this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
-      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Align t with prime numbers and prime powers using non-trivial zeros of ζ\nSet term n frequency to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
+      this.components.panelAngleNonTrivialZeroLogTButton.title = 'Align t with prime numbers and prime powers using non-trivial zeros of ζ\nSets the term frequencies to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just 10000 terms to work with, best to keep t < 1000.';
       this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ';
       this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
         this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
         this.zeta.angleNaturalNumbers = false;
+        this.zeta.fourierFrequencies = false;
+        this.zeta.calc();
+        this.checkTermCountAuto();
+        this.zetaView.traceValues = [];
+        this.zetaView.draw();
+        this.render();
+      });
+      this.components.panelAngleFourierFrequenciesButton = document.createElement('div');
+      Object.assign(this.components.panelAngleFourierFrequenciesButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelAngleFourierFrequenciesButton.style, {
+        position: 'absolute',
+        left: '162px',
+        top: subRunningY + 'px',
+        width: '32px',
+        fontSize: '12px'
+      });
+      this.components.panelZetaSection.appendChild(this.components.panelAngleFourierFrequenciesButton);
+      this.components.panelAngleFourierFrequenciesButton.title = 'Select harmonics of a square wave.\nTo see the square wave:\n1. Switch on this ℱ button.\n2. Switch on the η(s) eta button.\n3. Switch on the alt dir button.\n4. Set σ=1.\n5. Run t.';
+      this.components.panelAngleFourierFrequenciesButton.innerHTML = 'ℱ';
+      this.components.panelAngleFourierFrequenciesButton.addEventListener('click', () => {
+        this.zeta.fourierFrequencies = !this.zeta.fourierFrequencies;
+        this.zeta.angleNaturalNumbers = false;
+        this.zeta.angleNonTrivialZeroLogT = false;
         this.zeta.calc();
         this.checkTermCountAuto();
         this.zetaView.traceValues = [];
@@ -3505,10 +3539,18 @@ const View = {
       if (this.zeta.eta) {
         panelFormula_term += '(-1)<sup>n-1</sup>·';
       }
-      if (this.zeta.zetaNMinusHalf) {
-        panelFormula_term += '(n-0.5)';
+      if (this.zeta.fourierFrequencies) {
+        if (this.zeta.zetaNMinusHalf) {
+          panelFormula_term += '((n*2)-1-0.5)';
+        } else {
+          panelFormula_term += '((n*2)-1)';
+        }
       } else {
-        panelFormula_term += 'n';
+        if (this.zeta.zetaNMinusHalf) {
+          panelFormula_term += '(n-0.5)';
+        } else {
+          panelFormula_term += 'n';
+        }
       }
       panelFormula_term += '<sup>-(';
       panelFormula_term += this.zeta.sigma.toFixed(3);
@@ -3517,9 +3559,11 @@ const View = {
         panelFormula_term += '(-1)<sup>n-1</sup>·';
       }
       if (this.zeta.angleNaturalNumbers) {
-        panelFormula_term += '2·π·n·' + this.zeta.t.toFixed(3) + '/ln(n' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
+        panelFormula_term += 'π·((n*2)-1)·ln(' + this.zeta.t.toFixed(3) + ')/ln((n*2)-1' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
       } else if (this.zeta.angleNonTrivialZeroLogT) {
-        panelFormula_term += 'ρn·ln(' + this.zeta.t.toFixed(3) + ')/ln(n' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
+        panelFormula_term += 'ρn·π·ln(' + this.zeta.t.toFixed(3) + ')/ln(n' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
+      } else if (this.zeta.fourierFrequencies) {
+        panelFormula_term += '0.5·π·((n*2)-1)·ln(' + this.zeta.t.toFixed(3) + ')/ln(((n*2)-1)' + ((this.zeta.zetaNMinusHalf) ? '-0.5' : '') + ')';
       } else {
         panelFormula_term += this.zeta.t.toFixed(3);
       }
@@ -3534,6 +3578,7 @@ const View = {
     Object.assign(this.components.panelMobiusRadiusButton.style, (this.zeta.mobiusRadius ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelAngleNaturalNumbersButton.style, (this.zeta.angleNaturalNumbers ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, (this.zeta.angleNonTrivialZeroLogT ? this.styles.onOffButton_on : this.styles.onOffButton_off));
+    Object.assign(this.components.panelAngleFourierFrequenciesButton.style, (this.zeta.fourierFrequencies ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelTermCountAutoButton.style, (this.termCountAuto ? this.styles.playButton_on : this.styles.playButton_off));
     Object.assign(this.components.panelTermCountTPOW2Button.style, (this.termCountLockTSquared ? this.styles.playButton_on : this.styles.playButton_off));
     this.components.panelTermCountLabel.innerHTML = '' + this.zeta.terms.length;

@@ -196,20 +196,20 @@ class Waves {
       harmonic.angle = (harmonic.phase + (harmonic.frequency * this.angle));
       // orientation: horizontal axis is real, vertical axis is imaginary, rotating anti-clockwise:
       const sinx = -Math.sin(harmonic.angle + Math.PI + (Math.PI / 2));
-      const siny = -Math.cos(harmonic.angle + Math.PI + (Math.PI / 2));
+      const cosy = -Math.cos(harmonic.angle + Math.PI + (Math.PI / 2));
       // without mu
       harmonic.x = x + (harmonic.radius * sinx);
-      harmonic.y = y + (harmonic.radius * siny);
+      harmonic.y = y + (harmonic.radius * cosy);
       x = harmonic.x;
       y = harmonic.y;
       // with mu
       harmonic.muX = muX + (harmonic.muRadius * sinx);
-      harmonic.muY = muY + (harmonic.muRadius * siny);
+      harmonic.muY = muY + (harmonic.muRadius * cosy);
       muX = harmonic.muX;
       muY = harmonic.muY;
       // blockified
       const blockSigx = Waves.signum(sinx);
-      const blockSigy = Waves.signum(siny);
+      const blockSigy = Waves.signum(cosy);
       // blockified without mu
       harmonic.blockX = blockX + (harmonic.blockRadius * blockSigx);
       harmonic.blockY = blockY + (harmonic.blockRadius * blockSigy);
