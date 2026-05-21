@@ -1434,7 +1434,7 @@ const View = {
         }, { once: true });
       }
     });
-    this.components.canvas.title = 'Double-click to start/stop running t';
+    this.components.canvas.title = 'Double-click to start/stop running t.\nUse mouse wheel to zoom in/out.';
     this.components.canvas.addEventListener('dblclick', (e) => {
       e.preventDefault();
       this.components.canvas.title = '';
@@ -1595,7 +1595,7 @@ const View = {
       cursor: 'pointer'
     });
     this.components.scope.appendChild(this.components.hvOffsetResetButton);
-    this.components.hvOffsetResetButton.title = 'Reset screen center point.\nThis reset button is displayed when the screen is dragged away from the center point.';
+    this.components.hvOffsetResetButton.title = 'Reset screen center point.\nThis reset button is shown when the screen is dragged away from the center point.';
     this.components.hvOffsetResetButton.innerHTML = '<span style="padding-bottom: 2px; font-size: 14px; background-color: #555555; color: #ffffff;">&nbsp;⊕&nbsp;</span><br /><span style="position: relative; top: 3px;">reset</span>';
     this.components.hvOffsetResetButton.addEventListener('click', () => {
       this.zetaView.centerZoomOffsetRe = 0;
@@ -1771,8 +1771,8 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelPolarWindowButton);
       this.components.panelPolarWindowButton.title = 
         'Open polar window\n' +
-        'The polar window shows the terms of ζ as rotating vectors, radiating from a common origin.\n' +
-        'While running t, notice the moments of geometric aligments and the patterns in the term numbers.\n' +
+        'The polar window shows the terms of the summation formula of ζ as rotating vectors, radiating from a common origin.\n' +
+        'When running t, notice the moments of geometric aligments and the patterns in the term numbers.\n' +
         'The terms of ζ are like a slide rule on steroids.';
       this.components.panelPolarWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊚&nbsp;</span></span><span style="margin-left: 5px;">polar</span>';
       this.components.panelPolarWindowButton.addEventListener('click', () => {
@@ -1813,7 +1813,7 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelPhaseWindowButton);
       this.components.panelPhaseWindowButton.title = 
         'Open Re-Im window\n' +
-        'The Re-Im window shows real and imaginary values per term of ζ.\n' +
+        'The Re-Im window shows real and imaginary values of the terms of the summation formula of ζ.\n' +
         'These are the top and side views (as in sin and cos) of the polar view.';
       this.components.panelPhaseWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;∿&nbsp;</span></span><span style="margin-left: 5px;">ℝe-𝕀m</span>';
       this.components.panelPhaseWindowButton.addEventListener('click', () => {
@@ -1896,7 +1896,7 @@ const View = {
         textAlign: 'left'
       });
       this.components.panelDisplaySection.appendChild(this.components.panelAnalyticContinuationValue);
-      this.components.panelAnalyticContinuationValue.title = 'Estimation of ζ(s) by analytic continuation, by estimating η in:\n' +
+      this.components.panelAnalyticContinuationValue.title = 'Estimation of ζ(s) by analytic continuation, by estimating Dirichlet eta η in:\n' +
         'ζ(s) = η(s) / (1 - 2^(1 - s))';
       subRunningY += 27;
       this.components.panelFocusSpiral1Button = document.createElement('div');
@@ -1911,9 +1911,9 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelFocusSpiral1Button);
       this.components.panelFocusSpiral1Button.title = 
         'Lock onto spiral 1 and keep it in center view.\n' +
-        'This allows you to zoom into ζ while running t.';
+        'Use this to zoom into ζ when running t.';
       this.components.panelFocusSpiral1Button.innerHTML = `
-       <span style="font-size: 11px; margin-left: 7px;"><span style="background-color: #555555; color: #FFDDDD; font-size: 10px; line-height: 10px;">&nbsp;&nbsp;⊕&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">follow</span>
+       <span style="margin-left: 7px; background-color: #333333; color: #80FF00; font-size: 12px; line-height: 18px;">&nbsp;&nbsp;✦&nbsp;&nbsp;</span><span style="margin-left: 5px;">follow</span>
       `;
       this.components.panelFocusSpiral1Button.addEventListener('click', () => {
         this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
@@ -1937,11 +1937,11 @@ const View = {
         'The partial sums of ζ form a chain of spirals. ' +
         'The spirals emerge one by one as t increases, with spiral 1 leading the way. ' +
         'Spiral 1 is the spiral at the end of the chain, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
-        'The halfway-point of term n=[t/π], at the center of spiral 1, is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases. ' +
-        'The term n=[t/π] at t is undergoing its first crossing with its prior term. ' +
-        'Similarly, the center of spiral 2, indicating the second crossing, is at term n=[t/3π], spiral 3 is at n=[t/5π], and so on. ' +
-        'In general, spiral number x of ζ is near the halfway point of term n=[t/((2x - 1)π)].\n' +
-        'Note that N has to be at least [t/π] for spiral 1 to be visible.';
+        'The halfway-point of term n=[t/π], at the center of spiral 1, is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases.\n' +
+        'The term n=[t/π] is undergoing its first crossing with its prior term n-1.\n' +
+        'The center of spiral 2 is at term n=[t/3π], which is undergoing its second crossing with its prior term.\n' +
+        'Similarly, spiral 3 is at n=[t/5π], and so on.\n' +
+        'In general, spiral x is near the halfway point of term n=[t/((2x - 1)π)].\n';
       this.components.panelDrawSpiralNumbersButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B; font-size: 9px; line-height: 10px;">&nbsp;❶&nbsp;</span></span><span style="margin-left: 5px;">spirals</span>';
       this.components.panelDrawSpiralNumbersButton.addEventListener('click', () => {
         this.zetaView.drawSpiralNumbers = !this.zetaView.drawSpiralNumbers;
@@ -2408,7 +2408,7 @@ const View = {
         fontSize: '13px',
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTPOW2Button);
-      this.components.panelTermCountTPOW2Button.title = 'Maintain N = [t^2]\nWhen σ = 0.5, this button ensures just enough terms for the perimeter of zeta\'s spiral 1 to fit in a circle with a radius of 1.\nWith a limit of max N = 10000 terms, this button is only useful in the range t < 100.';
+      this.components.panelTermCountTPOW2Button.title = 'When σ = 0.5, ensure just enough terms for the perimeter of zeta\'s spiral 1 to fit exactly in a circle with radius 1.\nWith max N = 10000 terms, this only works well in the range t < 100.';
       this.components.panelTermCountTPOW2Button.innerHTML = 'N=[t^2]';
       this.components.panelTermCountTPOW2Button.addEventListener('click', () => {
         this.termCountLockTSquared = !this.termCountLockTSquared;
@@ -2431,8 +2431,8 @@ const View = {
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountAutoButton);
       this.components.panelTermCountAutoButton.title = 
-        'Maintain N = term at spiral 1\n' +
-        'This button ensures N corresponds with the term at spriral 1\'s center, automatically updated while running t.\n' +
+        'Ensure just enough terms to reach the center of spiral 1, after which the series diverges away from ζ.\n' +
+        'N is automatically updated while running t.\n' +
         'Calculation of N depends on which formula button is enabled:\n' +
         '  default ζ: N = [t/π]\n' +
         '  Dirichlet η: N = [2t/π]\n' +
@@ -2442,7 +2442,8 @@ const View = {
         '  even: N = [2t/π]\n' +
         '  μ(n): N = max\n' +
         '  ℕ: N = max\n' +
-        '  ρ: N = max\n';
+        '  ρ: N = max\n' +
+        '  ℱ: N = max';
       this.components.panelTermCountAutoButton.innerHTML = 'N=auto';
       this.components.panelTermCountAutoButton.addEventListener('click', () => {
         this.termCountAuto = !this.termCountAuto;
@@ -2538,7 +2539,7 @@ const View = {
         paddingBlock: '0px',
         paddingInline: '0px',
         color: '#000000',
-        fontSize: '12px',
+        fontSize: '11px',
         lineHeight: '14px',
         letterSpacing: '1px',
         whiteSpace: 'nowrap'
@@ -2564,7 +2565,7 @@ const View = {
         paddingBlock: '0px',
         paddingInline: '0px',
         color: '#000000',
-        fontSize: '12px',
+        fontSize: '11px',
         lineHeight: '14px',
         letterSpacing: '1px',
         whiteSpace: 'nowrap'
@@ -2589,7 +2590,8 @@ const View = {
         height: '18px',
         paddingBlock: '0px',
         paddingInline: '0px',
-        color: '#434FCC',
+        color: '#000000',
+        fontWeight: 'bold',
         fontSize: '12px',
         lineHeight: '14px',
         letterSpacing: '1px',
@@ -2597,7 +2599,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTDIV1PIButton);
-      this.components.panelTermCountTDIV1PIButton.title = 'Set N = [t/π], the number of terms up to spiral 1 of ζ.';
+      this.components.panelTermCountTDIV1PIButton.title = 'Set N = [t/π], the number of terms up to spiral 1.';
       this.components.panelTermCountTDIV1PIButton.innerHTML = 't/π';
       this.components.panelTermCountTDIV1PIButton.addEventListener('click', () => {
         this.zeta.setTermCount(Math.round(this.zeta.t / Math.PI));
@@ -2617,13 +2619,13 @@ const View = {
         paddingBlock: '0px',
         paddingInline: '0px',
         color: '#000000',
-        fontSize: '12px',
+        fontSize: '11px',
         lineHeight: '14px',
         letterSpacing: '1px',
         whiteSpace: 'nowrap'
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTDIV3PIButton);
-      this.components.panelTermCountTDIV3PIButton.title = 'Set N = [t/3π], the number of terms up to spiral 2 of ζ.';
+      this.components.panelTermCountTDIV3PIButton.title = 'Set N = [t/3π], the number of terms up to spiral 2.';
       this.components.panelTermCountTDIV3PIButton.innerHTML = 't/3π';
       this.components.panelTermCountTDIV3PIButton.addEventListener('click', () => {
         this.zeta.setTermCount(Math.round(this.zeta.t / (3 * Math.PI)));
@@ -2643,13 +2645,13 @@ const View = {
         paddingBlock: '0px',
         paddingInline: '0px',
         color: '#000000',
-        fontSize: '12px',
+        fontSize: '11px',
         lineHeight: '14px',
         letterSpacing: '1px',
         whiteSpace: 'nowrap'
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTDIV5PIButton);
-      this.components.panelTermCountTDIV5PIButton.title = 'Set N = [t/5π], the number of terms up to spiral 3 of ζ.';
+      this.components.panelTermCountTDIV5PIButton.title = 'Set N = [t/5π], the number of terms up to spiral 3.';
       this.components.panelTermCountTDIV5PIButton.innerHTML = 't/5π';
       this.components.panelTermCountTDIV5PIButton.addEventListener('click', () => {
         this.zeta.setTermCount(Math.round(this.zeta.t / (5 * Math.PI)));
@@ -3447,7 +3449,7 @@ const View = {
         this.render();
       });
       this.components.panelTSection.appendChild(this.components.panelPlayReverseButton);
-      this.components.panelPlayReverseButton.title = 'Run t in reverse.\nMinimum value of t is 0.';
+      this.components.panelPlayReverseButton.title = 'Run t in reverse.\nMinimum t is 0.';
       this.components.panelPlayReverseButton.innerHTML = '&#9668;';
       this.components.panelPlayButton = document.createElement('div');
       Object.assign(this.components.panelPlayButton.style, this.styles.playButton);
