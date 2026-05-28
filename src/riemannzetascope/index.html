@@ -1651,7 +1651,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#C4C6D2',
+        backgroundColor: '#D3D4DD',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -1772,8 +1772,9 @@ const View = {
       this.components.panelPolarWindowButton.title = 
         'Show polar window\n' +
         'Show the terms of the summation formula of ζ as rotating vectors, radiating from common origin.\n' +
-        'When running t, notice the aligments and the patterns in the term numbers.\n' +
-        'The polar view of ζ is like a super slide rule.';
+        'The polar view of ζ is like a super slide rule.\n' +
+        'Example 1: Trivial zeros of Dirichlet eta η(s) when σ = 1 and t is a multiple of 2π/ln(2) ≈ 9.065..\n' + 
+        'Example 2: Trivial zeros of Hurwitz zeta ζ(s, 1/2) when σ = 0 and t is a multiple of 2π/ln(2) ≈ 9.065..';
       this.components.panelPolarWindowButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #99B7E6;">&nbsp;⊚&nbsp;</span></span><span style="margin-left: 5px;">polar</span>';
       this.components.panelPolarWindowButton.addEventListener('click', () => {
         if (this.zetaView.polarWindow === false) {
@@ -1910,10 +1911,10 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelFocusSpiral1Button);
       this.components.panelFocusSpiral1Button.title = 
-        'Lock onto spiral 1 and keep it in center view.\n' +
+        'Lock onto the main spiral and keep it in center view.\n' +
         'Use this to zoom into ζ when running t.';
       this.components.panelFocusSpiral1Button.innerHTML = `
-       <span style="margin-left: 7px; background-color: #333333; color: #80FF00; font-size: 12px; line-height: 18px;">&nbsp;&nbsp;✦&nbsp;&nbsp;</span><span style="margin-left: 5px;">follow</span>
+        <div style="display: inline-block; height: 14px; margin-left: 7px; background-color: #333333; color: #FFCCCC; font-size: 11px; line-height: 14px;">&nbsp;&nbsp;⊚&nbsp;&nbsp;</div><span style="margin-left: 5px;">follow</span>
       `;
       this.components.panelFocusSpiral1Button.addEventListener('click', () => {
         this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
@@ -1934,14 +1935,14 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelDrawSpiralNumbersButton);
       this.components.panelDrawSpiralNumbersButton.title = 
         'Show spiral numbers.\n' +
-        'The partial sums of ζ form a chain of spirals. ' +
+        'The partial sums of ζ form a chain of spirals in the complex plane.\n' +
         'The spirals emerge one by one as t increases, with spiral 1 leading the way. ' +
         'Spiral 1 is the spiral at the end of the chain, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
-        'The halfway-point of term n=[t/π], at the center of spiral 1, is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases.\n' +
-        'The term n=[t/π] is undergoing its first crossing with its prior term n-1.\n' +
+        'The halfway-point of term n=[t/π] is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases.\n' +
+        'The value of ζ is near where the term at n=[t/π] is undergoing (as if t is time) its first crossing with its prior term n-1.\n' +
         'The center of spiral 2 is at term n=[t/3π], which is undergoing its second crossing with its prior term.\n' +
-        'Similarly, spiral 3 is at n=[t/5π], and so on.\n' +
-        'In general, spiral x is near the halfway point of term n=[t/((2x - 1)π)].\n';
+        'Spiral 3 is at n=[t/5π], and so on.\n' +
+        'In general, spiral number x is near the halfway point of term n=[t/((2x - 1)π)].\n';
       this.components.panelDrawSpiralNumbersButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px; background-color: #555555; color: #72E06B; font-size: 9px; line-height: 18px; padding-top: 1px; padding-bottom: 1px;">&nbsp;❶&nbsp;</span><span style="margin-left: 5px;">spirals</span>';
       this.components.panelDrawSpiralNumbersButton.addEventListener('click', () => {
         this.zetaView.drawSpiralNumbers = !this.zetaView.drawSpiralNumbers;
@@ -1959,7 +1960,7 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDrawEulerProductFormulaButton);
       this.components.panelDrawEulerProductFormulaButton.title = 
-        'Show overlay of partial products of Euler\'s product formula for ζ.\n' +
+        'Show partial products of Euler\'s product formula for ζ.\n' +
         'ζ(s) = Π(1 / (1 - (1 / p^(s))))\n' +
         'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are shown as alternating green and white lines.';
       this.components.panelDrawEulerProductFormulaButton.innerHTML = '<span style="font-size: 10px; margin-left: 7px;"><span style="background-color: #555555; color: #72E06B;">&nbsp;&nbsp;Π&nbsp;&nbsp;</span></span><span style="margin-left: 5px;">Π Euler</span>';
@@ -1984,7 +1985,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#C4C6D2',
+        backgroundColor: '#D3D4DD',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2156,7 +2157,8 @@ const View = {
       this.components.panelEtaButton.title = 
         'Dirichlet eta η(s).\n' +
         'η(s) = 1^(-s) - 2^(-s) + 3^(-s) - 4^(-s) + 5^(-s) - ...\n' +
-        'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0.\nIt has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
+        'Dirichlet η, the alternating zeta function, where all even terms of ζ are rotated π radians. η is convergent for Re(s) > 0.\n' +
+        'Dirichlet η has the same non-trivial zeros as ζ. Additionally, it has trivial zeros at σ = 1, occurring when t is a multiple of 2π/ln(2) ≈ 9.065..';
       this.components.panelEtaButton.innerHTML = 'η(s)';
       this.components.panelEtaButton.addEventListener('click', () => {
         this.zeta.eta = !this.zeta.eta;
@@ -2200,7 +2202,8 @@ const View = {
       this.components.panelZetaSection.appendChild(this.components.panelZetaNMinusHalfButton);
       this.components.panelZetaNMinusHalfButton.title = 
         'Hurwitz zeta ζ(s, 1/2)\n' +
-        'ζ(s, 1/2) is like ζ(s) but with 1/2 subtracted from n in the summation formula. It has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) = 9.06472028365..';
+        'ζ(s, 1/2) is like ζ(s) but with 1/2 subtracted from n in the summation formula.\n' +
+        'ζ(s, 1/2) has the same non-trivial zeros as ζ at σ = 0.5. Additionally, it has trivial zeros at σ = 0, occurring when t is a multiple of 2π/ln(2) ≈ 9.065..';
       this.components.panelZetaNMinusHalfButton.innerHTML = 'ζ(s,½)';
       this.components.panelZetaNMinusHalfButton.addEventListener('click', () => {
         this.zeta.zetaNMinusHalf = !this.zeta.zetaNMinusHalf;
@@ -2355,7 +2358,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#C4C6D2',
+        backgroundColor: '#D3D4DD',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2408,7 +2411,7 @@ const View = {
         fontSize: '13px',
       });
       this.components.panelNSection.appendChild(this.components.panelTermCountTPOW2Button);
-      this.components.panelTermCountTPOW2Button.title = 'When σ = 0.5, ensure just enough terms for the perimeter of zeta\'s spiral 1 to fit exactly in a circle with radius 1.\nWith max N = 10000 terms, this only works well in the range t < 100.';
+      this.components.panelTermCountTPOW2Button.title = 'When σ = 0.5, ensure just enough terms for the perimeter of zeta\'s main spiral to fit exactly in a circle with radius 1.\nWith max N = 10000 terms, this works well up to t < 100.';
       this.components.panelTermCountTPOW2Button.innerHTML = 'N=[t^2]';
       this.components.panelTermCountTPOW2Button.addEventListener('click', () => {
         this.termCountLockTSquared = !this.termCountLockTSquared;
@@ -2677,7 +2680,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#C4C6D2',
+        backgroundColor: '#D3D4DD',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2698,7 +2701,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelSigmaSection.appendChild(this.components.panelSigmaSectionCaption);
-      this.components.panelSigmaSectionCaption.innerHTML = '<span style="margin-left: 10px;">σ = ℝe(s)</span>';
+      this.components.panelSigmaSectionCaption.innerHTML = '<span style="margin-left: 10px;">σ = ℜe(s)</span>';
       subRunningY += 30;
       this.components.panelReLabel = document.createElement('div');
       Object.assign(this.components.panelReLabel.style, {
@@ -2872,7 +2875,7 @@ const View = {
         width: '328px',
         height: '180px',
         overflow: 'hidden',
-        backgroundColor: '#C4C6D2',
+        backgroundColor: '#D3D4DD',
         border: '1px solid #F0F1F0',
         borderRadius: '6px'
       });
@@ -2893,7 +2896,7 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelTSection.appendChild(this.components.panelTSectionCaption);
-      this.components.panelTSectionCaption.innerHTML = '<span style="margin-left: 10px;">t = 𝕀m(s)</span>';
+      this.components.panelTSectionCaption.innerHTML = '<span style="margin-left: 10px;">t = ℑm(s)</span>';
       subRunningY += 30;
       this.components.panelImLabel = document.createElement('div');
       Object.assign(this.components.panelImLabel.style, {
@@ -2954,7 +2957,12 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelTSection.appendChild(this.components.panelImAdd2PIDIVLN2Button);
-      this.components.panelImAdd2PIDIVLN2Button.title = 'Add 2π/ln(2) to t\n\nTerm n=2 crosses back over term n=1 whenever t is a multiple of 2π/ln(2) ≈ 9.065.\nThis button is for jumping to the next cycle.';
+      this.components.panelImAdd2PIDIVLN2Button.title = 
+        'Add 2π/ln(2) ≈ 9.065.. to t\n' + 
+        'Term n=2 crosses back over term n=1 whenever t is a multiple of 2π/ln(2).\n' + 
+        'This button is for jumping to the next crossing, starting from t=0.\n' + 
+        'These crossings account for the trivial zeros of Dirichlet eta η(s) when σ=1 and t is a multiple of 2π/ln(2).\n' +
+        'These crossings also account for the trivial zeros of Hurwitz zeta ζ(s, 1/2) when σ=0 and t is a multiple of 2π/ln(2).';
       this.components.panelImAdd2PIDIVLN2Button.innerHTML = '+2π/ln2';
       this.components.panelImAdd2PIDIVLN2Button.addEventListener('click', () => {
         this.zeta.setT(this.zeta.t + ((2 * Math.PI) / Math.log(2)));
@@ -2979,7 +2987,13 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelTSection.appendChild(this.components.panelImSetN2PIDIVLN2Button);
-      this.components.panelImSetN2PIDIVLN2Button.title = 'Set t = 2π*N/ln(2) ≈ 9.065 * N\n\nTerm n=2 crosses back over term n=1 whenever t is a multiple of 2π/ln(2) ≈ 9.065. This button is for dialing into the N-th crossing. Just set N to the desired multiple of 2π/ln(2) and click this button. The polar window shows the arithmetic alignments of term numbers at these moments. Notice the all the odd terms align with their products with powers of 2.\n\nThis button works for N up to N=3465 (or N=10000*ln(sqrt(2))), when t reaches the scope\'s limit of 10000π.';
+      this.components.panelImSetN2PIDIVLN2Button.title = 
+        'Set t = 2π*N/ln(2)\n' +
+        'Term n=2 crosses back over term n=1 whenever t is a multiple of 2π/ln(2) ≈ 9.065..\n' +
+        'This button is for dialing into the N-th crossing.\n' +
+        'Set N to the N-th crossing to observe, and click this button to obtain the corresponding t value when this occurs.\n' +
+        'The polar window shows the alignments at these moments.\n' +
+        'This button works for N up to N=3465 (or N=10000*ln(sqrt(2))), when t reaches the scope\'s limit of 10000π.';
       this.components.panelImSetN2PIDIVLN2Button.innerHTML = '2πN/ln2';
       this.components.panelImSetN2PIDIVLN2Button.addEventListener('click', () => {
         this.zeta.setT((this.zeta.terms.length * 2 * Math.PI) / Math.log(2));
@@ -3006,7 +3020,10 @@ const View = {
         whiteSpace: 'nowrap'
       });
       this.components.panelTSection.appendChild(this.components.panelImSet2PIDIVLNNButton);
-      this.components.panelImSet2PIDIVLNNButton.title = 'Set t = 2π/ln(N)\nThis is when, in the polar view, the term number that is on the opposite side of term N is the square root of N.';
+      this.components.panelImSet2PIDIVLNNButton.title = 
+        'Set t = 2π/ln(N)\n' +
+        'This is when, in the polar view, when term N crosses over term 1, then at the opposite side in the complex plane is nearby the term number √N.\n' +
+        'Usage: Open polar view, set N to a low square number (such as N = 36), then click this button.';
       this.components.panelImSet2PIDIVLNNButton.innerHTML = '2π/ln(N)';
       this.components.panelImSet2PIDIVLNNButton.addEventListener('click', () => {
         this.zeta.setT(2 * Math.PI / Math.log(this.zeta.terms.length));
