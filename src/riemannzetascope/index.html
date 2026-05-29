@@ -1912,9 +1912,10 @@ const View = {
       this.components.panelDisplaySection.appendChild(this.components.panelFocusSpiral1Button);
       this.components.panelFocusSpiral1Button.title = 
         'Lock onto the main spiral and keep it in center view.\n' +
-        'Use this to zoom into ζ when running t.';
+        'Enable this button to zoom into the main spiral when running t.\n' +
+        'From arond t>1000 the characteristic shape of the main spiral starts becoming apparent.';
       this.components.panelFocusSpiral1Button.innerHTML = `
-        <div style="display: inline-block; height: 14px; margin-left: 7px; background-color: #333333; color: #FFCCCC; font-size: 11px; line-height: 14px;">&nbsp;&nbsp;⊚&nbsp;&nbsp;</div><span style="margin-left: 5px;">follow</span>
+        <div style="display: inline-block; height: 14px; margin-left: 7px; background-color: #333333; color: #FFCCCC; font-size: 11px; line-height: 14px;">&nbsp;&nbsp;⊚&nbsp;&nbsp;</div><span style="margin-left: 5px; color: #000000;">follow</span>
       `;
       this.components.panelFocusSpiral1Button.addEventListener('click', () => {
         this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
