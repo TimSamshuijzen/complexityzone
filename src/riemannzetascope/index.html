@@ -111,7 +111,7 @@ class Zeta {
       if (this.angleNaturalNumbers) {
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else if (this.angleNonTrivialZeroLogT) {
-        // frequency depends on t, not used here
+        // frequency depends on t. frequency is not used, set to arbitrary value.
         term.frequency = ((hi * 2) + 1 + zetaNMinusHalf) * direction * Math.PI;
       } else if (this.fourierFrequencies) {
         term.frequency = (((hi * 2) + 1 + zetaNMinusHalf) * direction * (Math.PI / 2));
@@ -1762,10 +1762,11 @@ const View = {
       this.components.panelPolarWindowButton = document.createElement('div');
       this.components.panelPolarWindowButton.title = 
         'Show polar window\n' +
-        'Polar window shows terms of summation formula of ζ as rotating vectors, radiating from common origin.\n' +
-        'The polar view of ζ is like a super slide rule, encountering many alignments and patterns over t.\n' +
-        'Example 1: Trivial zeros of Dirichlet eta η(s) when σ = 1 and t is a multiple of 2π/ln(2) ≈ 9.065..\n' + 
-        'Example 2: Trivial zeros of Hurwitz zeta ζ(s, 1/2) when σ = 0 and t is a multiple of 2π/ln(2) ≈ 9.065..';
+        'The polar window shows the terms of the summation formula of ζ as rotating vectors, radiating from common origin.\n' +
+        'The polar view of ζ is like a slide rule in the complex plane, showing many arithmetic alignments in term numbers over t.\n' +
+        'The polar window is useful when looking at trivial zeros, explaining why they are trivial.\n' +
+        'Example: Trivial zeros of Dirichlet eta η(s) when σ = 1 and t is a multiple of 2π/ln(2) ≈ 9.065..\n' + 
+        'Example: Trivial zeros of Hurwitz zeta ζ(s, 1/2) when σ = 0 and t is a multiple of 2π/ln(2) ≈ 9.065..';
       Object.assign(this.components.panelPolarWindowButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelPolarWindowButton.style, {
         position: 'absolute',
