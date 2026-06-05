@@ -2977,7 +2977,7 @@ const View = {
       this.components.panelImSetN2PIDIVLN2Button.title = 
         'Set t = 2π*N/ln(2)\n' +
         'Term n=2 crosses back over term n=1 whenever t is a multiple of 2π/ln(2) ≈ 9.065..\n' +
-        'This button is for dialing into the N-th crossing.\n' +
+        'This button is for dialing into the N-th time this occurs.\n' +
         'Set N to the N-th crossing to observe, and click this button to obtain the corresponding t value when this occurs.\n' +
         'The polar window shows the alignments at these moments.\n' +
         'This button works for N up to N=3465 (or N=10000*ln(sqrt(2))), when t reaches the scope\'s limit of 10000π.';
@@ -3009,8 +3009,8 @@ const View = {
       this.components.panelImSet2PIDIVLNNButton = document.createElement('button');
       this.components.panelImSet2PIDIVLNNButton.title = 
         'Set t = 2π/ln(N)\n' +
-        'This is when, in the polar view, when term N crosses over term 1, then at the opposite side in the complex plane is nearby the term number √N.\n' +
-        'Usage: Open polar view, set N to a low square number (such as N = 36), then click this button.';
+        'This is when, in the polar view, when term N crosses over term 1, then at the opposite side in the complex plane is term √N.\n' +
+        'Usage: Open polar view, set N to a (low) square number (such as N = 36), then click this button.';
       Object.assign(this.components.panelImSet2PIDIVLNNButton.style, {
         position: 'absolute',
         left: '275px',
