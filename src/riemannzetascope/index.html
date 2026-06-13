@@ -784,7 +784,7 @@ class ZetaView {
         canvasCtx.lineWidth = 1;
         for (let i = 0; i < positions.tracePoints.length; i++) {
           const point = positions.tracePoints[i];
-          const brightness = Math.pow(((i + 1) / positions.tracePoints.length), 0.75);
+          const brightness = Math.pow(((i + 1) / positions.tracePoints.length), 0.4);
           canvasCtx.fillStyle = 'rgba(0, 199, 225, ' + brightness + ')';
           canvasCtx.beginPath();
           canvasCtx.ellipse(point.x, point.y, 1.5, 1.5, 0, 0, (2 * Math.PI));
