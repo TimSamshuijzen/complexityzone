@@ -923,10 +923,15 @@ class ZetaView {
           let totalY = 0;
           const hiOfSpiral1 = (this.getTermCountForSpiral1AtT(this.zeta.t) - 1);
           canvasCtx.lineWidth = 1;
-          for (let hi = 0; hi < this.zeta.terms.length; hi++) {
+          for (let hi = 0, hc = this.zeta.terms.length; hi < hc; hi++) {
             const term = this.zeta.terms[hi];
-            totalX += (term.re * this.pixelsPerUnit);
-            totalY -= (term.im * this.pixelsPerUnit);
+            if (hi < hiOfSpiral1) {
+              totalX += (term.re * this.pixelsPerUnit);
+              totalY -= (term.im * this.pixelsPerUnit);
+            } else if (hi === hiOfSpiral1) {
+              totalX += 0.5 * (term.re * this.pixelsPerUnit);
+              totalY -= 0.5 * (term.im * this.pixelsPerUnit);
+            }
             const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
             const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
             canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
@@ -939,7 +944,7 @@ class ZetaView {
             canvasCtx.stroke();
           }
           // term numbers, in reverse order
-          if (true) {
+          {
             canvasCtx.font = '14px Arial';
             canvasCtx.textAlign = 'center';
             for (let hi = (this.zeta.terms.length - 1); hi >= 0; hi--) {
@@ -973,12 +978,16 @@ class ZetaView {
               }
             }
           }
-          // average point
-          canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
-          canvasCtx.lineWidth = 2;
-          canvasCtx.beginPath();
-          canvasCtx.ellipse(polarCenterX + (totalX / this.zeta.terms.length), polarCenterY + (totalY / this.zeta.terms.length), 4, 4, 0, 0, (2 * Math.PI));
-          canvasCtx.stroke();
+          if (this.drawGrid) {
+            // draw the origin
+            if (this.zeta.terms.length > hiOfSpiral1) {
+              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+              canvasCtx.lineWidth = 2;
+              canvasCtx.beginPath();
+              canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 4, 4, 0, 0, (2 * Math.PI));
+              canvasCtx.stroke();
+            }
+          }
           if (this.drawSpiralNumbers) {
             // just draw spiral number 1
             if ((hiOfSpiral1 >= 0) && (hiOfSpiral1 < this.zeta.terms.length)) {
@@ -997,35 +1006,6 @@ class ZetaView {
               }
             }
           }
-          if (this.drawSpiralNumbers) {
-            if ((hiOfSpiral1 >= 0) && (hiOfSpiral1 < this.zeta.terms.length)) {
-              const term = this.zeta.terms[hiOfSpiral1];
-              if (term.radius > 0.00001) {
-                const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
-                const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
-                canvasCtx.lineWidth = 4;
-                canvasCtx.strokeStyle = '#72E06B';
-                canvasCtx.beginPath();
-                canvasCtx.ellipse((polarCenterX + endPointX) / 2, (polarCenterY + endPointY) / 2, 13, 13, 0, 0, (2 * Math.PI));
-                canvasCtx.stroke();
-                canvasCtx.lineWidth = 1;
-              }
-            }
-          }
-          /*
-          if (this.drawGrid) {
-            // draw the origin
-            // proof-of-concept: currently only works when N is set to auto and none of the formula manipulation buttons are set
-            if ((View.termCountAuto === true) && (this.zeta.terms.length > 1)) {
-              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
-              canvasCtx.lineWidth = 4;
-              canvasCtx.beginPath();
-              canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 13, 13, 0, 0, (2 * Math.PI));
-              canvasCtx.stroke();
-              canvasCtx.lineWidth = 1;
-            }
-          }
-          */
         }
         canvasCtx.restore();
         // polar window border
@@ -2494,7 +2474,7 @@ const View = {
       this.components.panelNSection.appendChild(this.components.panelTermCountLabel);
       this.components.panelTermCountAutoButton = document.createElement('div');
       this.components.panelTermCountAutoButton.title = 
-        'Ensure just enough terms to reach the center of spiral 1, after which the series diverges away from ζ.\n' +
+        'Ensure just enough terms to reach the center of spiral 1, after which the sum diverges away from ζ.\n' +
         'N is automatically updated while running t.\n' +
         'Calculation of N depends on which formula button is enabled:\n' +
         '  default ζ: N = [t/π]\n' +
