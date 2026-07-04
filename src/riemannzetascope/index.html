@@ -2031,7 +2031,7 @@ const View = {
       this.components.panelDrawEulerProductFormulaButton.title = 
         'Show partial products of Euler\'s product formula for ζ.\n' +
         'ζ(s) = Π(1 / (1 - (1 / p^(s))))\n' +
-        'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are drawn as alternating green and white lines.';
+        'The first 9592 terms (all the prime numbers less than 100000) of Euler\'s product formula are drawn as alternating green and white/black lines.';
       Object.assign(this.components.panelDrawEulerProductFormulaButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelDrawEulerProductFormulaButton.style, {
         position: 'absolute',
@@ -2339,7 +2339,7 @@ const View = {
       });
       this.components.panelEvenButton = document.createElement('div');
       this.components.panelEvenButton.title = 
-        'Filter: Even terms only (white lines only). All odd terms are set to 0.\n' +
+        'Filter: Even terms only (white/black lines only). All odd terms are set to 0.\n' +
         'It has the same zeros as ζ, but requires twice as many terms to reach the main spiral.';
       Object.assign(this.components.panelEvenButton.style, this.styles.onOffButton);
       Object.assign(this.components.panelEvenButton.style, {
