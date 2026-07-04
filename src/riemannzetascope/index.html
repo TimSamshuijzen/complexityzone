@@ -2242,7 +2242,6 @@ const View = {
         this.zeta.eta = !this.zeta.eta;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2264,7 +2263,6 @@ const View = {
         this.zeta.altDirection = !this.zeta.altDirection;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2287,7 +2285,6 @@ const View = {
         this.zeta.zetaNMinusHalf = !this.zeta.zetaNMinusHalf;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2309,7 +2306,6 @@ const View = {
         this.zeta.mobiusRadius = !this.zeta.mobiusRadius;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });      
@@ -2333,7 +2329,6 @@ const View = {
         this.zeta.evenOnly = false;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2356,7 +2351,6 @@ const View = {
         this.zeta.oddOnly = false;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2381,7 +2375,6 @@ const View = {
         this.zeta.fourierFrequencies = false;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2403,7 +2396,6 @@ const View = {
         this.zeta.fourierFrequencies = false;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -2432,7 +2424,6 @@ const View = {
         this.zeta.angleNonTrivialZeroLogT = false;
         this.zeta.calc();
         this.checkTermCountAuto();
-        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.render();
       });
@@ -3031,6 +3022,7 @@ const View = {
       this.components.panelImSetZeroButton.addEventListener('click', () => {
         this.zeta.setT(0);
         this.checkTermCountAuto();
+        this.zetaView.traceValues = [];
         this.zetaView.draw();
         this.components.panelImIntTrackBar.value = Math.floor(this.zeta.t);
         this.components.panelImFracTrackBar.value = Math.abs(this.zeta.t - Math.floor(this.zeta.t)).toFixed(3);
@@ -3792,7 +3784,7 @@ if (window.location.protocol === 'https:') {
     lineHeight: '20px',
     whiteSpace: 'nowrap'
   });
-  downloadlink_text.innerHTML = ''; // 'Download';
+  downloadlink_text.innerHTML = '';
   downloadlink.appendChild(downloadlink_text);
   let downloaded = false;
   downloadlink.addEventListener('click', async () => {
