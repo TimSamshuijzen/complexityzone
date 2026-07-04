@@ -761,7 +761,7 @@ class ZetaView {
         for (let ti = 0; ti < this.zeta.terms.length; ti++) {
           const term = this.zeta.terms[ti];
           canvasCtx.lineWidth = 1;
-          canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+          canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
           if ((ti % 2) === 0) {
             canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
           }
@@ -839,7 +839,7 @@ class ZetaView {
             if ((rpi % 2) === 0) {
               canvasCtx.strokeStyle = '#00ff00';
             } else {
-              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
             }
             canvasCtx.beginPath();
             canvasCtx.moveTo(term.from.x, term.from.y);
@@ -858,7 +858,7 @@ class ZetaView {
       // origin
       if (this.drawGrid) {
         canvasCtx.lineWidth = 3;
-        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
         canvasCtx.beginPath();
         canvasCtx.ellipse(positions.origin.x, positions.origin.y, 10, 10, 0, 0, (2 * Math.PI));
         canvasCtx.stroke();
@@ -866,7 +866,7 @@ class ZetaView {
       }
       // end point
       {
-        canvasCtx.fillStyle = 'rgb(244, 241, 0)';
+        canvasCtx.fillStyle = (this.lightTheme ? '#FACB00' : '#F4F100');
         canvasCtx.beginPath();
         canvasCtx.ellipse(positions.lastTermTo.x, positions.lastTermTo.y, 4, 4, 0, 0, (2 * Math.PI));
         canvasCtx.fill();
@@ -884,7 +884,7 @@ class ZetaView {
       }
       // zoom center
       if (((this.centerZoomOffsetRe * this.pixelsPerUnit) !== 0) || ((this.centerZoomOffsetIm * this.pixelsPerUnit) !== 0)) {
-        canvasCtx.strokeStyle = (this.focusSpiral1 ? '#72E06B' : (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)'));
+        canvasCtx.strokeStyle = (this.focusSpiral1 ? '#72E06B' : (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)'));
         canvasCtx.lineWidth = 2;
         canvasCtx.beginPath();
         canvasCtx.moveTo(positions.screenCenter.x - 5, positions.screenCenter.y);
@@ -935,7 +935,7 @@ class ZetaView {
             }
             const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
             const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
-            canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+            canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
             if ((hi % 2) === 0) {
               canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
             }
@@ -956,16 +956,16 @@ class ZetaView {
                   const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
                   if (hi === (this.zeta.terms.length - 1)) {
                     // draw dot at end point
-                    canvasCtx.fillStyle = 'rgb(244, 241, 0)';
+                    canvasCtx.fillStyle = (this.lightTheme ? '#FACB00' : '#F4F100');
                     canvasCtx.beginPath();
                     canvasCtx.ellipse(endPointX, endPointY, 4, 4, 0, 0, (2 * Math.PI));
                     canvasCtx.fill();
                   }
-                  canvasCtx.fillStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+                  canvasCtx.fillStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
                   if (hi === hiOfSpiral1) {
                     canvasCtx.fillStyle = '#72E06B';
                   } else if (hi === (this.zeta.terms.length - 1)) {
-                    canvasCtx.fillStyle = 'rgb(244, 241, 0)';
+                    canvasCtx.fillStyle = (this.lightTheme ? '#FACB00' : '#F4F100');
                   }
                   canvasCtx.fillText('' + (hi + 1), endPointX, (endPointY - 5));
                   if (hi === hiOfSpiral1) {
@@ -982,7 +982,7 @@ class ZetaView {
           if (this.drawGrid) {
             // draw the origin
             if (this.zeta.terms.length > hiOfSpiral1) {
-              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
               canvasCtx.lineWidth = 2;
               canvasCtx.beginPath();
               canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 4, 4, 0, 0, (2 * Math.PI));
@@ -1011,7 +1011,7 @@ class ZetaView {
         canvasCtx.restore();
         // polar window border
         canvasCtx.lineWidth = 1;
-        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
         canvasCtx.beginPath();
         canvasCtx.rect(polarWindowLeft, polarWindowTop, polarWindowWidth, polarWindowHeight);
         canvasCtx.stroke();
@@ -1060,7 +1060,7 @@ class ZetaView {
             canvasCtx.moveTo(axis.left, axis.top);
             canvasCtx.lineTo(axis.left + axis.width, axis.top);
             canvasCtx.stroke();
-            canvasCtx.fillStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+            canvasCtx.fillStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
             canvasCtx.font = '14px Arial';
             canvasCtx.textAlign = 'left';
             canvasCtx.fillText(axis.text, axis.left - 55, axis.top + 5);
@@ -1069,7 +1069,7 @@ class ZetaView {
             let totalValue = 0;
             for (let hi = 0; hi < this.zeta.terms.length; hi++) {
               const term = this.zeta.terms[hi];
-              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
               if ((hi % 2) === 0) {
                 canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
               }
@@ -1082,11 +1082,11 @@ class ZetaView {
                 canvasCtx.lineTo((axis.left + runningX) + (termWidth / 2), axis.top - (value * axis.unitRadius));
                 canvasCtx.stroke();
                 if ((hi === hiOfSpiral1) || (hi === (this.zeta.terms.length - 1))) {
-                  canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+                  canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
                   if (hi === hiOfSpiral1) {
                     canvasCtx.strokeStyle = '#72E06B';
                   } else if (hi === (this.zeta.terms.length - 1)) {
-                    canvasCtx.strokeStyle = 'rgb(244, 241, 0)';
+                    canvasCtx.strokeStyle = (this.lightTheme ? '#FACB00' : '#F4F100');
                   }
                   canvasCtx.lineWidth = 1;
                   canvasCtx.beginPath();
@@ -1099,7 +1099,7 @@ class ZetaView {
             }
             // end point
             canvasCtx.lineWidth = 2;
-            canvasCtx.strokeStyle = '#F4F100';
+            canvasCtx.strokeStyle = (this.lightTheme ? '#FACB00' : '#F4F100');
             canvasCtx.beginPath();
             canvasCtx.ellipse(axis.left - 15, axis.top - (totalValue * axis.unitRadius), 4, 4, 0, 0, (2 * Math.PI));
             canvasCtx.stroke();
@@ -1113,11 +1113,11 @@ class ZetaView {
             let runningX = 0;
             for (let hi = 0; hi < this.zeta.terms.length; hi++) {
               if ((hi === 0) || (hi === hiOfSpiral1) || ((hi % 50) === 49) || (hi === (this.zeta.terms.length - 1))) {
-                canvasCtx.fillStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+                canvasCtx.fillStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
                 if (hi === hiOfSpiral1) {
                   canvasCtx.fillStyle = '#72E06B';
                 } else if (hi === (this.zeta.terms.length - 1)) {
-                  canvasCtx.fillStyle = 'rgb(244, 241, 0)';
+                  canvasCtx.fillStyle = (this.lightTheme ? '#FACB00' : '#F4F100');
                 }
                 canvasCtx.fillText('' + (hi + 1), (axisLeft + runningX) + (termWidth / 2), phaseWindowTop + (phaseWindowHeight / 2));
               }
@@ -1147,7 +1147,7 @@ class ZetaView {
                 lastSpiralTermNumber = spiralTermNumber;
                 let termIndex = (spiralTermNumber - 1);
                 if ((termIndex >= 0) && (termIndex < this.zeta.terms.length)) {
-                  canvasCtx.fillStyle = '#72E06B';
+                  canvasCtx.fillStyle = (this.lightTheme ? '#72E06B' : '#5DA85D');
                   canvasCtx.beginPath();
                   canvasCtx.ellipse((axisLeft + (termIndex * termWidth)) + (termWidth / 2), (phaseWindowTop + (phaseWindowHeight / 2)) - 26, 10, 10, 0, 0, (2 * Math.PI));
                   canvasCtx.fill();
@@ -1164,7 +1164,7 @@ class ZetaView {
         canvasCtx.restore();
         // phase window border
         canvasCtx.lineWidth = 1;
-        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
+        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
         canvasCtx.beginPath();
         canvasCtx.rect(phaseWindowLeft, phaseWindowTop, phaseWindowWidth, phaseWindowHeight);
         canvasCtx.stroke();
@@ -1230,6 +1230,7 @@ const View = {
     panelTitleBar: null,
     panelDisplaySection: null,
     panelDisplaySectionCaption: null,
+    panelDisplaySectionLightThemeButton: null,
     panelDisplaySectionScreenCaptureButton: null,
     panelZoomLabel: null,
     panelZoomTrackBar: null,
@@ -1454,7 +1455,6 @@ const View = {
       }
     };
     this.components.canvas.addEventListener('pointerdown', (e) => {
-      //e.preventDefault();
       if (((this.zetaView.polarWindow === false) || (this.zetaView.polarWindowMaximized === false)) && ((this.zetaView.phaseWindow === false) || (this.zetaView.phaseWindowMaximized === false))) {
         this.components.canvas.setPointerCapture(e.pointerId);
         this.canvasMouseDragDetected = false;
@@ -1464,7 +1464,6 @@ const View = {
         this.canvasMouseDownCenterZoomOffsetIm = this.zetaView.centerZoomOffsetIm;
         this.components.canvas.addEventListener('pointermove', canvasMouseMoveHandler);
         this.components.canvas.addEventListener('pointerup', (e) => {
-          //e.preventDefault();
           this.components.canvas.removeEventListener('pointermove', canvasMouseMoveHandler);
         }, { once: true });
       }
@@ -1495,28 +1494,32 @@ const View = {
       cursor: 'pointer'
     });
     this.components.scope.appendChild(this.components.polarWindowMaximizeMinimizeButton);
-    this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-        <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-      </svg>`;
+    this.components.polarWindowMaximizeMinimizeButton._render = () => {
+      this.components.polarWindowMaximizeMinimizeButton.style.backgroundColor = (this.zetaView.lightTheme ? '#ffffff' : '#000000');
+      if (this.zetaView.polarWindowMaximized) {
+        this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+            <path fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+            <rect x="7" y="7" width="6" height="6" fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" />
+          </svg>
+        `;
+      } else {
+        this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+            <path fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+          </svg>
+        `;
+      }
+    };
     this.components.polarWindowMaximizeMinimizeButton.addEventListener('click', () => {
       if (this.zetaView.polarWindowMaximized === false) {
         this.zetaView.polarWindowMaximized = true;
-        this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-            <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-            <rect x="7" y="7" width="6" height="6" fill="#ffffff" />
-          </svg>`;
         if (this.zetaView.phaseWindow) {
           this.zetaView.phaseWindow = false;
           this.zetaView.phaseWindowMaximized = false;
         }
       } else {
         this.zetaView.polarWindowMaximized = false;
-        this.components.polarWindowMaximizeMinimizeButton.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-            <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-          </svg>`;
       }
       this.zetaView.draw();
       this.render();
@@ -1537,7 +1540,14 @@ const View = {
       cursor: 'pointer'
     });
     this.components.scope.appendChild(this.components.polarWindowCloseButton);
-    this.components.polarWindowCloseButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z" /></svg>';
+    this.components.polarWindowCloseButton._render = () => {
+      this.components.polarWindowCloseButton.style.backgroundColor = (this.zetaView.lightTheme ? '#ffffff' : '#000000');
+      this.components.polarWindowCloseButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <path fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z" />
+        </svg>
+      `;
+    };
     this.components.polarWindowCloseButton.addEventListener('click', () => {
       this.zetaView.polarWindow = false;
       this.zetaView.polarWindowMaximized = false;
@@ -1560,28 +1570,32 @@ const View = {
       cursor: 'pointer'
     });
     this.components.scope.appendChild(this.components.phaseWindowMaximizeMinimizeButton);
-    this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-        <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-      </svg>`;
+    this.components.phaseWindowMaximizeMinimizeButton._render = () => {
+      this.components.phaseWindowMaximizeMinimizeButton.style.backgroundColor = (this.zetaView.lightTheme ? '#ffffff' : '#000000');
+      if (this.zetaView.phaseWindowMaximized) {
+        this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+            <path fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+            <rect x="7" y="12" width="10" height="4" fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" />
+          </svg>
+        `;
+      } else {
+        this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+            <path fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
+          </svg>
+        `;
+      }
+    };
     this.components.phaseWindowMaximizeMinimizeButton.addEventListener('click', () => {
       if (this.zetaView.phaseWindowMaximized === false) {
         this.zetaView.phaseWindowMaximized = true;
-        this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-            <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-            <rect x="7" y="12" width="10" height="4" fill="#ffffff" />
-          </svg>`;
         if (this.zetaView.polarWindow) {
           this.zetaView.polarWindow = false;
           this.zetaView.polarWindowMaximized = false;
         }
       } else {
         this.zetaView.phaseWindowMaximized = false;
-        this.components.phaseWindowMaximizeMinimizeButton.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-            <path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z" />
-          </svg>`;
       }
       this.zetaView.draw();
       this.render();
@@ -1602,7 +1616,14 @@ const View = {
       cursor: 'pointer'
     });
     this.components.scope.appendChild(this.components.phaseWindowCloseButton);
-    this.components.phaseWindowCloseButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path fill="#ffffff" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z" /></svg>';
+    this.components.phaseWindowCloseButton._render = () => {
+      this.components.phaseWindowCloseButton.style.backgroundColor = (this.zetaView.lightTheme ? '#ffffff' : '#000000');
+      this.components.phaseWindowCloseButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 24px; height: 24px;">
+          <path fill="${this.zetaView.lightTheme ? '#000000' : '#ffffff'}" d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z" />
+        </svg>
+      `;
+    };
     this.components.phaseWindowCloseButton.addEventListener('click', () => {
       this.zetaView.phaseWindow = false;
       this.zetaView.phaseWindowMaximized = false;
@@ -1708,6 +1729,29 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelDisplaySectionCaption);
       this.components.panelDisplaySectionCaption.innerHTML = '<span style="margin-left: 10px;">DISPLAY</span>';
+      this.components.panelDisplaySectionLightThemeButton = document.createElement('div');
+      this.components.panelDisplaySectionLightThemeButton.title = 'Toggle light theme. Default (off) is dark theme.';
+      Object.assign(this.components.panelDisplaySectionLightThemeButton.style, {
+        position: 'absolute',
+        left: '260px',
+        top: '2px',
+        width: '22px',
+        height: '14px',
+        border: '1px solid #93A3B3',
+        backgroundColor: '#D9E0E3',
+        boxShadow: '0px 0px 5px 1px #A3CAE3 inset',
+        borderRadius: '2px',
+        cursor: 'pointer'
+      });
+      this.components.panelDisplaySectionCaption.appendChild(this.components.panelDisplaySectionLightThemeButton);
+      this.components.panelDisplaySectionLightThemeButton.innerHTML = `
+        <div style="position: absolute; left: 2px; top: 1px; width: 18px; height: 12px; overflow: hidden; background-color: #ffffff; color: #99B7E6; font-size: 10px; line-height: 12px; text-align: center;">⊞</div>
+      `;
+      this.components.panelDisplaySectionLightThemeButton.addEventListener('click', () => {
+        this.zetaView.lightTheme = !this.zetaView.lightTheme;
+        this.zetaView.draw();
+        this.render();
+      });
       this.components.panelDisplaySectionScreenCaptureButton = document.createElement('div');
       this.components.panelDisplaySectionScreenCaptureButton.title = 'Take screenshot of display and download as png file.';
       Object.assign(this.components.panelDisplaySectionScreenCaptureButton.style, {
@@ -2056,7 +2100,7 @@ const View = {
         boxShadow: '0px 0px 5px 1px #A3CAE3 inset',
         borderRadius: '2px',
         cursor: 'pointer',
-        visibility: 'hidden' // 'hidden' 'visible'
+        visibility: 'visible'
       });
       this.components.panelZetaSection.appendChild(this.components.panelZetaSectionReportDownloadButton);
       this.components.panelZetaSectionReportDownloadButton.innerHTML = `
@@ -3574,18 +3618,23 @@ const View = {
   },
   render() {
     this.components.hvOffsetResetButton.style.display = (((this.zetaView.centerZoomOffsetRe !== 0) || (this.zetaView.centerZoomOffsetIm !== 0)) ? 'block' : 'none');
+    this.components.polarWindowMaximizeMinimizeButton._render();
     this.components.polarWindowMaximizeMinimizeButton.style.display = (this.zetaView.polarWindow ? 'block' : 'none');
     this.components.polarWindowMaximizeMinimizeButton.style.left = (this.zetaView.polarWindowMaximized ? (this.zetaView.canvasWidth - 45) : 415) + 'px';
     this.components.polarWindowMaximizeMinimizeButton.title = (this.zetaView.polarWindowMaximized ? 'Minimize polar window' : 'Maximize polar window');
+    this.components.polarWindowCloseButton._render();
     this.components.polarWindowCloseButton.style.display = (this.zetaView.polarWindow ? 'block' : 'none');
     this.components.polarWindowCloseButton.style.left = (this.zetaView.polarWindowMaximized ? (this.zetaView.canvasWidth - 20) : 440) + 'px';
+    this.components.phaseWindowMaximizeMinimizeButton._render();
     this.components.phaseWindowMaximizeMinimizeButton.style.display = (this.zetaView.phaseWindow ? 'block' : 'none');
     this.components.phaseWindowMaximizeMinimizeButton.style.left = (this.zetaView.canvasWidth - 45) + 'px';
     this.components.phaseWindowMaximizeMinimizeButton.style.top = (this.zetaView.phaseWindowMaximized ? 35 : 485) + 'px';
     this.components.phaseWindowMaximizeMinimizeButton.title = (this.zetaView.phaseWindowMaximized ? 'Minimize phase window' : 'Maximize phase window');
+    this.components.phaseWindowCloseButton._render();
     this.components.phaseWindowCloseButton.style.display = (this.zetaView.phaseWindow ? 'block' : 'none');
     this.components.phaseWindowCloseButton.style.left = (this.zetaView.canvasWidth - 20) + 'px';
     this.components.phaseWindowCloseButton.style.top = (this.zetaView.phaseWindowMaximized ? 35 : 485) + 'px';
+    Object.assign(this.components.panelDisplaySectionLightThemeButton.style, (this.zetaView.lightTheme ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelGridButton.style, (this.zetaView.drawGrid ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelPolarWindowButton.style, (this.zetaView.polarWindow ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelPhaseWindowButton.style, (this.zetaView.phaseWindow ? this.styles.onOffButton_on : this.styles.onOffButton_off));
@@ -3712,7 +3761,7 @@ if (window.location.protocol === 'https:') {
   });
   headerpanel.appendChild(headerpaneldownloadlink);
   const downloadlink = document.createElement('div');
-  downloadlink.title = 'Download Riemann Zeta Scope html file, if you want to use it offline and/or tinker with the code.';
+  downloadlink.title = 'Download Riemann Zeta Scope html file, if you want to use it offline and tinker with the code.';
   Object.assign(downloadlink.style, {
     position: 'absolute',
     left: '10px',
