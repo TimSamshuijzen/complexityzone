@@ -465,7 +465,7 @@ class ZetaView {
               }
             }
           } else if (this.zeta.eta) {
-            if (ti === (tc - 1)) {
+            if ((ti === spiral1TermIndex) || ((this.estimationOfSpiral1.re === null) && (ti === (tc - 1)))) {
               // average halfway point of last four terms, so we need the last 5 partial sums
               if (partialSums.length >= 5) {
                 const priorPartialSum1 = partialSums[partialSums.length - 1];
