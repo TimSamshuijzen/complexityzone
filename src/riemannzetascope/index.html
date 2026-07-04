@@ -262,6 +262,7 @@ class ZetaView {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
     this.pixelsPerUnit = 200;
+    this.lightTheme = false;
     this.centerZoomOffsetRe = 0;
     this.centerZoomOffsetIm = 0;
     this.polarWindow = false;
@@ -293,7 +294,7 @@ class ZetaView {
   }
   draw() {
     const canvasCtx = this.ctx;
-    canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+    canvasCtx.fillStyle = (this.lightTheme ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)');
     canvasCtx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     this.estimationOfSpiral1.re = null;
     this.estimationOfSpiral1.im = null;
@@ -760,7 +761,7 @@ class ZetaView {
         for (let ti = 0; ti < this.zeta.terms.length; ti++) {
           const term = this.zeta.terms[ti];
           canvasCtx.lineWidth = 1;
-          canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+          canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
           if ((ti % 2) === 0) {
             canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
           }
@@ -838,7 +839,7 @@ class ZetaView {
             if ((rpi % 2) === 0) {
               canvasCtx.strokeStyle = '#00ff00';
             } else {
-              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
             }
             canvasCtx.beginPath();
             canvasCtx.moveTo(term.from.x, term.from.y);
@@ -857,7 +858,7 @@ class ZetaView {
       // origin
       if (this.drawGrid) {
         canvasCtx.lineWidth = 3;
-        canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
         canvasCtx.beginPath();
         canvasCtx.ellipse(positions.origin.x, positions.origin.y, 10, 10, 0, 0, (2 * Math.PI));
         canvasCtx.stroke();
@@ -883,7 +884,7 @@ class ZetaView {
       }
       // zoom center
       if (((this.centerZoomOffsetRe * this.pixelsPerUnit) !== 0) || ((this.centerZoomOffsetIm * this.pixelsPerUnit) !== 0)) {
-        canvasCtx.strokeStyle = (this.focusSpiral1 ? '#72E06B' : 'rgb(255, 255, 255)');
+        canvasCtx.strokeStyle = (this.focusSpiral1 ? '#72E06B' : (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)'));
         canvasCtx.lineWidth = 2;
         canvasCtx.beginPath();
         canvasCtx.moveTo(positions.screenCenter.x - 5, positions.screenCenter.y);
@@ -906,7 +907,7 @@ class ZetaView {
         canvasCtx.rect(polarWindowLeft, polarWindowTop, polarWindowWidth, polarWindowHeight);
         canvasCtx.clip();
         {
-          canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+          canvasCtx.fillStyle = (this.lightTheme ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)');
           canvasCtx.fillRect(polarWindowLeft, polarWindowTop, polarWindowWidth, polarWindowHeight);
           const polarCenterX = polarWindowLeft + ((polarWindowWidth / 2) | 0);
           const polarCenterY = polarWindowTop + ((polarWindowHeight / 2) | 0);
@@ -934,7 +935,7 @@ class ZetaView {
             }
             const endPointX = (polarCenterX + (term.re * this.pixelsPerUnit));
             const endPointY = (polarCenterY - (term.im * this.pixelsPerUnit));
-            canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+            canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
             if ((hi % 2) === 0) {
               canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
             }
@@ -960,7 +961,7 @@ class ZetaView {
                     canvasCtx.ellipse(endPointX, endPointY, 4, 4, 0, 0, (2 * Math.PI));
                     canvasCtx.fill();
                   }
-                  canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+                  canvasCtx.fillStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
                   if (hi === hiOfSpiral1) {
                     canvasCtx.fillStyle = '#72E06B';
                   } else if (hi === (this.zeta.terms.length - 1)) {
@@ -981,7 +982,7 @@ class ZetaView {
           if (this.drawGrid) {
             // draw the origin
             if (this.zeta.terms.length > hiOfSpiral1) {
-              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
               canvasCtx.lineWidth = 2;
               canvasCtx.beginPath();
               canvasCtx.ellipse(polarCenterX + totalX, polarCenterY + totalY, 4, 4, 0, 0, (2 * Math.PI));
@@ -1010,7 +1011,7 @@ class ZetaView {
         canvasCtx.restore();
         // polar window border
         canvasCtx.lineWidth = 1;
-        canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
         canvasCtx.beginPath();
         canvasCtx.rect(polarWindowLeft, polarWindowTop, polarWindowWidth, polarWindowHeight);
         canvasCtx.stroke();
@@ -1029,7 +1030,7 @@ class ZetaView {
         canvasCtx.rect(phaseWindowLeft, phaseWindowTop, phaseWindowWidth, phaseWindowHeight);
         canvasCtx.clip();
         {
-          canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+          canvasCtx.fillStyle = (this.lightTheme ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)');
           canvasCtx.fillRect(phaseWindowLeft, phaseWindowTop, phaseWindowWidth, phaseWindowHeight);
           [
             {
@@ -1059,7 +1060,7 @@ class ZetaView {
             canvasCtx.moveTo(axis.left, axis.top);
             canvasCtx.lineTo(axis.left + axis.width, axis.top);
             canvasCtx.stroke();
-            canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+            canvasCtx.fillStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
             canvasCtx.font = '14px Arial';
             canvasCtx.textAlign = 'left';
             canvasCtx.fillText(axis.text, axis.left - 55, axis.top + 5);
@@ -1068,7 +1069,7 @@ class ZetaView {
             let totalValue = 0;
             for (let hi = 0; hi < this.zeta.terms.length; hi++) {
               const term = this.zeta.terms[hi];
-              canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+              canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
               if ((hi % 2) === 0) {
                 canvasCtx.strokeStyle = 'rgb(255, 80, 80)';
               }
@@ -1081,7 +1082,7 @@ class ZetaView {
                 canvasCtx.lineTo((axis.left + runningX) + (termWidth / 2), axis.top - (value * axis.unitRadius));
                 canvasCtx.stroke();
                 if ((hi === hiOfSpiral1) || (hi === (this.zeta.terms.length - 1))) {
-                  canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+                  canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
                   if (hi === hiOfSpiral1) {
                     canvasCtx.strokeStyle = '#72E06B';
                   } else if (hi === (this.zeta.terms.length - 1)) {
@@ -1112,7 +1113,7 @@ class ZetaView {
             let runningX = 0;
             for (let hi = 0; hi < this.zeta.terms.length; hi++) {
               if ((hi === 0) || (hi === hiOfSpiral1) || ((hi % 50) === 49) || (hi === (this.zeta.terms.length - 1))) {
-                canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+                canvasCtx.fillStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
                 if (hi === hiOfSpiral1) {
                   canvasCtx.fillStyle = '#72E06B';
                 } else if (hi === (this.zeta.terms.length - 1)) {
@@ -1163,7 +1164,7 @@ class ZetaView {
         canvasCtx.restore();
         // phase window border
         canvasCtx.lineWidth = 1;
-        canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+        canvasCtx.strokeStyle = (this.lightTheme ? 'rgb(64, 64, 64)' : 'rgb(255, 255, 255)');
         canvasCtx.beginPath();
         canvasCtx.rect(phaseWindowLeft, phaseWindowTop, phaseWindowWidth, phaseWindowHeight);
         canvasCtx.stroke();
@@ -1965,7 +1966,7 @@ const View = {
         'The partial sums of ζ form a chain of spirals in the complex plane.\n' +
         'The spirals emerge one by one as t increases, with spiral 1 (the main spiral) leading the way. ' +
         'Spiral 1 is the spiral at the end of the chain, which either converges toward the value of ζ (when σ > 1), or diverges away from the value of ζ (when σ < 1). ' +
-        'The halfway-point of term n=[t/π] is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases.\n' +
+        'The halfway-point of term n=1/(1 - e^(-π/t)), which rapidly converges to term n=(t/π + 1/2), or term n=[t/π], is very near the value of ζ, particularly when t is near a multiple of π, and gets nearer to ζ as t increases.\n' +
         'The value of ζ is near the halfway-point of term n=[t/π], where the term at n=[t/π] is undergoing (as if t is time) its first crossing with its prior term n-1.\n' +
         'The center of spiral 2 is at term n=[t/3π], which is undergoing its second crossing with its prior term.\n' +
         'Spiral 3 is at n=[t/5π], and so on. In general, spiral number x is near the halfway point of term n=[t/((2x - 1)π)].\n';
