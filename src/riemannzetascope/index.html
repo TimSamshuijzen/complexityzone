@@ -685,9 +685,17 @@ class ZetaView {
         }
         let rotateAngle;
         if (this.zeta.eta) {
-          rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - (((spiralTermN + 2) % 4) * (Math.PI / 2));
-        } else if (this.zeta.altDirection || this.zeta.oddOnly || this.zeta.evenOnly) {
-          rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - ((spiralTermN % 4) * (Math.PI / 2));
+          if (this.zeta.oddOnly) {
+            rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
+          } else {
+            rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - (((spiralTermN + 2) % 4) * (Math.PI / 2));
+          }
+        } else if (this.zeta.altDirection) {
+          if (this.zeta.oddOnly) {
+            rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
+          } else {
+            rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - ((spiralTermN % 4) * (Math.PI / 2));
+          }
         } else {
           rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
         }
