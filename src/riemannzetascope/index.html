@@ -683,7 +683,14 @@ class ZetaView {
         if (spiralTermN < 1) {
           spiralTermN = 1;
         }
-        let rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + (((spiralTermN % 2) === 0) ? Math.PI : 0));
+        let rotateAngle;
+        if (this.zeta.eta) {
+          rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - (((spiralTermN + 2) % 4) * (Math.PI / 2));
+        } else if (this.zeta.altDirection || this.zeta.oddOnly || this.zeta.evenOnly) {
+          rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - ((spiralTermN % 4) * (Math.PI / 2));
+        } else {
+          rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
+        }
         const cosAngleOfLastTerm = Math.cos(rotateAngle);
         const sinAngleOfLastTerm = Math.sin(rotateAngle);
         const rotate = (pos) => {
