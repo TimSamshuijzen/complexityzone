@@ -686,7 +686,7 @@ class ZetaView {
         let rotateAngle;
         if (this.zeta.eta) {
           if (this.zeta.oddOnly) {
-            rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
+            rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - (((spiralTermN + 1) % 4) * (Math.PI / 2));
           } else {
             rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - (((spiralTermN + 2) % 4) * (Math.PI / 2));
           }
@@ -697,7 +697,13 @@ class ZetaView {
             rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - ((spiralTermN % 4) * (Math.PI / 2));
           }
         } else {
-          rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
+          if (this.zeta.oddOnly) {
+            rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - (((spiralTermN + 1) % 4) * (Math.PI / 2));
+          } else if (this.zeta.evenOnly) {
+            rotateAngle = (this.zeta.terms[spiralTermN - 1].angle) - ((spiralTermN % 4) * (Math.PI / 2));
+          } else {
+            rotateAngle = ((this.zeta.terms[spiralTermN - 1].angle) + ((spiralTermN % 2) * Math.PI));
+          }
         }
         const cosAngleOfLastTerm = Math.cos(rotateAngle);
         const sinAngleOfLastTerm = Math.sin(rotateAngle);
