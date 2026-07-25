@@ -1278,11 +1278,11 @@ const View = {
     panelAltDirectionButton: null,
     panelZetaNMinusHalfButton: null,
     panelMobiusRadiusButton: null,
-    panelOddButton: null,
-    panelEvenButton: null,
     panelAngleNaturalNumbersButton: null,
     panelAngleNonTrivialZeroLogTButton: null,
     panelAngleFourierFrequenciesButton: null,
+    panelOddButton: null,
+    panelEvenButton: null,
     panelNSection: null,
     panelNSectionCaption: null,
     panelTermCountLabel: null,
@@ -2337,7 +2337,8 @@ const View = {
         left: '124px',
         top: subRunningY + 'px',
         width: '32px',
-        fontSize: '12px'
+        fontSize: '12px',
+        visibility: 'hidden'
       });
       this.components.panelZetaSection.appendChild(this.components.panelMobiusRadiusButton);
       this.components.panelMobiusRadiusButton.innerHTML = 'μ';
@@ -2347,7 +2348,82 @@ const View = {
         this.checkTermCountAuto();
         this.zetaView.draw();
         this.render();
-      });      
+      });
+
+      this.components.panelAngleNaturalNumbersButton = document.createElement('div');
+      this.components.panelAngleNaturalNumbersButton.title = 
+        'Align t with natural numbers\n' +
+        'Set term n frequency to 2·π·n.\n' +
+        'The sum is a delta spike when t is a whole number, with alternating signs even/odd.';
+      Object.assign(this.components.panelAngleNaturalNumbersButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelAngleNaturalNumbersButton.style, {
+        position: 'absolute',
+        left: '162px',
+        top: subRunningY + 'px',
+        width: '32px',
+        fontSize: '11px'
+      });
+      this.components.panelZetaSection.appendChild(this.components.panelAngleNaturalNumbersButton);
+      this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ';
+      this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
+        this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
+        this.zeta.angleNonTrivialZeroLogT = false;
+        this.zeta.fourierFrequencies = false;
+        this.zeta.calc();
+        this.checkTermCountAuto();
+        this.zetaView.draw();
+        this.render();
+      });
+      this.components.panelAngleNonTrivialZeroLogTButton = document.createElement('div');
+      this.components.panelAngleNonTrivialZeroLogTButton.title = `Align t with prime numbers and prime powers using non-trivial zeros of ζ\nThis sets the term frequencies to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just max N=${this.zeta.maxTermCount} terms, the spikes when t is a prime power are visible up to around t < ${(this.zeta.maxTermCount / 10).toFixed(0)}.`;
+      Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, {
+        position: 'absolute',
+        left: '200px',
+        top: subRunningY + 'px',
+        width: '32px',
+        fontSize: '12px'
+      });
+      this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
+      this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ';
+      this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
+        this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
+        this.zeta.angleNaturalNumbers = false;
+        this.zeta.fourierFrequencies = false;
+        this.zeta.calc();
+        this.checkTermCountAuto();
+        this.zetaView.draw();
+        this.render();
+      });
+      this.components.panelAngleFourierFrequenciesButton = document.createElement('div');
+      this.components.panelAngleFourierFrequenciesButton.title = 
+        'Tune into the harmonics of the square wave.\n' + 
+        'To see the square wave:\n' +
+        '1. Switch on this ℱ button.\n' +
+        '2. Switch on η(s) eta button.\n' +
+        '3. Switch on alt dir button.\n' +
+        '4. Set σ=1.\n' +
+        '5. Run t, by double-clicking on the display.';
+      Object.assign(this.components.panelAngleFourierFrequenciesButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelAngleFourierFrequenciesButton.style, {
+        position: 'absolute',
+        left: '238px',
+        top: subRunningY + 'px',
+        width: '32px',
+        fontSize: '12px'
+      });
+      this.components.panelZetaSection.appendChild(this.components.panelAngleFourierFrequenciesButton);
+      this.components.panelAngleFourierFrequenciesButton.innerHTML = 'ℱ';
+      this.components.panelAngleFourierFrequenciesButton.addEventListener('click', () => {
+        this.zeta.fourierFrequencies = !this.zeta.fourierFrequencies;
+        this.zeta.angleNaturalNumbers = false;
+        this.zeta.angleNonTrivialZeroLogT = false;
+        this.zeta.calc();
+        this.checkTermCountAuto();
+        this.zetaView.draw();
+        this.render();
+      });
+
       subRunningY += 25;
       this.components.panelOddButton = document.createElement('div');
       this.components.panelOddButton.title = 
@@ -2393,79 +2469,8 @@ const View = {
         this.zetaView.draw();
         this.render();
       });
-      this.components.panelAngleNaturalNumbersButton = document.createElement('div');
-      this.components.panelAngleNaturalNumbersButton.title = 
-        'Align t with natural numbers\n' +
-        'Set term n frequency to 2·π·n.\n' +
-        'The sum is a delta spike when t is a whole number, with alternating signs even/odd.';
-      Object.assign(this.components.panelAngleNaturalNumbersButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelAngleNaturalNumbersButton.style, {
-        position: 'absolute',
-        left: '86px',
-        top: subRunningY + 'px',
-        width: '32px',
-        fontSize: '11px'
-      });
-      this.components.panelZetaSection.appendChild(this.components.panelAngleNaturalNumbersButton);
-      this.components.panelAngleNaturalNumbersButton.innerHTML = 'ℕ';
-      this.components.panelAngleNaturalNumbersButton.addEventListener('click', () => {
-        this.zeta.angleNaturalNumbers = !this.zeta.angleNaturalNumbers;
-        this.zeta.angleNonTrivialZeroLogT = false;
-        this.zeta.fourierFrequencies = false;
-        this.zeta.calc();
-        this.checkTermCountAuto();
-        this.zetaView.draw();
-        this.render();
-      });
-      this.components.panelAngleNonTrivialZeroLogTButton = document.createElement('div');
-      this.components.panelAngleNonTrivialZeroLogTButton.title = `Align t with prime numbers and prime powers using non-trivial zeros of ζ\nThis sets the term frequencies to ρn·ln(t), where ρn is the n-th non-trivial zero of ζ.\nThe sum is a negative delta spike when t is a prime number, and a smaller snappier spike when t is a prime power.\nThe number of terms required for the spike to be visible grows as t increases.\nWith just max N=${this.zeta.maxTermCount} terms, the spikes when t is a prime power are visible up to around t < ${(this.zeta.maxTermCount / 10).toFixed(0)}.`;
-      Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, {
-        position: 'absolute',
-        left: '124px',
-        top: subRunningY + 'px',
-        width: '32px',
-        fontSize: '12px'
-      });
-      this.components.panelZetaSection.appendChild(this.components.panelAngleNonTrivialZeroLogTButton);
-      this.components.panelAngleNonTrivialZeroLogTButton.innerHTML = 'ρ';
-      this.components.panelAngleNonTrivialZeroLogTButton.addEventListener('click', () => {
-        this.zeta.angleNonTrivialZeroLogT = !this.zeta.angleNonTrivialZeroLogT;
-        this.zeta.angleNaturalNumbers = false;
-        this.zeta.fourierFrequencies = false;
-        this.zeta.calc();
-        this.checkTermCountAuto();
-        this.zetaView.draw();
-        this.render();
-      });
-      this.components.panelAngleFourierFrequenciesButton = document.createElement('div');
-      this.components.panelAngleFourierFrequenciesButton.title = 
-        'Tune into the harmonics of the square wave.\n' + 
-        'To see the square wave:\n' +
-        '1. Switch on this ℱ button.\n' +
-        '2. Switch on η(s) eta button.\n' +
-        '3. Switch on alt dir button.\n' +
-        '4. Set σ=1.\n' +
-        '5. Run t, by double-clicking on the display.';
-      Object.assign(this.components.panelAngleFourierFrequenciesButton.style, this.styles.onOffButton);
-      Object.assign(this.components.panelAngleFourierFrequenciesButton.style, {
-        position: 'absolute',
-        left: '162px',
-        top: subRunningY + 'px',
-        width: '32px',
-        fontSize: '12px'
-      });
-      this.components.panelZetaSection.appendChild(this.components.panelAngleFourierFrequenciesButton);
-      this.components.panelAngleFourierFrequenciesButton.innerHTML = 'ℱ';
-      this.components.panelAngleFourierFrequenciesButton.addEventListener('click', () => {
-        this.zeta.fourierFrequencies = !this.zeta.fourierFrequencies;
-        this.zeta.angleNaturalNumbers = false;
-        this.zeta.angleNonTrivialZeroLogT = false;
-        this.zeta.calc();
-        this.checkTermCountAuto();
-        this.zetaView.draw();
-        this.render();
-      });
+
+
       subRunningY += 28;
       this.components.panelZetaSection.style.height = subRunningY + 'px';      
       runningY += subRunningY + 14;
@@ -3617,7 +3622,7 @@ const View = {
       this.components.panelRotationSpeedTrackBar = document.createElement('input');
       this.components.panelRotationSpeedTrackBar.type = 'range';
       this.components.panelRotationSpeedTrackBar.min = 0;
-      this.components.panelRotationSpeedTrackBar.max = 0.03;
+      this.components.panelRotationSpeedTrackBar.max = 0.026;
       this.components.panelRotationSpeedTrackBar.step = 0.0002;
       this.components.panelRotationSpeedTrackBar.value = this.deltaTPerAnimation;
       Object.assign(this.components.panelRotationSpeedTrackBar.style, {
@@ -3718,12 +3723,12 @@ const View = {
     Object.assign(this.components.panelEtaButton.style, (this.zeta.eta ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelAltDirectionButton.style, (this.zeta.altDirection ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelZetaNMinusHalfButton.style, (this.zeta.zetaNMinusHalf ? this.styles.onOffButton_on : this.styles.onOffButton_off));
-    Object.assign(this.components.panelOddButton.style, (this.zeta.oddOnly ? this.styles.onOffButton_on : this.styles.onOffButton_off));
-    Object.assign(this.components.panelEvenButton.style, (this.zeta.evenOnly ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelMobiusRadiusButton.style, (this.zeta.mobiusRadius ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelAngleNaturalNumbersButton.style, (this.zeta.angleNaturalNumbers ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelAngleNonTrivialZeroLogTButton.style, (this.zeta.angleNonTrivialZeroLogT ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelAngleFourierFrequenciesButton.style, (this.zeta.fourierFrequencies ? this.styles.onOffButton_on : this.styles.onOffButton_off));
+    Object.assign(this.components.panelOddButton.style, (this.zeta.oddOnly ? this.styles.onOffButton_on : this.styles.onOffButton_off));
+    Object.assign(this.components.panelEvenButton.style, (this.zeta.evenOnly ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelTermCountAutoButton.style, (this.termCountAuto ? this.styles.playButton_on : this.styles.playButton_off));
     Object.assign(this.components.panelTermCountTPOW2Button.style, (this.termCountLockTSquared ? this.styles.playButton_on : this.styles.playButton_off));
     this.components.panelTermCountLabel.innerHTML = '' + this.zeta.terms.length;
