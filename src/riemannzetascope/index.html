@@ -1223,8 +1223,10 @@ class ZetaView {
       if ((result > 1) && ((result % 2) === 1)) {
         result--;
       }
-    } else if (this.zeta.eta || this.zeta.altDirection) {
+    } else if (this.zeta.altDirection) {
       result = Math.round((t * 2) / Math.PI);
+    } else if (this.zeta.eta) {
+      result = this.zeta.maxTermCount; // or Math.round((t * 2) / Math.PI);
     } else if (this.zeta.zetaNMinusHalf) {
       result = Math.ceil(t / Math.PI);
     } else {
@@ -1348,15 +1350,29 @@ const View = {
     onOffButton_on: {
       border: '2px solid #5AA6AD',
       backgroundColor: '#83F0FA',
-      boxShadow: '0px 0px 2px 2px #71D0D9 inset, 0px 0px 2px 2px #83F0FA',
+      boxShadow: '0px 0px 2px 1px #71D0D9 inset, 0px 0px 2px 1px #83F0FA',
+      color: '#000000',
+      opacity: '1'
+    },
+    onOffButton_onRed: {
+      border: '2px solid #FFDFDF',
+      backgroundColor: '#FFE0E0',
+      boxShadow: '0px 0px 4px 2px #ECB5B6 inset, 0px 0px 6px 1px #FF3E3F',
       color: '#000000',
       opacity: '1'
     },
     onOffButton_off: {
       border: '2px solid #93A3B3',
       backgroundColor: '#EFF2F3',
-      boxShadow: '0px 0px 5px 1px #A3CAE3 inset',
-      color: '#666666',
+      boxShadow: '0px 0px 2px 1px #A3CAE3 inset',
+      color: '#444444',
+      opacity: '0.9'
+    },
+    onOffButton_offRed: {
+      border: '2px solid #D1ABAB',
+      backgroundColor: '#F1EBEB',
+      boxShadow: '0px 0px 2px 1px #E4A3A5 inset',
+      color: '#444444',
       opacity: '0.9'
     },
     playButton: {
@@ -1376,14 +1392,14 @@ const View = {
     playButton_on: {
       border: '2px solid #eaffe8',
       backgroundColor: '#d0ffa0',
-      boxShadow: '0px 0px 2px 2px #B5DE8C inset, 0px 0px 2px 2px #d0ffa0',
+      boxShadow: '0px 0px 4px 2px #B5DE8C inset, 0px 0px 4px 2px #d0ffa0',
       color: '#2f7529',
       opacity: '1'
     },
     playButton_off: {
       border: '2px solid #88AA66',
       backgroundColor: '#B5DE8C',
-      boxShadow: '0px 0px 5px 1px #A3CAE3 inset',
+      boxShadow: '0px 0px 2px 1px #A3CAE3 inset',
       color: '#2f7529',
       opacity: '0.9'
     }
@@ -2003,7 +2019,7 @@ const View = {
       this.components.panelFocusSpiral1Button.title = 
         'Lock onto the main spiral of ζ(s) and keep it in center view.\n' +
         'This allows you to zoom into the spiral while running t.\n' +
-        'The spiral starts taking shape from around t>600.';
+        'The center of the spiral starts taking shape from around t>600.';
       Object.assign(this.components.panelFocusSpiral1Button.style, this.styles.onOffButton);
       Object.assign(this.components.panelFocusSpiral1Button.style, {
         position: 'absolute',
@@ -2014,7 +2030,9 @@ const View = {
       });
       this.components.panelDisplaySection.appendChild(this.components.panelFocusSpiral1Button);
       this.components.panelFocusSpiral1Button.innerHTML = `
-        <div style="display: inline-block; height: 14px; margin-left: 7px; background-color: #333333; color: #FFAAAA; font-size: 11px; line-height: 14px;">&nbsp;&nbsp;⊚&nbsp;&nbsp;</div><div style="display: inline-block; height: 18px; margin-left: 5px; font-size: 12px; line-height: 18px; color: #000000;">follow</div>
+        <div style="display: inline-block; height: 14px; margin-left: 7px; background-color: #333333; color: #FFAAAA; font-size: 11px; line-height: 14px;">&nbsp;&nbsp;⊚&nbsp;&nbsp;</div><div style="display: inline-block; height: 18px; margin-left: 5px; font-size: 12px; line-height: 18px;">
+          follow
+        </div>
       `;
       this.components.panelFocusSpiral1Button.addEventListener('click', () => {
         this.zetaView.focusSpiral1 = !this.zetaView.focusSpiral1;
@@ -2533,7 +2551,7 @@ const View = {
         'N is automatically updated while running t.\n' +
         'Calculation of N depends on which formula button is enabled:\n' +
         '  default ζ: N = [t/π]\n' +
-        '  Dirichlet η: N = [2t/π]\n' +
+        '  Dirichlet η: N = max (to show convergence)\n' +
         '  alt dir: N = [2t/π]\n' +
         '  ζ(s, 1/2): N = ⌈t/π⌉\n' +
         '  odd: N = ⌈2t/π⌉\n' +
@@ -3599,7 +3617,7 @@ const View = {
       this.components.panelRotationSpeedTrackBar = document.createElement('input');
       this.components.panelRotationSpeedTrackBar.type = 'range';
       this.components.panelRotationSpeedTrackBar.min = 0;
-      this.components.panelRotationSpeedTrackBar.max = 0.01;
+      this.components.panelRotationSpeedTrackBar.max = 0.036;
       this.components.panelRotationSpeedTrackBar.step = 0.0002;
       this.components.panelRotationSpeedTrackBar.value = this.deltaTPerAnimation;
       Object.assign(this.components.panelRotationSpeedTrackBar.style, {
@@ -3614,7 +3632,7 @@ const View = {
         backgroundColor: '#F0F0F3'
       });
       this.components.panelTSection.appendChild(this.components.panelRotationSpeedTrackBar);
-      this.components.panelRotationSpeedTrackBar.title = 't run speed.\nThis is the amount that t changes per animation frame when running.\nAdjust this to make t run faster or slower.';
+      this.components.panelRotationSpeedTrackBar.title = 'Set t run speed.\nAdjust this to make t run faster or slower.';
       this.components.panelRotationSpeedTrackBar.addEventListener('input', () => {
         this.deltaTPerAnimation = parseFloat(this.components.panelRotationSpeedTrackBar.value);
       });      
@@ -3653,7 +3671,7 @@ const View = {
       ((this.zetaView.zeta.analyticContinuationRe >= 0) ? '&nbsp;' : '-') + 
       Math.abs(this.zetaView.zeta.analyticContinuationRe).toFixed(3) + '' + 
       ((this.zetaView.zeta.analyticContinuationIm >= 0) ? '+' : '-') + 'i·' + Math.abs(this.zetaView.zeta.analyticContinuationIm).toFixed(3);
-    Object.assign(this.components.panelFocusSpiral1Button.style, (this.zetaView.focusSpiral1 ? this.styles.onOffButton_on : this.styles.onOffButton_off));
+    Object.assign(this.components.panelFocusSpiral1Button.style, (this.zetaView.focusSpiral1 ? this.styles.onOffButton_onRed : this.styles.onOffButton_offRed));
     Object.assign(this.components.panelDrawSpiralNumbersButton.style, (this.zetaView.drawSpiralNumbers ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     {
       // formula
