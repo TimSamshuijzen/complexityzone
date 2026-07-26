@@ -112,6 +112,7 @@ class Zeta {
     this.zetaNMinusHalf = false;
     this.oddOnly = false;
     this.evenOnly = false;
+    this.chi = false;
     this.mobiusRadius = false;
     this.angleNaturalNumbers = false;
     this.angleNonTrivialZeroLogT = false;
@@ -153,6 +154,14 @@ class Zeta {
         radiusFactor *= ((((hi + 1) % 2) === 0) ? 0 : 1);
       } else if (this.evenOnly) {
         radiusFactor *= ((((hi + 1) % 2) === 0) ? 1 : 0);
+      } else if (this.chi) {
+        if ((((hi + 1) % 4) === 1)) {
+          radiusFactor *= 1;
+        } else if ((((hi + 1) % 4) === 3)) {
+          radiusFactor *= -1;
+        } else {
+          radiusFactor = 0;
+        }
       }
       if (this.mobiusRadius) {
         radiusFactor *= MobiusNumbers[hi];
@@ -479,6 +488,21 @@ class ZetaView {
                 positions.estimationOfSpiral1.y = (((priorPartialSum1.y + priorPartialSum2.y) / 2) + ((priorPartialSum2.y + priorPartialSum3.y) / 2) + ((priorPartialSum3.y + priorPartialSum4.y) / 2) + ((priorPartialSum4.y + priorPartialSum5.y) / 2)) / 4;
               }
             }
+          } else if (this.zeta.chi) {
+            if ((ti === spiral1TermIndex) || ((this.estimationOfSpiral1.re === null) && (ti === (tc - 1)))) {
+              // average halfway point of last four terms, so we need the last 5 partial sums
+              if (partialSums.length >= 5) {
+                const priorPartialSum1 = partialSums[partialSums.length - 1];
+                const priorPartialSum2 = partialSums[partialSums.length - 2];
+                const priorPartialSum3 = partialSums[partialSums.length - 3];
+                const priorPartialSum4 = partialSums[partialSums.length - 4];
+                const priorPartialSum5 = partialSums[partialSums.length - 5];
+                this.estimationOfSpiral1.re = (((priorPartialSum1.re + priorPartialSum2.re) / 2) + ((priorPartialSum2.re + priorPartialSum3.re) / 2) + ((priorPartialSum3.re + priorPartialSum4.re) / 2) + ((priorPartialSum4.re + priorPartialSum5.re) / 2)) / 4;
+                this.estimationOfSpiral1.im = (((priorPartialSum1.im + priorPartialSum2.im) / 2) + ((priorPartialSum2.im + priorPartialSum3.im) / 2) + ((priorPartialSum3.im + priorPartialSum4.im) / 2) + ((priorPartialSum4.im + priorPartialSum5.im) / 2)) / 4;
+                positions.estimationOfSpiral1.x = (((priorPartialSum1.x + priorPartialSum2.x) / 2) + ((priorPartialSum2.x + priorPartialSum3.x) / 2) + ((priorPartialSum3.x + priorPartialSum4.x) / 2) + ((priorPartialSum4.x + priorPartialSum5.x) / 2)) / 4;
+                positions.estimationOfSpiral1.y = (((priorPartialSum1.y + priorPartialSum2.y) / 2) + ((priorPartialSum2.y + priorPartialSum3.y) / 2) + ((priorPartialSum3.y + priorPartialSum4.y) / 2) + ((priorPartialSum4.y + priorPartialSum5.y) / 2)) / 4;
+              }
+            }
           } else {
             if ((ti === spiral1TermIndex) || ((this.estimationOfSpiral1.re === null) && (ti === (tc - 1)))) {
               this.estimationOfSpiral1.re = ((priorPartialSum.re + currentPartialSum.re) / 2);
@@ -541,6 +565,8 @@ class ZetaView {
             if ((spiralTermN > 1) && ((spiralTermN % 2) === 1)) {
               spiralTermN--;
             }
+          } else if (this.zeta.chi) {
+            spiralTermN = ((Math.round((4 * this.zeta.t) / (((spiralNumber * 2) - 1) * Math.PI) ) + 0.01) | 0);
           } else if (this.zeta.eta || this.zeta.altDirection) {
             spiralTermN = ((Math.round((2 * this.zeta.t) / (((spiralNumber * 2) - 1) * Math.PI) ) + 0.01) | 0);
           } else if (this.zeta.zetaNMinusHalf) {
@@ -675,7 +701,7 @@ class ZetaView {
       for (let i = 0; i < transformPointsList.length; i++) {
         translate(transformPointsList[i]);
       }
-      if ((this.zeta.altDirection === false) || this.zeta.oddOnly || this.zeta.evenOnly) {
+      if (((this.zeta.altDirection === false) && (this.zeta.chi === false)) || this.zeta.oddOnly || this.zeta.evenOnly) {
         let spiralTermN = this.getTermCountForSpiral1AtT(this.zeta.t);
         if (spiralTermN > this.zeta.terms.length) {
           spiralTermN = this.zeta.terms.length;
@@ -1157,6 +1183,8 @@ class ZetaView {
               let spiralTermNumber = 0;
               if (this.zeta.oddOnly || this.zeta.evenOnly) {
                 spiralTermNumber = (Math.ceil((this.zeta.t * 2) / (((sn * 2) - 1) * Math.PI)) | 0);
+              } else if (this.zeta.chi) {
+                spiralTermNumber = (Math.round((this.zeta.t * 4) / (((sn * 2) - 1) * Math.PI)) | 0);
               } else if (this.zeta.eta || this.zeta.altDirection) {
                 spiralTermNumber = (Math.round((this.zeta.t * 2) / (((sn * 2) - 1) * Math.PI)) | 0);
               } else if (this.zeta.zetaNMinusHalf) {
@@ -1223,6 +1251,8 @@ class ZetaView {
       if ((result > 1) && ((result % 2) === 1)) {
         result--;
       }
+    } else if (this.zeta.chi) {
+      result = this.zeta.maxTermCount;
     } else if (this.zeta.altDirection) {
       result = Math.round((t * 2) / Math.PI);
     } else if (this.zeta.eta) {
@@ -1283,6 +1313,7 @@ const View = {
     panelAngleFourierFrequenciesButton: null,
     panelOddButton: null,
     panelEvenButton: null,
+    panelChiButton: null,
     panelNSection: null,
     panelNSectionCaption: null,
     panelTermCountLabel: null,
@@ -1356,9 +1387,9 @@ const View = {
     },
     onOffButton_onRed: {
       border: '2px solid #FF6E6E',
-      backgroundColor: '#FFE0E0',
+      backgroundColor: '#FFBCBC',
       boxShadow: '0px 0px 1px 1px #FF7878 inset, 0px 0px 3px 2px #FF9999',
-      color: '#661111',
+      color: '#991111',
       opacity: '1'
     },
     onOffButton_off: {
@@ -1369,10 +1400,10 @@ const View = {
       opacity: '0.9'
     },
     onOffButton_offRed: {
-      border: '2px solid #C88585',
+      border: '2px solid #E4ADAD',
       backgroundColor: '#F1EBEB',
       boxShadow: '0px 0px 2px 1px #D1B1B1 inset',
-      color: '#442222',
+      color: '#662222',
       opacity: '0.9'
     },
     playButton: {
@@ -2338,10 +2369,10 @@ const View = {
         top: subRunningY + 'px',
         width: '32px',
         fontSize: '12px',
-        visibility: 'hidden'
+        visibility: 'visible'
       });
       this.components.panelZetaSection.appendChild(this.components.panelMobiusRadiusButton);
-      this.components.panelMobiusRadiusButton.innerHTML = 'μ';
+      this.components.panelMobiusRadiusButton.innerHTML = 'μ(n)';
       this.components.panelMobiusRadiusButton.addEventListener('click', () => {
         this.zeta.mobiusRadius = !this.zeta.mobiusRadius;
         this.zeta.calc();
@@ -2349,7 +2380,6 @@ const View = {
         this.zetaView.draw();
         this.render();
       });
-
       this.components.panelAngleNaturalNumbersButton = document.createElement('div');
       this.components.panelAngleNaturalNumbersButton.title = 
         'Align t with natural numbers\n' +
@@ -2442,6 +2472,7 @@ const View = {
       this.components.panelOddButton.addEventListener('click', () => {
         this.zeta.oddOnly = !this.zeta.oddOnly;
         this.zeta.evenOnly = false;
+        this.zeta.chi = false;
         this.zeta.calc();
         this.checkTermCountAuto();
         this.zetaView.draw();
@@ -2464,13 +2495,40 @@ const View = {
       this.components.panelEvenButton.addEventListener('click', () => {
         this.zeta.evenOnly = !this.zeta.evenOnly;
         this.zeta.oddOnly = false;
+        this.zeta.chi = false;
         this.zeta.calc();
         this.checkTermCountAuto();
         this.zetaView.draw();
         this.render();
       });
-
-
+      this.components.panelChiButton = document.createElement('div');
+      this.components.panelChiButton.title = 
+        'Multiply terms by χ4(n), where χ4(n) =\n' +
+        '  1 if n ≡ 1 (mod 4)\n' +
+        '  0 if n ≡ 2 (mod 4)\n' +
+        '  -1 if n ≡ 3 (mod 4)\n' +
+        '  0 if n ≡ 0 (mod 4)\n' + 
+        'This is the Dirichlet beta function and L-function 1-2e2-4.3-r1-0-0.\n' + 
+        'It has non-trivial zeros at: σ = 0.5, t = 6.020, 10.243, 12.988, ...';
+      Object.assign(this.components.panelChiButton.style, this.styles.onOffButton);
+      Object.assign(this.components.panelChiButton.style, {
+        position: 'absolute',
+        left: '86px',
+        top: subRunningY + 'px',
+        width: '32px',
+        fontSize: '11px'
+      });
+      this.components.panelZetaSection.appendChild(this.components.panelChiButton);
+      this.components.panelChiButton.innerHTML = 'χ4(n)';
+      this.components.panelChiButton.addEventListener('click', () => {
+        this.zeta.chi = !this.zeta.chi;
+        this.zeta.evenOnly = false;
+        this.zeta.oddOnly = false;
+        this.zeta.calc();
+        this.checkTermCountAuto();
+        this.zetaView.draw();
+        this.render();
+      });
       subRunningY += 28;
       this.components.panelZetaSection.style.height = subRunningY + 'px';      
       runningY += subRunningY + 14;
@@ -3683,6 +3741,9 @@ const View = {
       this.components.panelFormula_sum_sub.innerHTML = (this.zeta.oddOnly ? 'n=1 odd' : (this.zeta.evenOnly ? 'n=2 even' : 'n=1'));
       this.components.panelFormula_sum_sup.innerHTML = 'N=' + this.zeta.terms.length;
       let panelFormula_term = '';
+      if (this.zeta.chi) {
+        panelFormula_term += 'χ4(n)·';
+      }
       if (this.zeta.mobiusRadius) {
         panelFormula_term += 'μ(n)·';
       }
@@ -3729,6 +3790,7 @@ const View = {
     Object.assign(this.components.panelAngleFourierFrequenciesButton.style, (this.zeta.fourierFrequencies ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelOddButton.style, (this.zeta.oddOnly ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelEvenButton.style, (this.zeta.evenOnly ? this.styles.onOffButton_on : this.styles.onOffButton_off));
+    Object.assign(this.components.panelChiButton.style, (this.zeta.chi ? this.styles.onOffButton_on : this.styles.onOffButton_off));
     Object.assign(this.components.panelTermCountAutoButton.style, (this.termCountAuto ? this.styles.playButton_on : this.styles.playButton_off));
     Object.assign(this.components.panelTermCountTPOW2Button.style, (this.termCountLockTSquared ? this.styles.playButton_on : this.styles.playButton_off));
     this.components.panelTermCountLabel.innerHTML = '' + this.zeta.terms.length;
