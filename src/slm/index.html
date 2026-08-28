@@ -1,0 +1,2354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>slm — small language model</title>
+<style>
+:root{
+  --bg:#06090e;
+  --panel:#0c1118;
+  --panel2:#111823;
+  --panel3:#151d29;
+  --line:#1b2431;
+  --line2:#263242;
+  --text:#dbe4f1;
+  --dim:#7e8da3;
+  --dim2:#57657a;
+  --accent:#22d3ee;
+  --accent2:#fbbf24;
+  --violet:#a78bfa;
+  --good:#4ade80;
+  --bad:#f87171;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;
+  display:flex;flex-direction:column;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#20293a;border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:#2c3a4f}
+
+/* ---------- top banner ---------- */
+.banner{
+  flex:0 0 auto;height:40px;display:flex;align-items:center;
+  padding:0 14px;background:#333333;
+}
+.banner a{
+  color:#80cccc;text-decoration:none;font-family:var(--mono);font-size:14px;
+  letter-spacing:.04em;
+}
+
+/* ---------- top bar ---------- */
+.top{
+  flex:0 0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:9px 14px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#0d141d,#080c12);
+}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0}
+.logo{
+  font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:3px;color:var(--accent);
+  text-shadow:0 0 22px rgba(34,211,238,.45);line-height:1;
+}
+.tag{color:var(--dim);font-size:11.5px}
+.tag b{color:var(--accent2);font-weight:600}
+.pills{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.pill{
+  display:flex;flex-direction:column;gap:1px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:6px;padding:3px 9px;min-width:58px;
+}
+.pill .k{font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--dim2)}
+.pill .v{font-family:var(--mono);font-size:12.5px;color:var(--text);line-height:1.25}
+.pill.hot .v{color:var(--accent2)}
+
+/* ---------- dashboard grid ---------- */
+.dash{
+  flex:1 1 auto;min-height:0;overflow:auto;display:grid;gap:9px;padding:9px;
+  grid-template-columns:minmax(300px,335px) minmax(440px,1fr) minmax(320px,388px);
+  grid-template-areas:
+    "train tf weights"
+    "tok   tf input"
+    "tok   tf output";
+  align-items:start;
+}
+.a-train{grid-area:train}.a-tok{grid-area:tok}.a-tf{grid-area:tf}
+.a-w{grid-area:weights}.a-in{grid-area:input}.a-out{grid-area:output}
+/* on a wide screen the dashboard fills the viewport exactly and every panel
+   scrolls inside itself, the way a dashboard should behave */
+@media (min-width:1321px){
+  .dash{overflow:hidden;align-items:stretch;
+        grid-template-rows:minmax(0,1.4fr) minmax(0,0.82fr) minmax(0,1fr)}
+  .panel{min-height:0}
+  .pbody{flex:1 1 auto;max-height:none !important}
+}
+/* very wide: give weights & biases its own full-height column */
+@media (min-width:1560px){
+  .dash{
+    grid-template-columns:minmax(300px,330px) minmax(450px,1fr)
+                          minmax(328px,352px) minmax(296px,336px);
+    grid-template-areas:
+      "train tf weights input"
+      "tok   tf weights output"
+      "tok   tf weights output";
+  }
+}
+@media (max-width:1320px){
+  /* minmax(0,…) keeps a wide heatmap from stretching its whole column */
+  /* rows must be max-content: .panel is overflow:hidden, which makes a grid
+     item contribute nothing to an auto row, collapsing the whole column */
+  .dash{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);
+    grid-template-rows:repeat(5,max-content);
+    grid-template-areas:"train tf" "tok tf" "weights tf" "input tf" "output tf";}
+}
+/* two columns: the transformer column is capped to the viewport and sticks
+   while the shorter panels beside it scroll past */
+@media (min-width:901px) and (max-width:1320px){
+  .a-tf{align-self:start;position:sticky;top:0}
+  .a-tf .pbody{max-height:calc(100vh - 172px)}
+}
+@media (max-width:900px){
+  /* one column, and the page itself scrolls instead of the dashboard */
+  html,body{height:auto;overflow:auto}
+  body{min-height:100%}
+  .dash{grid-template-columns:minmax(0,1fr);overflow:visible;
+    grid-template-rows:repeat(6,max-content);
+    grid-template-areas:"train" "tok" "tf" "weights" "input" "output";}
+  .pbody{max-height:none !important}
+  .panel{overflow:hidden}
+}
+@media (max-width:640px){
+  .tag{display:none}
+  .top{padding:8px 10px;gap:10px}
+  .dash{padding:7px;gap:7px}
+}
+
+/* ---------- panels ---------- */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  display:flex;flex-direction:column;min-width:0;overflow:hidden;
+}
+.phead{
+  flex:0 0 auto;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;
+  padding:7px 11px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#111823,#0d131b);
+}
+.phead h2{
+  margin:0;font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--accent);
+}
+.phead .n{
+  font-family:var(--mono);font-size:9.5px;color:var(--dim2);
+  border:1px solid var(--line2);border-radius:3px;padding:0 4px;
+}
+.phint{color:var(--dim2);font-size:10.5px;margin-left:auto}
+.pbody{padding:10px 11px;overflow:auto;display:flex;flex-direction:column;gap:9px;min-height:0}
+/* children keep their natural height and the panel scrolls, instead of the
+   flex container squashing everything to fit */
+.pbody > *{flex:0 0 auto}
+.tfflow > *{flex:0 0 auto}
+.hrow > *{flex:0 0 auto}
+.hrow > .chips{flex:1 1 100%;min-width:0}
+/* below the dashboard breakpoint every panel simply takes the height it needs
+   and the dashboard itself scrolls */
+
+
+/* ---------- controls ---------- */
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.btn{
+  font-family:var(--sans);font-size:11.5px;color:var(--text);background:var(--panel3);
+  border:1px solid var(--line2);border-radius:5px;padding:4px 10px;cursor:pointer;
+  transition:background .12s,border-color .12s,color .12s;white-space:nowrap;
+}
+.btn:hover{background:#1c2534;border-color:#3a4a60}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:#0e3a44;border-color:#1a6a7a;color:#a5f3fc}
+.btn.primary:hover{background:#125060;border-color:#22d3ee}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:2px 7px;font-size:10.5px}
+textarea{
+  width:100%;background:#080c12;color:var(--text);border:1px solid var(--line2);
+  border-radius:5px;padding:7px 8px;font-family:var(--mono);font-size:11.5px;line-height:1.5;
+  resize:vertical;outline:none;
+}
+textarea:focus{border-color:#2f6b7c;box-shadow:0 0 0 2px rgba(34,211,238,.09)}
+input[type=number]{
+  width:100%;background:#080c12;color:var(--text);border:1px solid var(--line2);
+  border-radius:4px;padding:3px 5px;font-family:var(--mono);font-size:11.5px;outline:none;
+}
+input[type=range]{width:100%;accent-color:var(--accent);height:16px}
+label.f{display:flex;flex-direction:column;gap:2px;font-size:9.5px;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--dim2);min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.slider{display:grid;grid-template-columns:78px 1fr 42px;align-items:center;gap:7px}
+.slider .lab{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.slider .val{font-family:var(--mono);font-size:11px;color:var(--accent2);text-align:right}
+.chk{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);cursor:pointer;user-select:none}
+.chk input{accent-color:var(--accent);margin:0}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:5px;overflow:hidden}
+.seg button{
+  background:var(--panel2);border:0;border-right:1px solid var(--line2);color:var(--dim);
+  font-size:10.5px;padding:3px 9px;cursor:pointer;font-family:var(--sans);
+}
+.seg button:last-child{border-right:0}
+.seg button.on{background:#0e3a44;color:#a5f3fc}
+
+/* ---------- misc text ---------- */
+.sub{
+  font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim2);
+  border-bottom:1px solid var(--line);padding-bottom:3px;margin-top:2px;
+  display:flex;align-items:baseline;gap:7px;
+}
+.sub .dim{letter-spacing:0;text-transform:none;font-size:10px;margin-left:auto}
+.dim{color:var(--dim2)}
+.meta{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.note{font-size:10.5px;color:var(--dim2);line-height:1.5}
+.mono{font-family:var(--mono)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stats > div{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:4px 7px}
+.stats .k{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim2)}
+.stats .v{display:block;font-family:var(--mono);font-size:12px;color:var(--text)}
+
+/* ---------- chips ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start}
+.chip{
+  display:inline-flex;align-items:center;gap:4px;background:var(--panel2);
+  border:1px solid var(--line2);border-radius:4px;padding:1px 5px;
+  font-family:var(--mono);font-size:11px;line-height:1.5;white-space:pre;cursor:default;
+}
+.chip .id{font-size:8.5px;color:var(--dim2);border-right:1px solid var(--line2);padding-right:4px}
+.chip.base{border-color:#294a3a}
+.chip.merged{border-color:#4a3a29;background:#171410}
+.chip.unused{opacity:.32}
+.chip.unk{border-color:#4a2929}
+.chip.hi{border-color:var(--accent);background:#0e2b33}
+.chip.gen{border-color:#5a4410;background:#1d1708;color:#fde68a}
+.vocab-wrap{max-height:96px;overflow:auto;padding-right:3px}
+.merges{
+  max-height:104px;overflow:auto;display:flex;flex-direction:column;gap:2px;
+  font-family:var(--mono);font-size:10.5px;
+}
+.merge{display:flex;align-items:center;gap:5px;color:var(--dim)}
+.merge .r{color:var(--dim2);width:20px;text-align:right}
+.merge .a,.merge .b{background:var(--panel2);border:1px solid var(--line2);border-radius:3px;padding:0 4px;white-space:pre}
+.merge .n{background:#171410;border:1px solid #4a3a29;border-radius:3px;padding:0 4px;color:var(--accent2);white-space:pre}
+.merge .c{margin-left:auto;color:var(--dim2);font-size:9.5px}
+
+/* ---------- canvases ---------- */
+canvas{display:block;image-rendering:pixelated}
+canvas.fluid{width:100%}
+.cv-wrap{border:1px solid var(--line);border-radius:5px;background:#080c12;padding:5px;overflow:auto}
+
+/* ---------- transformer flow ---------- */
+.tfflow{display:flex;flex-direction:column;gap:7px}
+.stage{
+  border:1px solid var(--line);border-radius:6px;background:var(--panel2);
+  padding:6px 8px 8px;display:flex;flex-direction:column;gap:5px;
+}
+.stage.blk{background:#0e1520;border-color:#22303f}
+.stage-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.stage-t{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.stage.blk > .stage-h > .stage-t{color:var(--violet)}
+.stage-s{font-size:10px;color:var(--dim2);font-family:var(--mono)}
+.stage-x{font-size:10.5px;color:var(--dim);line-height:1.5}
+.hrow{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.hm{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.hm-l{font-family:var(--mono);font-size:10px;color:var(--text)}
+.hm-l .op{color:var(--dim2)}
+.hm-s{font-family:var(--mono);font-size:9px;color:var(--dim2)}
+.hm canvas{border:1px solid var(--line2);border-radius:3px;background:#05080c}
+.opsym{
+  align-self:center;font-family:var(--mono);font-size:15px;color:var(--dim2);
+  padding:0 1px;margin-top:9px;
+}
+.substage{border-left:2px solid #223040;padding-left:8px;display:flex;flex-direction:column;gap:5px}
+.substage-t{font-family:var(--mono);font-size:10px;color:var(--accent2)}
+#tfFlow.compact .det{display:none}
+#tfFlow.compact .stage-x{display:none}
+.hm-l sub{font-size:8px}
+
+/* ---------- bars ---------- */
+.bars{display:flex;flex-direction:column;gap:2px}
+.bar{display:grid;grid-template-columns:62px 1fr 46px;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px}
+.bar .t{white-space:pre;overflow:hidden;text-overflow:ellipsis;color:var(--text);
+  background:var(--panel2);border:1px solid var(--line2);border-radius:3px;padding:0 4px}
+.bar .track{height:11px;background:#0a0f16;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.bar .fill{height:100%;background:linear-gradient(90deg,#0e7490,#22d3ee)}
+.bar .p{color:var(--dim);text-align:right}
+.bar.sel .t{border-color:var(--accent2);color:var(--accent2);background:#1d1708}
+.bar.sel .fill{background:linear-gradient(90deg,#b45309,#fbbf24)}
+
+/* ---------- tensor list ---------- */
+.tlist{display:flex;flex-direction:column;gap:1px;max-height:136px;overflow:auto}
+.tr{
+  display:grid;grid-template-columns:12px 1fr 58px 42px;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10.5px;padding:2px 4px;border-radius:4px;cursor:pointer;
+  color:var(--dim);
+}
+.tr:hover{background:var(--panel2)}
+.tr.on{background:#0e2b33;color:var(--text)}
+.tr .dot{width:8px;height:8px;border-radius:2px}
+.tr .sh{color:var(--dim2);text-align:right}
+.tr .ct{color:var(--dim2);text-align:right}
+
+/* ---------- output ---------- */
+.outtext{
+  font-family:var(--mono);font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-word;
+  background:#080c12;border:1px solid var(--line2);border-radius:5px;padding:8px;min-height:70px;
+  max-height:136px;overflow:auto;
+}
+.outtext .p{color:var(--dim2)}
+.outtext .g{color:var(--accent2)}
+
+/* ---------- tooltip / toast ---------- */
+#tip{
+  position:fixed;pointer-events:none;z-index:99;background:#05080c;border:1px solid var(--line2);
+  border-radius:5px;padding:4px 7px;font-family:var(--mono);font-size:10.5px;color:var(--text);
+  white-space:pre;opacity:0;transition:opacity .08s;box-shadow:0 6px 20px rgba(0,0,0,.6);max-width:330px;
+}
+#tip.on{opacity:1}
+#toast{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:98;
+  background:#0e2b33;border:1px solid var(--accent);color:#a5f3fc;border-radius:6px;
+  padding:7px 14px;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;
+}
+#toast.on{opacity:1}
+.legend{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;color:var(--dim2)}
+.legend canvas{border:1px solid var(--line2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <a href="https://complexity.zone">complexity.zone</a>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">slm</div>
+    <div class="tag">small language model &middot; a <b>10,000&#8209;parameter</b> GPT that tokenizes, trains and generates entirely in this page</div>
+  </div>
+  <div class="pills">
+    <div class="pill"><span class="k">params</span><span class="v" id="pParams">—</span></div>
+    <div class="pill"><span class="k">arch</span><span class="v" id="pArch">—</span></div>
+    <div class="pill"><span class="k">vocab</span><span class="v" id="pVocab">—</span></div>
+    <div class="pill"><span class="k">ctx</span><span class="v" id="pCtx">—</span></div>
+    <div class="pill"><span class="k">step</span><span class="v" id="pStep">0</span></div>
+    <div class="pill hot"><span class="k">loss</span><span class="v" id="pLoss">—</span></div>
+    <div class="pill"><span class="k">steps/s</span><span class="v" id="pSps">0</span></div>
+  </div>
+</header>
+
+<main class="dash">
+
+  <!-- ============ TRAINING ============ -->
+  <section class="panel a-train">
+    <div class="phead"><h2>training text</h2><span class="n">corpus</span>
+      <div class="phint">gradient descent on next-token prediction</div></div>
+    <div class="pbody">
+      <textarea id="trainText" rows="3" spellcheck="false"></textarea>
+      <div class="row">
+        <button id="btnApply" class="btn sm">apply text &amp; rebuild</button>
+        <span class="meta" id="trainMeta">—</span>
+      </div>
+      <div class="grid2">
+        <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
+        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="16"></label>
+      </div>
+      <div class="row">
+        <button id="btnTrain" class="btn primary">▶ train</button>
+        <button id="btnReset" class="btn">reset weights</button>
+        <label class="chk"><input type="checkbox" id="chkLive" checked> live visuals</label>
+      </div>
+      <div class="cv-wrap"><canvas id="lossChart" class="fluid"></canvas></div>
+      <div class="stats">
+        <div><span class="k">loss</span><span class="v" id="sLoss">—</span></div>
+        <div><span class="k">perplexity</span><span class="v" id="sPpl">—</span></div>
+        <div><span class="k">|grad|</span><span class="v" id="sGn">—</span></div>
+        <div><span class="k">tokens</span><span class="v" id="sSeen">0</span></div>
+      </div>
+      <div class="sub">sample generated while training</div>
+      <div class="outtext mono" id="sampleOut" style="min-height:44px;max-height:58px;font-size:11px"></div>
+    </div>
+  </section>
+
+  <!-- ============ TOKENIZATION ============ -->
+  <section class="panel a-tok">
+    <div class="phead"><h2>tokenization</h2><span class="n">byte-pair encoding</span>
+      <div class="phint">text &rarr; integers</div></div>
+    <div class="pbody">
+      <div class="note">The model never sees letters. A BPE tokenizer is learned from the corpus:
+      start from single characters, then repeatedly merge the most frequent adjacent pair.</div>
+      <div class="sub">1 &middot; vocabulary <span class="dim" id="tokVocabMeta"></span></div>
+      <div class="vocab-wrap"><div id="vocabList" class="chips"></div></div>
+      <div class="sub">2 &middot; learned merges <span class="dim" id="tokMergeMeta"></span></div>
+      <div class="merges" id="mergeList"></div>
+      <div class="sub">3 &middot; prompt, encoded <span class="dim" id="tokEncMeta"></span></div>
+      <div id="encPreview" class="chips"></div>
+      <div class="sub">4 &middot; token frequency in corpus</div>
+      <div class="cv-wrap"><canvas id="freqChart" class="fluid"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ============ TRANSFORMER ============ -->
+  <section class="panel a-tf">
+    <div class="phead"><h2>transformer</h2><span class="n" id="tfArch">—</span>
+      <div class="phint">every intermediate tensor of one live forward pass</div></div>
+    <div class="pbody">
+      <div class="row">
+        <span class="meta" id="tfMeta">—</span>
+        <label class="chk" style="margin-left:auto"><input type="checkbox" id="chkDetail" checked> full detail</label>
+      </div>
+      <div class="legend">
+        <span>value scale</span><canvas id="legDiv" width="120" height="9"></canvas>
+        <span id="legTxt">−max &nbsp;0&nbsp; +max</span>
+      </div>
+      <div id="tfFlow" class="tfflow"></div>
+    </div>
+  </section>
+
+  <!-- ============ WEIGHTS ============ -->
+  <section class="panel a-w">
+    <div class="phead"><h2>weights &amp; biases</h2><span class="n" id="wCount">—</span>
+      <div class="phint">one pixel per parameter &middot; hover to identify</div></div>
+    <div class="pbody">
+      <div class="row">
+        <div class="seg" id="wbMode">
+          <button data-m="value" class="on">values</button>
+          <button data-m="grad">gradients</button>
+        </div>
+        <span class="meta" id="wbMeta"></span>
+      </div>
+      <div class="cv-wrap" style="display:flex;justify-content:center"><canvas id="paramMap"></canvas></div>
+      <div class="sub">tensors</div>
+      <div class="tlist" id="tensorList"></div>
+      <div class="sub">selected tensor <span class="dim" id="selMeta"></span></div>
+      <div class="cv-wrap" style="display:flex;justify-content:center"><canvas id="tensorMap"></canvas></div>
+      <div class="cv-wrap"><canvas id="histChart" class="fluid"></canvas></div>
+      <div class="sub">architecture</div>
+      <div class="grid3">
+        <label class="f">d_model<input id="cfgD" type="number" min="4" max="64" step="2" value="22"></label>
+        <label class="f">layers<input id="cfgL" type="number" min="1" max="4" step="1" value="2"></label>
+        <label class="f">heads<input id="cfgH" type="number" min="1" max="8" step="1" value="2"></label>
+        <label class="f">d_ff<input id="cfgF" type="number" min="4" max="160" step="1" value="50"></label>
+        <label class="f">context<input id="cfgT" type="number" min="4" max="48" step="1" value="20"></label>
+        <label class="f">vocab<input id="cfgV" type="number" min="8" max="96" step="1" value="42"></label>
+      </div>
+      <div class="row">
+        <span class="meta" id="cfgCount">—</span>
+        <button id="btnRebuild" class="btn sm" style="margin-left:auto">rebuild model</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INPUT ============ -->
+  <section class="panel a-in">
+    <div class="phead"><h2>input</h2><span class="n">prompt</span>
+      <div class="phint">type to run a forward pass</div></div>
+    <div class="pbody">
+      <textarea id="promptText" rows="2" spellcheck="false">the cat sat on</textarea>
+      <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.85"><span class="val" id="vTemp">0.85</span></div>
+      <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="42" step="1" value="10"><span class="val" id="vTopk">10</span></div>
+      <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
+      <div class="row">
+        <button id="btnGen" class="btn primary">▶ generate</button>
+        <button id="btnStep" class="btn">+1 token</button>
+        <button id="btnClear" class="btn">reset</button>
+      </div>
+      <div class="note">Every keystroke runs a fresh forward pass, so the transformer panel
+      always shows what the model is doing with the text above.<br><br>
+      <b style="color:var(--dim)">temperature</b> reshapes the distribution before sampling —
+      0 always takes the most likely token, higher values flatten the odds.
+      <b style="color:var(--dim)">top-k</b> throws away everything outside the k best
+      candidates.</div>
+    </div>
+  </section>
+
+  <!-- ============ OUTPUT ============ -->
+  <section class="panel a-out">
+    <div class="phead"><h2>output</h2><span class="n" id="outCount">0 tokens</span>
+      <div class="phint">sampled one token at a time</div></div>
+    <div class="pbody">
+      <div class="outtext" id="outText"></div>
+      <div class="sub">next-token distribution <span class="dim" id="distMeta"></span></div>
+      <div class="bars" id="distBars"></div>
+      <div id="outChips" class="chips"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="tip"></div>
+<div id="toast"></div>
+<script>
+/* ==========================================================================
+   slm — small language model
+   A complete generative pre-trained transformer in ~10,000 parameters.
+   No libraries. Tokenizer, forward pass, hand-derived backprop, AdamW,
+   sampling and every visualisation below are written from scratch.
+   ========================================================================== */
+'use strict';
+
+/* ------------------------------------------------------------------ utils */
+function $(s, r){ return (r || document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function el(tag, cls, txt){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt !== undefined) e.textContent = txt;
+  return e;
+}
+function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+function F32(n){ return new Float32Array(n); }
+function fmt(v, n){
+  if (v === undefined || v === null || !isFinite(v)) return '—';
+  return v.toFixed(n === undefined ? 3 : n);
+}
+function commas(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+/* deterministic RNG so every reload gives the same starting model */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+var RNG = mulberry32(20240517);
+function rand(){ return RNG(); }
+function randInt(n){ return (RNG() * n) | 0; }
+function randn(){
+  var u = 0, v = 0;
+  while (u === 0) u = RNG();
+  while (v === 0) v = RNG();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
+}
+
+var toastTimer = null;
+function toast(msg){
+  var t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 2200);
+}
+
+/* ------------------------------------------------------------- the corpus */
+var DEFAULT_CORPUS = [
+  'the cat sat on the mat.',
+  'the dog sat on the log.',
+  'the cat ran to the dog.',
+  'the dog ran to the cat.',
+  'a small cat naps on a warm mat.',
+  'a big dog naps on a big log.',
+  'the cat sees a dog on the log.',
+  'the dog sees a cat on the mat.',
+  'the small cat likes the big dog.',
+  'the big dog likes the small cat.',
+  'a cat and a dog sat on a mat.',
+  'a dog and a cat ran to a log.',
+  'the cat is small and the dog is big.',
+  'the dog is big and the cat is small.',
+  'the sun is warm on the mat.',
+  'the sun is warm on the log.',
+  'a warm cat naps in the sun.',
+  'a warm dog naps in the sun.',
+  'the cat and the dog nap in the sun.',
+  'the dog and the cat sit in the sun.',
+  'the small dog sees the small cat.',
+  'the big cat sees the big dog.',
+  'a cat ran to the sun on the mat.',
+  'a dog ran to the sun on the log.',
+  'the cat likes to nap on a warm mat.',
+  'the dog likes to nap on a warm log.',
+  'the cat and the dog like the sun.',
+  'the dog and the cat like the mat.',
+  'the sun is big and the cat is small.',
+  'the sun is warm and the dog is big.'
+].join('\n') + '\n';
+
+/* ---------------------------------------------------------- tokenizer (BPE)
+   id 0 is always the unknown token. Base ids are the most frequent characters
+   of the corpus. Everything above that is a learned merge of two ids.        */
+var UNK = 0;
+
+function Tokenizer(){ this.reset(); }
+
+Tokenizer.prototype.reset = function(){
+  this.vocab = ['�'];      // decoded string for each id
+  this.merges = [];             // {a,b,id,count}
+  this.charToId = new Map();
+  this.baseSize = 1;
+  this.unused = 0;
+  this.trainIds = new Int32Array(0);
+  this.counts = new Int32Array(1);
+};
+
+Tokenizer.prototype.build = function(text, target){
+  this.reset();
+  target = Math.max(2, target | 0);
+
+  /* --- 1. base vocabulary: the most frequent characters --- */
+  var freq = new Map(), ch, i;
+  for (ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
+  var chars = Array.from(freq.keys());
+  chars.sort(function(a, b){
+    var d = freq.get(b) - freq.get(a);
+    return d !== 0 ? d : (a < b ? -1 : 1);
+  });
+  var maxBase = Math.max(1, target - 1);
+  if (chars.length > maxBase) chars = chars.slice(0, maxBase);
+  chars.sort(function(a, b){ return a.codePointAt(0) - b.codePointAt(0); });
+  for (i = 0; i < chars.length; i++){
+    this.charToId.set(chars[i], this.vocab.length);
+    this.vocab.push(chars[i]);
+  }
+  this.baseSize = this.vocab.length;
+
+  /* --- 2. encode corpus with base ids --- */
+  var ids = [];
+  for (ch of text){
+    var id = this.charToId.get(ch);
+    ids.push(id === undefined ? UNK : id);
+  }
+
+  /* --- 3. repeatedly merge the most frequent adjacent pair --- */
+  while (this.vocab.length < target){
+    var counts = new Map();
+    for (i = 0; i + 1 < ids.length; i++){
+      var key = ids[i] * 4096 + ids[i + 1];
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    var bestKey = -1, bestC = 1;
+    counts.forEach(function(c, k){ if (c > bestC){ bestC = c; bestKey = k; } });
+    if (bestKey < 0) break;                       // nothing repeats any more
+    var a = Math.floor(bestKey / 4096), b = bestKey % 4096;
+    var nid = this.vocab.length;
+    this.vocab.push(this.vocab[a] + this.vocab[b]);
+    this.merges.push({ a: a, b: b, id: nid, count: bestC });
+    ids = applyMerge(ids, a, b, nid);
+  }
+  /* keep the embedding matrix a fixed size even for degenerate corpora */
+  while (this.vocab.length < target){ this.vocab.push(''); this.unused++; }
+
+  this.trainIds = Int32Array.from(ids);
+
+  /* --- 4. how often each token actually occurs --- */
+  this.counts = new Int32Array(this.vocab.length);
+  for (i = 0; i < ids.length; i++) this.counts[ids[i]]++;
+  return this.trainIds;
+};
+
+function applyMerge(ids, a, b, nid){
+  var out = [], i = 0, n = ids.length;
+  while (i < n){
+    if (i + 1 < n && ids[i] === a && ids[i + 1] === b){ out.push(nid); i += 2; }
+    else out.push(ids[i++]);
+  }
+  return out;
+}
+
+Tokenizer.prototype.encode = function(text){
+  var ids = [], ch;
+  for (ch of text){
+    var id = this.charToId.get(ch);
+    ids.push(id === undefined ? UNK : id);
+  }
+  for (var m = 0; m < this.merges.length; m++){
+    var mm = this.merges[m];
+    ids = applyMerge(ids, mm.a, mm.b, mm.id);
+  }
+  return ids;
+};
+
+Tokenizer.prototype.decode = function(ids){
+  var s = '';
+  for (var i = 0; i < ids.length; i++) s += (this.vocab[ids[i]] || '');
+  return s;
+};
+
+/* printable form of a token: spaces and newlines get visible glyphs */
+function tokDisp(s){
+  if (s === undefined || s === null) return '?';
+  if (s === '') return '∅';
+  if (s === '�') return '¿unk?';
+  return s.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⇥');
+}
+
+/* ====================================================================== */
+/*  math kernels                                                          */
+/* ====================================================================== */
+
+/* out[t,o] = sum_i inp[t,i] * W[i,o] (+ b[o]) ; W is [DI x DO] row-major */
+function mm(out, inp, W, b, N, DI, DO){
+  for (var t = 0; t < N; t++){
+    var io = t * DI, oo = t * DO, o, i;
+    if (b){ for (o = 0; o < DO; o++) out[oo + o] = b[o]; }
+    else  { for (o = 0; o < DO; o++) out[oo + o] = 0; }
+    for (i = 0; i < DI; i++){
+      var xi = inp[io + i];
+      if (xi === 0) continue;
+      var wo = i * DO;
+      for (o = 0; o < DO; o++) out[oo + o] += xi * W[wo + o];
+    }
+  }
+}
+
+/* accumulates dInp += dOut W^T ; dW += inp^T dOut ; db += sum dOut */
+function mmBack(dInp, dW, db, dOut, inp, W, N, DI, DO){
+  for (var t = 0; t < N; t++){
+    var io = t * DI, oo = t * DO, i, o;
+    for (i = 0; i < DI; i++){
+      var wo = i * DO, xi = inp[io + i], s = 0;
+      for (o = 0; o < DO; o++){
+        var g = dOut[oo + o];
+        s += g * W[wo + o];
+        dW[wo + o] += xi * g;
+      }
+      dInp[io + i] += s;
+    }
+    if (db){ for (o = 0; o < DO; o++) db[o] += dOut[oo + o]; }
+  }
+}
+
+/* layer norm over the last dimension, storing what backprop needs */
+function lnFwd(C, inp, g, b, N, D){
+  for (var t = 0; t < N; t++){
+    var o = t * D, i, m = 0, v = 0;
+    for (i = 0; i < D; i++) m += inp[o + i];
+    m /= D;
+    for (i = 0; i < D; i++){ var dd = inp[o + i] - m; v += dd * dd; }
+    v /= D;
+    var rs = 1 / Math.sqrt(v + 1e-5);
+    C.mu[t] = m; C.rstd[t] = rs;
+    for (i = 0; i < D; i++){
+      var xh = (inp[o + i] - m) * rs;
+      C.xhat[o + i] = xh;
+      C.out[o + i] = xh * g[i] + b[i];
+    }
+  }
+}
+
+function lnBack(dInp, pg, pb, dOut, C, N, D){
+  var g = pg.data, dg = pg.grad, db = pb.grad;
+  for (var t = 0; t < N; t++){
+    var o = t * D, i, m1 = 0, m2 = 0, dxh;
+    for (i = 0; i < D; i++){
+      dxh = dOut[o + i] * g[i];
+      m1 += dxh; m2 += dxh * C.xhat[o + i];
+    }
+    m1 /= D; m2 /= D;
+    var rs = C.rstd[t];
+    for (i = 0; i < D; i++){
+      dxh = dOut[o + i] * g[i];
+      dInp[o + i] += (dxh - m1 - C.xhat[o + i] * m2) * rs;
+      dg[i] += dOut[o + i] * C.xhat[o + i];
+      db[i] += dOut[o + i];
+    }
+  }
+}
+
+var GELU_C = 0.7978845608028654;   /* sqrt(2/pi) */
+function gelu(y, x, n){
+  for (var i = 0; i < n; i++){
+    var v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
+    y[i] = 0.5 * v * (1 + t);
+  }
+}
+function geluBack(dx, dy, x, n){
+  for (var i = 0; i < n; i++){
+    var v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
+    var dt = (1 - t * t) * GELU_C * (1 + 3 * 0.044715 * v * v);
+    dx[i] = dy[i] * (0.5 * (1 + t) + 0.5 * v * dt);
+  }
+}
+
+/* ====================================================================== */
+/*  the model                                                             */
+/* ====================================================================== */
+
+var DEFAULT_CFG = { nVocab: 42, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
+
+/* how many parameters a config needs, without building it */
+function paramCount(c){
+  var d = c.nEmbd;
+  var per = 4 * d * d          /* Wq Wk Wv Wo   */
+          + 4 * d              /* two layernorms */
+          + 2 * d * c.nFF + c.nFF + d;  /* mlp */
+  return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
+}
+
+function GPT(cfg){
+  this.cfg = { nVocab: cfg.nVocab, nCtx: cfg.nCtx, nEmbd: cfg.nEmbd,
+               nLayer: cfg.nLayer, nHead: cfg.nHead, nFF: cfg.nFF };
+  this.params = [];
+  this.P = {};
+  this.layers = [];
+  this.t = 0;
+  this.gradNorm = 0;
+  this.alloc();
+  this.initWeights(20240517);
+  this.cacheTrain = this.makeCache();
+  this.cacheViz = this.makeCache();
+  this.cacheAux = this.makeCache();
+  this.scratch = this.makeScratch();
+}
+
+GPT.prototype.add = function(name, shape, role){
+  var n = shape.reduce(function(a, b){ return a * b; }, 1);
+  var p = { name: name, shape: shape, n: n, role: role,
+            data: F32(n), grad: F32(n), m: F32(n), v: F32(n), offset: 0 };
+  this.params.push(p);
+  this.P[name] = p;
+  return p;
+};
+
+GPT.prototype.alloc = function(){
+  var c = this.cfg, l;
+  this.add('wte', [c.nVocab, c.nEmbd], 'emb');
+  this.add('wpe', [c.nCtx, c.nEmbd], 'emb');
+  for (l = 0; l < c.nLayer; l++){
+    var p = {};
+    p.ln1g = this.add('h' + l + '.ln1.g', [c.nEmbd], 'lng');
+    p.ln1b = this.add('h' + l + '.ln1.b', [c.nEmbd], 'lnb');
+    p.Wq   = this.add('h' + l + '.attn.Wq', [c.nEmbd, c.nEmbd], 'w');
+    p.Wk   = this.add('h' + l + '.attn.Wk', [c.nEmbd, c.nEmbd], 'w');
+    p.Wv   = this.add('h' + l + '.attn.Wv', [c.nEmbd, c.nEmbd], 'w');
+    p.Wo   = this.add('h' + l + '.attn.Wo', [c.nEmbd, c.nEmbd], 'wproj');
+    p.ln2g = this.add('h' + l + '.ln2.g', [c.nEmbd], 'lng');
+    p.ln2b = this.add('h' + l + '.ln2.b', [c.nEmbd], 'lnb');
+    p.W1   = this.add('h' + l + '.mlp.W1', [c.nEmbd, c.nFF], 'w');
+    p.b1   = this.add('h' + l + '.mlp.b1', [c.nFF], 'b');
+    p.W2   = this.add('h' + l + '.mlp.W2', [c.nFF, c.nEmbd], 'wproj');
+    p.b2   = this.add('h' + l + '.mlp.b2', [c.nEmbd], 'b');
+    this.layers.push(p);
+  }
+  this.add('lnf.g', [c.nEmbd], 'lng');
+  this.add('lnf.b', [c.nEmbd], 'lnb');
+
+  var off = 0;
+  for (var i = 0; i < this.params.length; i++){
+    this.params[i].offset = off;
+    off += this.params[i].n;
+  }
+  this.nParams = off;
+};
+
+GPT.prototype.initWeights = function(seed){
+  RNG = mulberry32(seed >>> 0);
+  var c = this.cfg;
+  for (var i = 0; i < this.params.length; i++){
+    var p = this.params[i], j;
+    if (p.role === 'lng') p.data.fill(1);
+    else if (p.role === 'lnb' || p.role === 'b') p.data.fill(0);
+    else if (p.role === 'emb'){ for (j = 0; j < p.n; j++) p.data[j] = randn() * 0.08; }
+    else {
+      var s = 1 / Math.sqrt(p.shape[0]);
+      if (p.role === 'wproj') s /= Math.sqrt(2 * c.nLayer);  /* GPT-2 residual scaling */
+      for (j = 0; j < p.n; j++) p.data[j] = randn() * s;
+    }
+    p.grad.fill(0); p.m.fill(0); p.v.fill(0);
+  }
+  this.t = 0; this.gradNorm = 0;
+};
+
+function lnCache(T, d){ return { out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) }; }
+
+GPT.prototype.makeCache = function(){
+  var c = this.cfg, T = c.nCtx, d = c.nEmbd, B = [], l;
+  for (l = 0; l < c.nLayer; l++){
+    B.push({
+      xin: F32(T * d), ln1: lnCache(T, d),
+      q: F32(T * d), k: F32(T * d), v: F32(T * d),
+      att: F32(c.nHead * T * T), ao: F32(T * d), attnOut: F32(T * d), xres1: F32(T * d),
+      ln2: lnCache(T, d),
+      hpre: F32(T * c.nFF), hact: F32(T * c.nFF), mlpOut: F32(T * d), xout: F32(T * d)
+    });
+  }
+  return { n: 0, tokens: new Int32Array(T), x0: F32(T * d), tokEmb: F32(T * d), posEmb: F32(T * d),
+           blocks: B, lnf: lnCache(T, d), logits: F32(T * c.nVocab), probs: F32(T * c.nVocab) };
+};
+
+GPT.prototype.makeScratch = function(){
+  var c = this.cfg, T = c.nCtx, d = c.nEmbd;
+  return { dx: F32(T * d), dres: F32(T * d), din: F32(T * d), dtmp: F32(T * d), dxf: F32(T * d),
+           dq: F32(T * d), dk: F32(T * d), dv: F32(T * d), dao: F32(T * d),
+           dh1: F32(T * c.nFF), dh2: F32(T * c.nFF),
+           dlogits: F32(T * c.nVocab), datt: F32(T), dsc: F32(T) };
+};
+
+/* ---------------------------------------------------------- forward pass */
+GPT.prototype.forward = function(tokens, n, C){
+  var c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
+      hf = c.nFF, V = c.nVocab, T = c.nCtx;
+  var scale = 1 / Math.sqrt(dh);
+  var wte = this.P.wte.data, wpe = this.P.wpe.data;
+  var t, i, j, z, l, h, o;
+
+  C.n = n;
+  for (t = 0; t < n; t++){
+    C.tokens[t] = tokens[t];
+    var oo = t * d, to = tokens[t] * d;
+    for (i = 0; i < d; i++){
+      C.tokEmb[oo + i] = wte[to + i];
+      C.posEmb[oo + i] = wpe[oo + i];
+      C.x0[oo + i] = wte[to + i] + wpe[oo + i];
+    }
+  }
+
+  var x = C.x0;
+  for (l = 0; l < L; l++){
+    var B = C.blocks[l], p = this.layers[l];
+    for (i = 0; i < n * d; i++) B.xin[i] = x[i];
+
+    lnFwd(B.ln1, B.xin, p.ln1g.data, p.ln1b.data, n, d);
+    mm(B.q, B.ln1.out, p.Wq.data, null, n, d, d);
+    mm(B.k, B.ln1.out, p.Wk.data, null, n, d, d);
+    mm(B.v, B.ln1.out, p.Wv.data, null, n, d, d);
+
+    /* causal multi-head self-attention */
+    for (h = 0; h < H; h++){
+      var hd = h * dh, ab = h * T * T;
+      for (i = 0; i < n; i++){
+        var row = ab + i * T, qo = i * d + hd, mx = -1e30, s;
+        for (j = 0; j <= i; j++){
+          var ko = j * d + hd;
+          s = 0;
+          for (z = 0; z < dh; z++) s += B.q[qo + z] * B.k[ko + z];
+          s *= scale;
+          B.att[row + j] = s;
+          if (s > mx) mx = s;
+        }
+        var sum = 0;
+        for (j = 0; j <= i; j++){ var e = Math.exp(B.att[row + j] - mx); B.att[row + j] = e; sum += e; }
+        var inv = 1 / sum;
+        for (j = 0; j <= i; j++) B.att[row + j] *= inv;
+        for (j = i + 1; j < T; j++) B.att[row + j] = 0;      /* masked future */
+        var ao = i * d + hd;
+        for (z = 0; z < dh; z++) B.ao[ao + z] = 0;
+        for (j = 0; j <= i; j++){
+          var a = B.att[row + j], vo = j * d + hd;
+          for (z = 0; z < dh; z++) B.ao[ao + z] += a * B.v[vo + z];
+        }
+      }
+    }
+
+    mm(B.attnOut, B.ao, p.Wo.data, null, n, d, d);
+    for (i = 0; i < n * d; i++) B.xres1[i] = B.xin[i] + B.attnOut[i];
+
+    lnFwd(B.ln2, B.xres1, p.ln2g.data, p.ln2b.data, n, d);
+    mm(B.hpre, B.ln2.out, p.W1.data, p.b1.data, n, d, hf);
+    gelu(B.hact, B.hpre, n * hf);
+    mm(B.mlpOut, B.hact, p.W2.data, p.b2.data, n, hf, d);
+    for (i = 0; i < n * d; i++) B.xout[i] = B.xres1[i] + B.mlpOut[i];
+
+    x = B.xout;
+  }
+
+  lnFwd(C.lnf, x, this.P['lnf.g'].data, this.P['lnf.b'].data, n, d);
+
+  /* output head, weights tied to the token embedding */
+  for (t = 0; t < n; t++){
+    var xo = t * d, lo = t * V, mx2 = -1e30;
+    for (var k = 0; k < V; k++){
+      var wo2 = k * d, sv = 0;
+      for (i = 0; i < d; i++) sv += C.lnf.out[xo + i] * wte[wo2 + i];
+      C.logits[lo + k] = sv;
+      if (sv > mx2) mx2 = sv;
+    }
+    var sm = 0;
+    for (k = 0; k < V; k++){ var ev = Math.exp(C.logits[lo + k] - mx2); C.probs[lo + k] = ev; sm += ev; }
+    var iv = 1 / sm;
+    for (k = 0; k < V; k++) C.probs[lo + k] *= iv;
+  }
+  return C;
+};
+
+/* --------------------------------------------------------- backward pass */
+GPT.prototype.backward = function(targets, n, C, lossScale){
+  var c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
+      hf = c.nFF, V = c.nVocab, T = c.nCtx;
+  var s = this.scratch, scale = 1 / Math.sqrt(dh);
+  var wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
+  var t, i, j, z, k, l, h, loss = 0;
+
+  /* softmax cross-entropy */
+  for (t = 0; t < n; t++){
+    var lo = t * V, tg = targets[t];
+    loss += -Math.log(Math.max(C.probs[lo + tg], 1e-12));
+    for (k = 0; k < V; k++) s.dlogits[lo + k] = (C.probs[lo + k] - (k === tg ? 1 : 0)) * lossScale;
+  }
+
+  /* tied head: logits = lnf.out @ wte^T */
+  var dxf = s.dxf;
+  dxf.fill(0, 0, n * d);
+  for (t = 0; t < n; t++){
+    var lo2 = t * V, xo = t * d;
+    for (k = 0; k < V; k++){
+      var g = s.dlogits[lo2 + k];
+      if (g === 0) continue;
+      var wo = k * d;
+      for (i = 0; i < d; i++){
+        dxf[xo + i] += g * wte[wo + i];
+        gwte[wo + i] += g * C.lnf.out[xo + i];
+      }
+    }
+  }
+
+  var dx = s.dx;
+  dx.fill(0, 0, n * d);
+  lnBack(dx, this.P['lnf.g'], this.P['lnf.b'], dxf, C.lnf, n, d);
+
+  for (l = L - 1; l >= 0; l--){
+    var B = C.blocks[l], p = this.layers[l];
+
+    /* --- residual 2: xout = xres1 + mlpOut --- */
+    var dres = s.dres;
+    for (i = 0; i < n * d; i++) dres[i] = dx[i];
+
+    s.dh1.fill(0, 0, n * hf);
+    mmBack(s.dh1, p.W2.grad, p.b2.grad, dx, B.hact, p.W2.data, n, hf, d);
+    geluBack(s.dh2, s.dh1, B.hpre, n * hf);
+    var dtmp = s.dtmp;
+    dtmp.fill(0, 0, n * d);
+    mmBack(dtmp, p.W1.grad, p.b1.grad, s.dh2, B.ln2.out, p.W1.data, n, d, hf);
+    lnBack(dres, p.ln2g, p.ln2b, dtmp, B.ln2, n, d);
+
+    /* --- residual 1: xres1 = xin + attnOut --- */
+    var din = s.din;
+    for (i = 0; i < n * d; i++) din[i] = dres[i];
+
+    s.dao.fill(0, 0, n * d);
+    mmBack(s.dao, p.Wo.grad, null, dres, B.ao, p.Wo.data, n, d, d);
+
+    s.dq.fill(0, 0, n * d); s.dk.fill(0, 0, n * d); s.dv.fill(0, 0, n * d);
+    for (h = 0; h < H; h++){
+      var hd = h * dh, ab = h * T * T;
+      for (i = 0; i < n; i++){
+        var row = ab + i * T, ao = i * d + hd, qo = i * d + hd;
+        for (j = 0; j <= i; j++){
+          var a = B.att[row + j], vo = j * d + hd, da = 0;
+          for (z = 0; z < dh; z++){
+            da += s.dao[ao + z] * B.v[vo + z];
+            s.dv[vo + z] += a * s.dao[ao + z];
+          }
+          s.datt[j] = da;
+        }
+        var dot = 0;
+        for (j = 0; j <= i; j++) dot += B.att[row + j] * s.datt[j];
+        for (j = 0; j <= i; j++) s.dsc[j] = B.att[row + j] * (s.datt[j] - dot) * scale;
+        for (j = 0; j <= i; j++){
+          var gg = s.dsc[j], ko = j * d + hd;
+          for (z = 0; z < dh; z++){
+            s.dq[qo + z] += gg * B.k[ko + z];
+            s.dk[ko + z] += gg * B.q[qo + z];
+          }
+        }
+      }
+    }
+
+    dtmp.fill(0, 0, n * d);
+    mmBack(dtmp, p.Wq.grad, null, s.dq, B.ln1.out, p.Wq.data, n, d, d);
+    mmBack(dtmp, p.Wk.grad, null, s.dk, B.ln1.out, p.Wk.data, n, d, d);
+    mmBack(dtmp, p.Wv.grad, null, s.dv, B.ln1.out, p.Wv.data, n, d, d);
+    lnBack(din, p.ln1g, p.ln1b, dtmp, B.ln1, n, d);
+
+    for (i = 0; i < n * d; i++) dx[i] = din[i];
+  }
+
+  /* --- embeddings --- */
+  for (t = 0; t < n; t++){
+    var eo = t * d, to = C.tokens[t] * d;
+    for (i = 0; i < d; i++){
+      gwte[to + i] += dx[eo + i];
+      gwpe[eo + i] += dx[eo + i];
+    }
+  }
+  return loss;
+};
+
+GPT.prototype.zeroGrad = function(){
+  for (var i = 0; i < this.params.length; i++) this.params[i].grad.fill(0);
+};
+
+/* AdamW with global gradient-norm clipping */
+GPT.prototype.step = function(lr, wd){
+  this.t++;
+  var b1 = 0.9, b2 = 0.95, eps = 1e-8;
+  var bc1 = 1 - Math.pow(b1, this.t), bc2 = 1 - Math.pow(b2, this.t);
+  var i, j, p, sq = 0;
+  for (i = 0; i < this.params.length; i++){
+    p = this.params[i];
+    for (j = 0; j < p.n; j++) sq += p.grad[j] * p.grad[j];
+  }
+  var gn = Math.sqrt(sq);
+  this.gradNorm = gn;
+  var cl = gn > 1 ? 1 / gn : 1;
+  for (i = 0; i < this.params.length; i++){
+    p = this.params[i];
+    var dec = p.shape.length === 2 ? wd * lr : 0;
+    var D = p.data, G = p.grad, M = p.m, Vv = p.v;
+    for (j = 0; j < p.n; j++){
+      var g = G[j] * cl;
+      M[j] = b1 * M[j] + (1 - b1) * g;
+      Vv[j] = b2 * Vv[j] + (1 - b2) * g * g;
+      D[j] -= lr * (M[j] / bc1) / (Math.sqrt(Vv[j] / bc2) + eps) + dec * D[j];
+    }
+  }
+};
+
+/* one full loss evaluation, used by the gradient checker */
+GPT.prototype.lossOn = function(inp, tgt, n, C){
+  this.forward(inp, n, C);
+  var V = this.cfg.nVocab, loss = 0;
+  for (var t = 0; t < n; t++) loss += -Math.log(Math.max(C.probs[t * V + tgt[t]], 1e-12));
+  return loss / n;
+};
+
+/* ====================================================================== */
+/*  drawing primitives                                                    */
+/* ====================================================================== */
+
+var offCv = document.createElement('canvas');
+var offCx = offCv.getContext('2d');
+var DPR = Math.min(2, window.devicePixelRatio || 1);
+
+var RAMP_POS = [[0, [13, 18, 25]], [0.45, [146, 64, 14]], [1, [253, 224, 71]]];
+var RAMP_NEG = [[0, [13, 18, 25]], [0.45, [30, 64, 175]], [1, [147, 214, 255]]];
+var RAMP_SEQ = [[0, [8, 12, 18]], [0.3, [8, 74, 96]], [0.65, [34, 211, 238]], [1, [240, 253, 255]]];
+
+function ramp(stops, t){
+  t = clamp(t, 0, 1);
+  for (var i = 1; i < stops.length; i++){
+    if (t <= stops[i][0]){
+      var a = stops[i - 1], b = stops[i];
+      var span = b[0] - a[0] || 1, u = (t - a[0]) / span;
+      return [a[1][0] + (b[1][0] - a[1][0]) * u,
+              a[1][1] + (b[1][1] - a[1][1]) * u,
+              a[1][2] + (b[1][2] - a[1][2]) * u];
+    }
+  }
+  return stops[stops.length - 1][1];
+}
+
+function autoCell(rows, cols, maxW, maxH){
+  var cw = Math.floor(maxW / Math.max(1, cols));
+  var chh = Math.floor(maxH / Math.max(1, rows));
+  var c = Math.max(2, Math.min(cw, chh, 14));
+  return c;
+}
+
+function prep(cv, w, h){
+  cv.style.width = w + 'px';
+  cv.style.height = h + 'px';
+  cv.width = Math.max(1, Math.round(w * DPR));
+  cv.height = Math.max(1, Math.round(h * DPR));
+  var x = cv.getContext('2d');
+  x.setTransform(DPR, 0, 0, DPR, 0, 0);
+  x.clearRect(0, 0, w, h);
+  return x;
+}
+
+function prepFluid(cv, h){
+  var w = Math.max(80, cv.clientWidth || (cv.parentElement && cv.parentElement.clientWidth) || 260);
+  cv.style.height = h + 'px';
+  cv.width = Math.round(w * DPR);
+  cv.height = Math.round(h * DPR);
+  var x = cv.getContext('2d');
+  x.setTransform(DPR, 0, 0, DPR, 0, 0);
+  x.clearRect(0, 0, w, h);
+  cv.__w = w; cv.__h = h;
+  return x;
+}
+
+/* the workhorse: draw a matrix as a heatmap and register hover metadata */
+function drawHeat(cv, data, rows, cols, opt){
+  opt = opt || {};
+  var stride = opt.stride || cols;
+  var base = opt.offset || 0;
+  var cw = opt.cellW || opt.cell || autoCell(rows, cols, opt.maxW || 190, opt.maxH || 190);
+  var ch = opt.cellH || cw;
+  var w = cols * cw, h = rows * ch;
+  var i, j, v;
+
+  var mx = opt.max;
+  if (mx === undefined){
+    mx = 1e-9;
+    for (i = 0; i < rows; i++)
+      for (j = 0; j < cols; j++){
+        v = Math.abs(data[base + i * stride + j]);
+        if (v > mx) mx = v;
+      }
+  }
+  var seq = opt.mode === 'seq';
+
+  offCv.width = cols; offCv.height = rows;
+  var img = offCx.createImageData(cols, rows);
+  var px = img.data;
+  for (i = 0; i < rows; i++){
+    for (j = 0; j < cols; j++){
+      v = data[base + i * stride + j];
+      var col;
+      if (seq) col = ramp(RAMP_SEQ, v / mx);
+      else { var r = v / mx; col = r >= 0 ? ramp(RAMP_POS, r) : ramp(RAMP_NEG, -r); }
+      var o = (i * cols + j) * 4;
+      px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = 255;
+    }
+  }
+  offCx.putImageData(img, 0, 0);
+
+  var cx = prep(cv, w, h);
+  cx.imageSmoothingEnabled = false;
+  cx.drawImage(offCv, 0, 0, cols, rows, 0, 0, w, h);
+
+  if (opt.hiRow !== undefined && opt.hiRow >= 0 && opt.hiRow < rows){
+    cx.strokeStyle = 'rgba(255,255,255,.6)';
+    cx.lineWidth = 1;
+    cx.strokeRect(0.5, opt.hiRow * ch + 0.5, w - 1, ch - 1);
+  }
+  if (opt.diag && cw >= 6){
+    cx.strokeStyle = 'rgba(255,255,255,.10)';
+    cx.beginPath();
+    for (i = 0; i <= rows; i++){ cx.moveTo(0, i * ch); cx.lineTo(w, i * ch); }
+    for (j = 0; j <= cols; j++){ cx.moveTo(j * cw, 0); cx.lineTo(j * cw, h); }
+    cx.stroke();
+  }
+
+  cv.__heat = { data: data, rows: rows, cols: cols, stride: stride, base: base,
+                cell: cw, cellH: ch, max: mx, name: opt.name || '',
+                rowLab: opt.rowLab, colLab: opt.colLab, unit: opt.unit || '' };
+  return cv;
+}
+
+function drawRampLegend(cv){
+  var w = 120, h = 9;
+  var cx = prep(cv, w, h);
+  for (var i = 0; i < w; i++){
+    var t = (i / (w - 1)) * 2 - 1;
+    var c = t >= 0 ? ramp(RAMP_POS, t) : ramp(RAMP_NEG, -t);
+    cx.fillStyle = 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
+    cx.fillRect(i, 0, 1, h);
+  }
+}
+
+/* ---------------------------------------------------------- line chart  */
+function drawLoss(cv, raw, ema, ref){
+  var h = 86;
+  var cx = prepFluid(cv, h);
+  var w = cv.__w;
+  var padL = 30, padB = 13, padT = 6, padR = 4;
+  var iw = w - padL - padR, ih = h - padT - padB;
+
+  cx.fillStyle = '#080c12';
+  cx.fillRect(0, 0, w, h);
+
+  if (!raw.length){
+    cx.fillStyle = '#57657a';
+    cx.font = '10px ui-monospace,monospace';
+    cx.fillText('press train to start', padL + 6, h / 2);
+    return;
+  }
+  var lo = Infinity, hi = -Infinity, i;
+  for (i = 0; i < raw.length; i++){
+    if (raw[i] < lo) lo = raw[i];
+    if (raw[i] > hi) hi = raw[i];
+  }
+  if (ref !== undefined && ref > hi) hi = ref;
+  if (hi - lo < 1e-3){ hi += 0.05; lo -= 0.05; }
+  var pad = (hi - lo) * 0.08;
+  hi += pad; lo = Math.max(0, lo - pad);
+
+  function X(i){ return padL + (raw.length < 2 ? iw : (i / (raw.length - 1)) * iw); }
+  function Y(v){ return padT + ih - ((v - lo) / (hi - lo)) * ih; }
+
+  /* axes */
+  cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
+  cx.beginPath();
+  for (i = 0; i <= 3; i++){
+    var yy = Math.round(padT + (ih * i) / 3) + 0.5;
+    cx.moveTo(padL, yy); cx.lineTo(w - padR, yy);
+  }
+  cx.stroke();
+  cx.fillStyle = '#57657a';
+  cx.font = '9px ui-monospace,monospace';
+  cx.textAlign = 'right';
+  for (i = 0; i <= 3; i++){
+    var vv = hi - ((hi - lo) * i) / 3;
+    cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / 3 + 3);
+  }
+  cx.textAlign = 'left';
+
+  /* reference line: loss of a uniform random model */
+  if (ref !== undefined && ref <= hi && ref >= lo){
+    cx.strokeStyle = 'rgba(248,113,113,.45)';
+    cx.setLineDash([3, 3]);
+    cx.beginPath(); cx.moveTo(padL, Y(ref)); cx.lineTo(w - padR, Y(ref)); cx.stroke();
+    cx.setLineDash([]);
+    cx.fillStyle = 'rgba(248,113,113,.7)';
+    cx.fillText('random', padL + 3, Y(ref) - 3);
+  }
+
+  /* raw */
+  cx.strokeStyle = 'rgba(34,211,238,.28)';
+  cx.beginPath();
+  for (i = 0; i < raw.length; i++){
+    var x = X(i), y = Y(raw[i]);
+    if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+  }
+  cx.stroke();
+
+  /* smoothed */
+  cx.strokeStyle = '#22d3ee'; cx.lineWidth = 1.5;
+  cx.beginPath();
+  for (i = 0; i < ema.length; i++){
+    var x2 = X(i), y2 = Y(ema[i]);
+    if (i === 0) cx.moveTo(x2, y2); else cx.lineTo(x2, y2);
+  }
+  cx.stroke();
+
+  cx.fillStyle = '#57657a';
+  cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
+}
+
+/* ---------------------------------------------------------- histogram   */
+function drawHist(cv, data, n, title){
+  var h = 62;
+  var cx = prepFluid(cv, h);
+  var w = cv.__w, i;
+  cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
+  var mx = 1e-9;
+  for (i = 0; i < n; i++){ var a = Math.abs(data[i]); if (a > mx) mx = a; }
+  var NB = 41, bins = new Float64Array(NB);
+  for (i = 0; i < n; i++){
+    var b = Math.round(((data[i] / mx) * 0.5 + 0.5) * (NB - 1));
+    bins[clamp(b, 0, NB - 1)]++;
+  }
+  var bmx = 0;
+  for (i = 0; i < NB; i++) if (bins[i] > bmx) bmx = bins[i];
+  var bw = (w - 8) / NB, padB = 12;
+  for (i = 0; i < NB; i++){
+    var t = (i / (NB - 1)) * 2 - 1;
+    var c = t >= 0 ? ramp(RAMP_POS, Math.abs(t)) : ramp(RAMP_NEG, Math.abs(t));
+    var bh = bmx ? (bins[i] / bmx) * (h - padB - 6) : 0;
+    cx.fillStyle = 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
+    cx.fillRect(4 + i * bw, h - padB - bh, Math.max(1, bw - 1), bh);
+  }
+  cx.strokeStyle = '#1b2431';
+  cx.beginPath(); cx.moveTo(0, h - padB + 0.5); cx.lineTo(w, h - padB + 0.5); cx.stroke();
+  cx.fillStyle = '#57657a';
+  cx.font = '9px ui-monospace,monospace';
+  cx.fillText((-mx).toFixed(3), 4, h - 2);
+  cx.textAlign = 'center'; cx.fillText(title || 'distribution', w / 2, h - 2);
+  cx.textAlign = 'right'; cx.fillText('+' + mx.toFixed(3), w - 4, h - 2);
+  cx.textAlign = 'left';
+}
+
+/* ---------------------------------------------------------- bar chart   */
+function drawFreq(cv, tok){
+  var h = 54;
+  var cx = prepFluid(cv, h);
+  var w = cv.__w, i;
+  cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
+  var V = tok.vocab.length, mx = 1;
+  for (i = 0; i < V; i++) if (tok.counts[i] > mx) mx = tok.counts[i];
+  var bw = (w - 6) / V;
+  for (i = 0; i < V; i++){
+    var bh = (tok.counts[i] / mx) * (h - 14);
+    cx.fillStyle = i < tok.baseSize ? '#2f7d5b' : '#b45309';
+    if (tok.counts[i] === 0) cx.fillStyle = '#1b2431';
+    cx.fillRect(3 + i * bw, h - 11 - bh, Math.max(1, bw - 1), bh);
+  }
+  cx.fillStyle = '#57657a';
+  cx.font = '9px ui-monospace,monospace';
+  cx.fillText('id 0', 3, h - 2);
+  cx.textAlign = 'right';
+  cx.fillText('id ' + (V - 1) + ' · max ' + mx, w - 3, h - 2);
+  cx.textAlign = 'left';
+}
+
+/* ---------------------------------------------------------- tooltip     */
+var tipEl = null;
+function initTip(){
+  tipEl = $('#tip');
+  document.addEventListener('mousemove', function(ev){
+    var cv = ev.target;
+    var H = cv && cv.__heat;
+    if (!H){ tipEl.classList.remove('on'); return; }
+    var r = cv.getBoundingClientRect();
+    var cj = Math.floor((ev.clientX - r.left) / H.cell);
+    var ci = Math.floor((ev.clientY - r.top) / H.cellH);
+    if (ci < 0 || ci >= H.rows || cj < 0 || cj >= H.cols){ tipEl.classList.remove('on'); return; }
+    var v = H.data[H.base + ci * H.stride + cj];
+    var txt;
+    if (H.describe) txt = H.describe(ci, cj, v);
+    else {
+      var lines = [];
+      if (H.name) lines.push(H.name);
+      var rl = H.rowLab ? H.rowLab(ci) : ('row ' + ci);
+      var cl = H.colLab ? H.colLab(cj) : ('col ' + cj);
+      lines.push(rl + '   ×   ' + cl);
+      lines.push('= ' + (Math.abs(v) < 1e-4 && v !== 0 ? v.toExponential(2) : v.toFixed(5)) + (H.unit || ''));
+      txt = lines.join('\n');
+    }
+    tipEl.textContent = txt;
+    tipEl.classList.add('on');
+    var tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+    var x = ev.clientX + 14, y = ev.clientY + 14;
+    if (x + tw > window.innerWidth - 6) x = ev.clientX - tw - 12;
+    if (y + th > window.innerHeight - 6) y = ev.clientY - th - 12;
+    tipEl.style.left = x + 'px';
+    tipEl.style.top = y + 'px';
+  }, { passive: true });
+}
+
+/* ====================================================================== */
+/*  application state                                                     */
+/* ====================================================================== */
+
+var S = {
+  cfg: { nVocab: 42, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 },
+  tok: new Tokenizer(),
+  model: null,
+  data: null,
+  corpus: DEFAULT_CORPUS,
+
+  training: false, step: 0, tokensSeen: 0, sps: 0,
+  raw: [], ema: [], emaV: null,
+  lr: 0.02, batch: 16, wd: 0.001,
+
+  temp: 0.85, topk: 10, maxNew: 140,
+  genTokens: [], promptLen: 0, generating: false, genLeft: 0,
+  lastDist: null, lastPick: -1,
+
+  wbMode: 'value', wbSel: 'wte',
+  detail: true, live: true,
+  inBuf: null, tgtBuf: null,
+  vizLabel: '', frame: 0, lastSample: -1
+};
+
+var TENSOR_HUES = { emb: '#22d3ee', w: '#a78bfa', wproj: '#f472b6', b: '#4ade80',
+                    lng: '#fbbf24', lnb: '#fb923c' };
+
+/* ====================================================================== */
+/*  tokenization panel                                                    */
+/* ====================================================================== */
+
+function chipFor(id, extraCls){
+  var tok = S.tok, s = tok.vocab[id];
+  var cls = 'chip';
+  if (id === 0) cls += ' unk';
+  else if (s === '') cls += ' unused';
+  else if (id < tok.baseSize) cls += ' base';
+  else cls += ' merged';
+  if (extraCls) cls += ' ' + extraCls;
+  var c = el('div', cls);
+  c.appendChild(el('span', 'id', String(id)));
+  c.appendChild(el('span', 't', tokDisp(s)));
+  return c;
+}
+
+function renderTokenizer(){
+  var tok = S.tok, i;
+  $('#tokVocabMeta').textContent =
+    tok.vocab.length + ' ids · ' + (tok.baseSize - 1) + ' chars + ' +
+    tok.merges.length + ' merges' + (tok.unused ? ' + ' + tok.unused + ' unused' : '');
+
+  var list = $('#vocabList');
+  list.innerHTML = '';
+  for (i = 0; i < tok.vocab.length; i++){
+    var c = chipFor(i);
+    c.title = 'id ' + i + '  ·  seen ' + tok.counts[i] + '× in corpus';
+    list.appendChild(c);
+  }
+
+  var ml = $('#mergeList');
+  ml.innerHTML = '';
+  $('#tokMergeMeta').textContent = tok.merges.length + ' rules, applied in order';
+  for (i = 0; i < tok.merges.length; i++){
+    var m = tok.merges[i];
+    var r = el('div', 'merge');
+    r.appendChild(el('span', 'r', String(i + 1)));
+    r.appendChild(el('span', 'a', tokDisp(tok.vocab[m.a])));
+    r.appendChild(el('span', '', '+'));
+    r.appendChild(el('span', 'b', tokDisp(tok.vocab[m.b])));
+    r.appendChild(el('span', '', '→'));
+    r.appendChild(el('span', 'n', tokDisp(tok.vocab[m.id])));
+    r.appendChild(el('span', 'c', m.count + '×'));
+    ml.appendChild(r);
+  }
+  if (!tok.merges.length) ml.appendChild(el('div', 'note', 'no repeated pairs left to merge'));
+
+  drawFreq($('#freqChart'), tok);
+}
+
+function renderEncoded(){
+  var ids = S.tok.encode($('#promptText').value);
+  var box = $('#encPreview');
+  box.innerHTML = '';
+  var shown = ids.slice(-S.cfg.nCtx * 2);
+  for (var i = 0; i < shown.length; i++) box.appendChild(chipFor(shown[i]));
+  var cut = ids.length > S.cfg.nCtx;
+  $('#tokEncMeta').textContent =
+    ids.length + ' tokens' + (cut ? ' · last ' + S.cfg.nCtx + ' fed to the model' : '');
+  return ids;
+}
+
+/* ====================================================================== */
+/*  weights & biases panel                                                */
+/* ====================================================================== */
+
+function paramBuf(){
+  var m = S.model, buf = paramBuf.cache;
+  if (!buf || buf.length !== m.nParams){ buf = paramBuf.cache = F32(m.nParams); }
+  var src = S.wbMode === 'grad' ? 'grad' : 'data';
+  for (var i = 0; i < m.params.length; i++){
+    var p = m.params[i];
+    buf.set(p[src], p.offset);
+  }
+  return buf;
+}
+paramBuf.cache = null;
+
+function paramAt(idx){
+  var ps = S.model.params;
+  for (var i = 0; i < ps.length; i++){
+    if (idx >= ps[i].offset && idx < ps[i].offset + ps[i].n) return { p: ps[i], local: idx - ps[i].offset };
+  }
+  return null;
+}
+
+function drawParamMap(){
+  var m = S.model, cv = $('#paramMap');
+  var n = m.nParams;
+  var side = Math.ceil(Math.sqrt(n));
+  var buf = paramBuf();
+  var grid = drawParamMap.grid;
+  if (!grid || grid.length !== side * side) grid = drawParamMap.grid = F32(side * side);
+  grid.fill(0);
+  grid.set(buf.subarray(0, n), 0);
+
+  var cell = clamp(Math.floor(316 / side), 1, 8);
+  var scale = robustMax(buf, n);
+  drawHeat(cv, grid, side, side, {
+    cell: cell, max: scale,
+    name: S.wbMode === 'grad' ? 'gradient map' : 'parameter map'
+  });
+
+  var H = cv.__heat;
+  H.describe = function(i, j){
+    var idx = i * side + j;
+    if (idx >= n) return '(padding)';
+    var hit = paramAt(idx);
+    var p = hit.p, loc = hit.local, where;
+    if (p.shape.length === 2){
+      var cols = p.shape[1];
+      where = p.name + '[' + Math.floor(loc / cols) + ',' + (loc % cols) + ']';
+    } else where = p.name + '[' + loc + ']';
+    return where + '\n#' + idx + ' of ' + n +
+           '\n= ' + buf[idx].toFixed(6) + (S.wbMode === 'grad' ? '  (gradient)' : '');
+  };
+  cv.onclick = function(ev){
+    var r = cv.getBoundingClientRect();
+    var j = Math.floor((ev.clientX - r.left) / cell), i = Math.floor((ev.clientY - r.top) / cell);
+    var idx = i * side + j;
+    if (idx < 0 || idx >= n) return;
+    var hit = paramAt(idx);
+    if (hit) selectTensor(hit.p.name);
+  };
+
+  var stat = statsOf(buf, n);
+  $('#wbMeta').textContent = 'μ ' + fmt(stat.mean, 3) + '  σ ' + fmt(stat.std, 3) +
+                             '  max ' + fmt(stat.amax, 3) + '  scale ±' + fmt(scale, 3);
+  $('#wCount').textContent = commas(n) + ' parameters';
+}
+drawParamMap.grid = null;
+
+/* colour scale that ignores a handful of outliers — without it the layernorm
+   gains (all exactly 1.0) set the scale and every real weight renders nearly
+   black */
+function robustMax(a, n){
+  var st = statsOf(a, n);
+  var s = Math.abs(st.mean) + 3 * st.std;
+  if (!(s > 1e-9)) s = st.amax;
+  return Math.max(1e-9, Math.min(st.amax, s));
+}
+
+function statsOf(a, n){
+  var mean = 0, i, amax = 0;
+  for (i = 0; i < n; i++){ mean += a[i]; var t = Math.abs(a[i]); if (t > amax) amax = t; }
+  mean /= n || 1;
+  var v = 0;
+  for (i = 0; i < n; i++){ var dd = a[i] - mean; v += dd * dd; }
+  return { mean: mean, std: Math.sqrt(v / (n || 1)), amax: amax };
+}
+
+function renderTensorList(){
+  var box = $('#tensorList');
+  box.innerHTML = '';
+  var m = S.model;
+  for (var i = 0; i < m.params.length; i++){
+    (function(p){
+      var r = el('div', 'tr' + (p.name === S.wbSel ? ' on' : ''));
+      var dot = el('div', 'dot');
+      dot.style.background = TENSOR_HUES[p.role] || '#7e8da3';
+      r.appendChild(dot);
+      r.appendChild(el('div', 'nm', p.name));
+      r.appendChild(el('div', 'sh', p.shape.join('×')));
+      r.appendChild(el('div', 'ct', commas(p.n)));
+      r.onclick = function(){ selectTensor(p.name); };
+      box.appendChild(r);
+    })(m.params[i]);
+  }
+}
+
+function selectTensor(name){
+  S.wbSel = name;
+  renderTensorList();
+  drawTensor();
+}
+
+function drawTensor(){
+  var m = S.model, p = m.P[S.wbSel];
+  if (!p) { p = m.params[0]; S.wbSel = p.name; }
+  var src = S.wbMode === 'grad' ? p.grad : p.data;
+  var rows, cols;
+  if (p.shape.length === 2){ rows = p.shape[0]; cols = p.shape[1]; }
+  else { rows = 1; cols = p.shape[0]; }
+
+  var cell = clamp(Math.floor(330 / cols), 3, 12);
+  var cellH = p.shape.length === 2 ? clamp(Math.floor(240 / rows), 3, 12) : 14;
+
+  var tok = S.tok;
+  var rowLab, colLab;
+  if (p.name === 'wte') rowLab = function(i){ return 'token ' + i + '  ' + tokDisp(tok.vocab[i]); };
+  else if (p.name === 'wpe') rowLab = function(i){ return 'position ' + i; };
+  else rowLab = function(i){ return 'in ' + i; };
+  colLab = function(j){ return (p.shape.length === 2 ? 'out ' : 'idx ') + j; };
+
+  drawHeat($('#tensorMap'), src, rows, cols, {
+    cell: cell, cellH: cellH, max: robustMax(src, p.n),
+    name: p.name + '  [' + p.shape.join('×') + ']',
+    rowLab: rowLab, colLab: colLab
+  });
+
+  var st = statsOf(src, p.n);
+  $('#selMeta').textContent = p.name + ' · ' + commas(p.n) + ' values · σ ' + fmt(st.std, 4);
+  drawHist($('#histChart'), src, p.n,
+           (S.wbMode === 'grad' ? 'gradients of ' : 'values of ') + p.name);
+}
+
+function renderWeights(){
+  drawParamMap();
+  drawTensor();
+}
+
+/* ====================================================================== */
+/*  transformer panel                                                     */
+/* ====================================================================== */
+
+function stage(parent, title, sub, expl, cls, noBody){
+  var s = el('div', 'stage' + (cls ? ' ' + cls : ''));
+  var h = el('div', 'stage-h');
+  h.appendChild(el('span', 'stage-t', title));
+  if (sub) h.appendChild(el('span', 'stage-s', sub));
+  s.appendChild(h);
+  if (expl) s.appendChild(el('div', 'stage-x', expl));
+  var b = null;
+  if (!noBody){ b = el('div', 'hrow'); s.appendChild(b); }
+  parent.appendChild(s);
+  return { el: s, body: b, head: h };
+}
+
+function hm(parent, label, det){
+  var w = el('div', 'hm' + (det ? ' det' : ''));
+  var l = el('div', 'hm-l');
+  l.innerHTML = label;
+  w.appendChild(l);
+  var cv = document.createElement('canvas');
+  w.appendChild(cv);
+  var sub = el('div', 'hm-s', '');
+  w.appendChild(sub);
+  parent.appendChild(w);
+  cv.__sub = sub;
+  return cv;
+}
+
+function opsym(parent, sym, det){
+  var e = el('div', 'opsym' + (det ? ' det' : ''), sym);
+  parent.appendChild(e);
+}
+
+var TF = null;
+
+function buildTF(){
+  var root = $('#tfFlow');
+  root.innerHTML = '';
+  var c = S.cfg, l, h;
+  TF = { blocks: [] };
+
+  var s0 = stage(root, '0 · context', 'up to ' + c.nCtx + ' tokens',
+    'The model only ever sees this window of token ids. The highlighted token is the last one; ' +
+    'the prediction for what comes next is read off that position.');
+  TF.tokRow = el('div', 'chips');
+  s0.body.appendChild(TF.tokRow);
+
+  var s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
+    'Each id indexes a row of the token-embedding table; a learned position vector is added on top. ' +
+    'The result is the residual stream: one row per position, ' + c.nEmbd + ' channels wide.');
+  TF.tokEmb = hm(s1.body, 'token emb');
+  opsym(s1.body, '+');
+  TF.posEmb = hm(s1.body, 'position emb');
+  opsym(s1.body, '=');
+  TF.x0 = hm(s1.body, 'x&#8320; stream');
+
+  for (l = 0; l < c.nLayer; l++){
+    var B = { att: [] };
+    var sb = stage(root, (l + 2) + ' · block ' + l, c.nHead + ' heads · head dim ' + (c.nEmbd / c.nHead) +
+                   ' · d_ff ' + c.nFF, null, 'blk', true);
+    var wrap = el('div', 'tfflow');
+    sb.el.appendChild(wrap);
+
+    /* ---- attention ---- */
+    var sa = el('div', 'substage');
+    wrap.appendChild(sa);
+    sa.appendChild(el('div', 'substage-t', 'a · causal self-attention'));
+    sa.appendChild(el('div', 'stage-x',
+      'Every position projects its normalised stream into a query, a key and a value. ' +
+      'Each query is dotted with the keys of all positions up to and including itself; ' +
+      'softmax turns those scores into mixing weights, and the values are blended accordingly.'));
+    var r1 = el('div', 'hrow'); sa.appendChild(r1);
+    B.ln1 = hm(r1, 'layernorm', true);
+    opsym(r1, '→', true);
+    B.q = hm(r1, 'Q = ln·W<sub>q</sub>', true);
+    B.k = hm(r1, 'K = ln·W<sub>k</sub>', true);
+    B.v = hm(r1, 'V = ln·W<sub>v</sub>', true);
+    var r2 = el('div', 'hrow'); sa.appendChild(r2);
+    for (h = 0; h < c.nHead; h++) B.att.push(hm(r2, 'head ' + h + ' attention'));
+    var r3 = el('div', 'hrow'); sa.appendChild(r3);
+    B.ao = hm(r3, 'blended values', true);
+    opsym(r3, '→', true);
+    B.attnOut = hm(r3, 'W<sub>o</sub> out', true);
+    opsym(r3, '+');
+    B.xres1 = hm(r3, 'x <span class="op">+ attn</span>');
+
+    /* ---- mlp ---- */
+    var sm = el('div', 'substage');
+    wrap.appendChild(sm);
+    sm.appendChild(el('div', 'substage-t', 'b · feed-forward network'));
+    sm.appendChild(el('div', 'stage-x',
+      'Each position is processed on its own: expand to ' + c.nFF +
+      ' channels, apply GELU, project back, add to the stream. This is where most of the ' +
+      'per-token knowledge is stored.'));
+    var r4 = el('div', 'hrow'); sm.appendChild(r4);
+    B.ln2 = hm(r4, 'layernorm', true);
+    opsym(r4, '→', true);
+    B.hpre = hm(r4, 'hidden (pre)', true);
+    B.hact = hm(r4, 'GELU');
+    opsym(r4, '→', true);
+    B.mlpOut = hm(r4, 'W<sub>2</sub> out', true);
+    opsym(r4, '+');
+    B.xout = hm(r4, 'x <span class="op">+ mlp</span>');
+
+    TF.blocks.push(B);
+  }
+
+  var s2 = stage(root, (c.nLayer + 2) + ' · output head', 'logits = lnf(x) · wteᵀ',
+    'The stream is normalised once more and compared against every token embedding — the output ' +
+    'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
+    'last row gives the next-token distribution shown in the output panel.');
+  TF.lnf = hm(s2.body, 'final layernorm', true);
+  opsym(s2.body, '→', true);
+  TF.logits = hm(s2.body, 'logits');
+  opsym(s2.body, '→');
+  TF.probs = hm(s2.body, 'softmax probabilities');
+
+  root.classList.toggle('compact', !S.detail);
+  $('#tfArch').textContent = 'd' + c.nEmbd + ' · ' + c.nLayer + 'L · ' + c.nHead + 'H · ff' + c.nFF;
+}
+
+function renderTF(C, label){
+  if (!TF || !S.model) return;
+  var c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
+  if (n <= 0) return;
+  var i, l, h;
+
+  $('#tfMeta').textContent = label;
+
+  TF.tokRow.innerHTML = '';
+  for (i = 0; i < n; i++) TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
+
+  /* size the maps to whatever width the panel actually has: the widest row
+     holds four maps plus operators, attention rows hold one map per head */
+  var flowW = Math.max(330, ($('#tfFlow').clientWidth || 440) - 16);
+  var slotW = (flowW - 62) / 4;
+  var CW = clamp(Math.floor(slotW / d), 3, 12);
+  var CH = clamp(Math.floor(180 / n), 4, 14);
+  var AW = clamp(Math.floor((flowW - 26 * H) / (H * n)), 5, 14);
+  var FW = clamp(Math.floor(slotW / hf), 3, 10);
+  var VW = clamp(Math.floor((flowW - 80) / (2 * V)), 3, 12);
+
+  var pos = function(i){ return 'pos ' + i + '  ' + tokDisp(S.tok.vocab[C.tokens[i]]); };
+  var dim = function(j){ return 'channel ' + j; };
+  var ffd = function(j){ return 'neuron ' + j; };
+  var voc = function(j){ return 'token ' + j + '  ' + tokDisp(S.tok.vocab[j]); };
+
+  function res(cv, data, cols, cw, colLab, mode, mx, name){
+    drawHeat(cv, data, n, cols, { cellW: cw, cellH: CH, rowLab: pos, colLab: colLab,
+                                  mode: mode, max: mx, name: name });
+    if (cv.__sub) cv.__sub.textContent = n + '×' + cols;
+  }
+
+  res(TF.tokEmb, C.tokEmb, d, CW, dim, null, undefined, 'token embedding');
+  res(TF.posEmb, C.posEmb, d, CW, dim, null, undefined, 'position embedding');
+  res(TF.x0, C.x0, d, CW, dim, null, undefined, 'residual stream x0');
+
+  for (l = 0; l < c.nLayer; l++){
+    var B = C.blocks[l], G = TF.blocks[l];
+    res(G.ln1, B.ln1.out, d, CW, dim, null, undefined, 'block ' + l + ' · ln1');
+    res(G.q, B.q, d, CW, dim, null, undefined, 'block ' + l + ' · Q');
+    res(G.k, B.k, d, CW, dim, null, undefined, 'block ' + l + ' · K');
+    res(G.v, B.v, d, CW, dim, null, undefined, 'block ' + l + ' · V');
+    for (h = 0; h < H; h++){
+      drawHeat(G.att[h], B.att, n, n, {
+        cellW: AW, cellH: AW, stride: T, offset: h * T * T, mode: 'seq', max: 1, diag: true,
+        rowLab: function(i){ return 'query ' + i + '  ' + tokDisp(S.tok.vocab[C.tokens[i]]); },
+        colLab: function(j){ return 'key   ' + j + '  ' + tokDisp(S.tok.vocab[C.tokens[j]]); },
+        name: 'block ' + l + ' · head ' + h + ' attention'
+      });
+      if (G.att[h].__sub) G.att[h].__sub.textContent = n + '×' + n + ' (masked)';
+    }
+    res(G.ao, B.ao, d, CW, dim, null, undefined, 'block ' + l + ' · blended values');
+    res(G.attnOut, B.attnOut, d, CW, dim, null, undefined, 'block ' + l + ' · attention output');
+    res(G.xres1, B.xres1, d, CW, dim, null, undefined, 'block ' + l + ' · stream after attention');
+    res(G.ln2, B.ln2.out, d, CW, dim, null, undefined, 'block ' + l + ' · ln2');
+    res(G.hpre, B.hpre, hf, FW, ffd, null, undefined, 'block ' + l + ' · mlp pre-activation');
+    res(G.hact, B.hact, hf, FW, ffd, null, undefined, 'block ' + l + ' · mlp after GELU');
+    res(G.mlpOut, B.mlpOut, d, CW, dim, null, undefined, 'block ' + l + ' · mlp output');
+    res(G.xout, B.xout, d, CW, dim, null, undefined, 'block ' + l + ' · stream after mlp');
+  }
+
+  res(TF.lnf, C.lnf.out, d, CW, dim, null, undefined, 'final layernorm');
+  res(TF.logits, C.logits, V, VW, voc, null, undefined, 'logits');
+  drawHeat(TF.probs, C.probs, n, V, { cellW: VW, cellH: CH, rowLab: pos, colLab: voc,
+    mode: 'seq', max: 1, name: 'softmax probabilities', hiRow: n - 1 });
+  if (TF.probs.__sub) TF.probs.__sub.textContent = n + '×' + V + ' · last row = prediction';
+}
+
+/* ====================================================================== */
+/*  output panel                                                          */
+/* ====================================================================== */
+
+function renderDist(probs, picked){
+  var box = $('#distBars');
+  box.innerHTML = '';
+  var V = S.cfg.nVocab, i;
+  var idx = [];
+  for (i = 0; i < V; i++) idx.push(i);
+  idx.sort(function(a, b){ return probs[b] - probs[a]; });
+  var K = Math.min(10, V);
+  /* scale against the top probability, but never against less than 25%, so a
+     flat distribution still looks flat */
+  var top = Math.max(probs[idx[0]], 0.25);
+  for (var r = 0; r < K; r++){
+    var id = idx[r], p = probs[id];
+    var row = el('div', 'bar' + (id === picked ? ' sel' : ''));
+    row.appendChild(el('div', 't', (id === picked ? '▸' : ' ') + tokDisp(S.tok.vocab[id])));
+    var tr = el('div', 'track'), f = el('div', 'fill');
+    /* bars are scaled against the most likely token so a flat distribution is
+       still readable; the printed number stays the absolute probability */
+    f.style.width = clamp((p / top) * 100, 0, 100).toFixed(1) + '%';
+
+    tr.appendChild(f);
+    row.appendChild(tr);
+    row.appendChild(el('div', 'p', (p * 100).toFixed(1) + '%'));
+    box.appendChild(row);
+  }
+  var ent = 0;
+  for (i = 0; i < V; i++) if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
+  $('#distMeta').textContent = 'entropy ' + fmt(ent, 2) + ' nats · ' +
+    (picked >= 0 ? 'sampled "' + tokDisp(S.tok.vocab[picked]) + '"' : 'top ' + K + ' of ' + V);
+}
+
+function renderOutput(){
+  var out = $('#outText');
+  out.innerHTML = '';
+  var pTxt = S.tok.decode(S.genTokens.slice(0, S.promptLen));
+  var gTxt = S.tok.decode(S.genTokens.slice(S.promptLen));
+  out.appendChild(el('span', 'p', pTxt));
+  out.appendChild(el('span', 'g', gTxt));
+  out.scrollTop = out.scrollHeight;
+  $('#outCount').textContent = (S.genTokens.length - S.promptLen) + ' generated · ' +
+                               S.genTokens.length + ' total';
+  var chips = $('#outChips');
+  chips.innerHTML = '';
+  var start = Math.max(0, S.genTokens.length - 36);
+  for (var i = start; i < S.genTokens.length; i++)
+    chips.appendChild(chipFor(S.genTokens[i], i >= S.promptLen ? 'gen' : ''));
+}
+
+/* ====================================================================== */
+/*  sampling & generation                                                 */
+/* ====================================================================== */
+
+function allowedIds(){
+  var a = allowedIds.cache;
+  if (a && a.tag === S.tok.vocab.length + ':' + S.tok.merges.length) return a.list;
+  var list = [], i;
+  for (i = 0; i < S.tok.vocab.length; i++) if (S.tok.counts[i] > 0) list.push(i);
+  if (!list.length) for (i = 1; i < S.tok.vocab.length; i++) list.push(i);
+  allowedIds.cache = { tag: S.tok.vocab.length + ':' + S.tok.merges.length, list: list };
+  return list;
+}
+allowedIds.cache = null;
+
+function sampleFrom(probs, temp, k){
+  var ids = allowedIds().slice();
+  ids.sort(function(a, b){ return probs[b] - probs[a]; });
+  if (temp <= 0.02) return ids[0];
+  var K = Math.min(k, ids.length), i, sum = 0;
+  var w = new Float64Array(K);
+  for (i = 0; i < K; i++){ w[i] = Math.pow(Math.max(probs[ids[i]], 1e-12), 1 / temp); sum += w[i]; }
+  var r = rand() * sum, acc = 0;
+  for (i = 0; i < K; i++){ acc += w[i]; if (r <= acc) return ids[i]; }
+  return ids[K - 1];
+}
+
+function resetGen(){
+  var ids = S.tok.encode($('#promptText').value);
+  if (!ids.length && S.data && S.data.length) ids = [S.data[0]];
+  S.genTokens = ids.slice();
+  S.promptLen = ids.length;
+  renderOutput();
+}
+
+function genOne(){
+  var m = S.model, c = S.cfg;
+  if (!S.genTokens.length) return false;
+  var ctx = S.genTokens.slice(-c.nCtx), n = ctx.length;
+  m.forward(ctx, n, m.cacheViz);
+  var probs = m.cacheViz.probs.subarray((n - 1) * c.nVocab, n * c.nVocab);
+  var id = sampleFrom(probs, S.temp, S.topk);
+  S.lastDist = Float32Array.from(probs);
+  S.lastPick = id;
+  S.genTokens.push(id);
+  renderTF(m.cacheViz, 'generating · token ' + (S.genTokens.length - S.promptLen));
+  renderDist(S.lastDist, id);
+  renderOutput();
+  return true;
+}
+
+var genTimer = null;
+function startGen(){
+  if (S.generating){ stopGen(); return; }
+  if (!S.genTokens.length) resetGen();
+  S.generating = true;
+  S.genLeft = S.maxNew;
+  $('#btnGen').textContent = '■ stop';
+  tickGen();
+}
+function tickGen(){
+  if (!S.generating) return;
+  if (S.genLeft <= 0 || !genOne()){ stopGen(); return; }
+  S.genLeft--;
+  genTimer = setTimeout(tickGen, 60);
+}
+function stopGen(){
+  S.generating = false;
+  clearTimeout(genTimer);
+  $('#btnGen').textContent = '▶ generate';
+}
+
+function runPromptForward(){
+  var m = S.model, c = S.cfg;
+  if (!m) return;
+  var ids = S.tok.encode($('#promptText').value);
+  if (!ids.length) ids = [(S.data && S.data.length) ? S.data[0] : 1];
+  var ctx = ids.slice(-c.nCtx);
+  m.forward(ctx, ctx.length, m.cacheViz);
+  var probs = m.cacheViz.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
+  renderTF(m.cacheViz, 'prompt · ' + ctx.length + ' tokens → predicting the next one');
+  renderDist(probs, -1);
+}
+
+function refreshSample(){
+  var m = S.model, c = S.cfg;
+  var ids = S.tok.encode('the ');
+  if (!ids.length) ids = [(S.data && S.data.length) ? S.data[0] : 1];
+  var out = ids.slice();
+  for (var i = 0; i < 100; i++){
+    var ctx = out.slice(-c.nCtx);
+    m.forward(ctx, ctx.length, m.cacheAux);
+    var pr = m.cacheAux.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
+    out.push(sampleFrom(pr, 0.7, 8));
+  }
+  $('#sampleOut').textContent = S.tok.decode(out);
+}
+
+/* ====================================================================== */
+/*  training                                                              */
+/* ====================================================================== */
+
+function lrAt(step){
+  var base = S.lr, warm = 80;
+  if (step < warm) return base * (step + 1) / warm;
+  var p = Math.min(1, (step - warm) / 4000);
+  return base * (0.08 + 0.92 * 0.5 * (1 + Math.cos(Math.PI * p)));
+}
+
+function trainStep(){
+  var m = S.model, c = S.cfg, n = c.nCtx, B = S.batch, data = S.data;
+  var span = Math.max(1, data.length - n - 1);
+  m.zeroGrad();
+  var loss = 0, scale = 1 / (n * B), b, i;
+  for (b = 0; b < B; b++){
+    var st = randInt(span);
+    for (i = 0; i < n; i++){
+      S.inBuf[i] = data[(st + i) % data.length];
+      S.tgtBuf[i] = data[(st + i + 1) % data.length];
+    }
+    m.forward(S.inBuf, n, m.cacheTrain);
+    loss += m.backward(S.tgtBuf, n, m.cacheTrain, scale);
+  }
+  m.step(lrAt(S.step), S.wd);
+  S.step++;
+  S.tokensSeen += n * B;
+  return loss / (n * B);
+}
+
+/* run one small batch backward so the gradient view has something to show
+   before training has ever been started */
+function primeGrads(){
+  var m = S.model, c = S.cfg, n = c.nCtx, B = Math.min(4, S.batch), data = S.data;
+  var span = Math.max(1, data.length - n - 1), scale = 1 / (n * B), b, i;
+  m.zeroGrad();
+  for (b = 0; b < B; b++){
+    var st = randInt(span);
+    for (i = 0; i < n; i++){
+      S.inBuf[i] = data[(st + i) % data.length];
+      S.tgtBuf[i] = data[(st + i + 1) % data.length];
+    }
+    m.forward(S.inBuf, n, m.cacheTrain);
+    m.backward(S.tgtBuf, n, m.cacheTrain, scale);
+  }
+  var sq = 0;
+  for (i = 0; i < m.params.length; i++){
+    var g = m.params[i].grad;
+    for (b = 0; b < m.params[i].n; b++) sq += g[b] * g[b];
+  }
+  m.gradNorm = Math.sqrt(sq);
+}
+
+function randomLoss(){
+  var nz = allowedIds().length;
+  return Math.log(Math.max(2, nz));
+}
+
+function updateStats(loss){
+  $('#pStep').textContent = commas(S.step);
+  $('#pLoss').textContent = fmt(loss, 3);
+  $('#pSps').textContent = commas(S.sps);
+  $('#sLoss').textContent = fmt(loss, 4);
+  $('#sPpl').textContent = fmt(Math.exp(loss), 2);
+  $('#sGn').textContent = fmt(S.model.gradNorm, 3);
+  $('#sSeen').textContent = commas(S.tokensSeen);
+}
+
+function trainFrame(){
+  if (!S.training) return;
+  var t0 = performance.now(), k = 0, acc = 0;
+  /* always take at least one step, and never hog the thread for a whole batch
+     of them, whatever the clock does */
+  do { acc += trainStep(); k++; } while (k < 512 && performance.now() - t0 < 22);
+  var dt = (performance.now() - t0) / 1000;
+  S.sps = Math.round(k / Math.max(dt, 1e-6));
+  var loss = acc / k;
+
+  S.raw.push(loss);
+  S.emaV = (S.emaV === null) ? loss : S.emaV * 0.88 + loss * 0.12;
+  S.ema.push(S.emaV);
+  if (S.raw.length > 900){
+    S.raw = S.raw.filter(function(_, i){ return i % 2 === 0; });
+    S.ema = S.ema.filter(function(_, i){ return i % 2 === 0; });
+  }
+
+  updateStats(loss);
+  drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+
+  if (S.live){
+    drawParamMap();
+    if (S.frame % 2 === 0) drawTensor();
+    if (S.frame % 3 === 0 && !S.generating) runPromptForward();
+  }
+  if (S.step - S.lastSample >= 200){ S.lastSample = S.step; refreshSample(); }
+
+  S.frame++;
+  /* a timeout keeps the run alive in a background tab, where requestAnimationFrame
+     would be suspended; the yield also keeps the page responsive */
+  setTimeout(trainFrame, 0);
+}
+
+function toggleTrain(){
+  S.training = !S.training;
+  $('#btnTrain').textContent = S.training ? '❚❚ pause' : '▶ train';
+  $('#btnTrain').classList.toggle('primary', !S.training);
+  if (S.training) setTimeout(trainFrame, 0);
+}
+
+/* ====================================================================== */
+/*  build / rebuild                                                       */
+/* ====================================================================== */
+
+function readCfg(){
+  return {
+    nEmbd: clamp(parseInt($('#cfgD').value, 10) || 22, 4, 64),
+    nLayer: clamp(parseInt($('#cfgL').value, 10) || 2, 1, 4),
+    nHead: clamp(parseInt($('#cfgH').value, 10) || 2, 1, 8),
+    nFF: clamp(parseInt($('#cfgF').value, 10) || 50, 4, 160),
+    nCtx: clamp(parseInt($('#cfgT').value, 10) || 20, 4, 48),
+    nVocab: clamp(parseInt($('#cfgV').value, 10) || 42, 8, 96)
+  };
+}
+
+function cfgValid(c){ return c.nEmbd % c.nHead === 0; }
+
+function writeCfg(c){
+  $('#cfgD').value = c.nEmbd; $('#cfgL').value = c.nLayer; $('#cfgH').value = c.nHead;
+  $('#cfgF').value = c.nFF;   $('#cfgT').value = c.nCtx;   $('#cfgV').value = c.nVocab;
+  updateCfgCount();
+}
+
+function updateCfgCount(){
+  var c = readCfg(), box = $('#cfgCount');
+  if (!cfgValid(c)){
+    box.textContent = 'd_model ' + c.nEmbd + ' is not divisible by ' + c.nHead + ' heads';
+    box.style.color = 'var(--bad)';
+    return;
+  }
+  box.style.color = '';
+  box.textContent = commas(paramCount(c)) + ' parameters' + (paramCount(c) === 10000 ? '  ✦' : '');
+}
+
+function updateHeader(){
+  var c = S.cfg;
+  $('#pParams').textContent = commas(S.model.nParams);
+  $('#pArch').textContent = 'd' + c.nEmbd + '·' + c.nLayer + 'L·' + c.nHead + 'H·ff' + c.nFF;
+  $('#pVocab').textContent = c.nVocab;
+  $('#pCtx').textContent = c.nCtx;
+  $('#tfArch').textContent = 'd' + c.nEmbd + ' · ' + c.nLayer + 'L · ' + c.nHead + 'H · ff' + c.nFF;
+}
+
+function rebuildAll(keepText){
+  stopGen();
+  var wasTraining = S.training;
+  S.training = false;
+  $('#btnTrain').textContent = '▶ train';
+  $('#btnTrain').classList.add('primary');
+
+  var text = $('#trainText').value.toLowerCase();
+  if (!text.trim().length){ text = DEFAULT_CORPUS; $('#trainText').value = DEFAULT_CORPUS; }
+  S.corpus = text;
+
+  S.tok.build(text, S.cfg.nVocab);
+  allowedIds.cache = null;
+
+  var ids = Array.prototype.slice.call(S.tok.trainIds);
+  if (!ids.length) ids = [1];
+  while (ids.length < S.cfg.nCtx + 2) ids = ids.concat(ids);
+  S.data = Int32Array.from(ids);
+
+  S.model = new GPT(S.cfg);
+  S.inBuf = new Int32Array(S.cfg.nCtx);
+  S.tgtBuf = new Int32Array(S.cfg.nCtx);
+  S.step = 0; S.tokensSeen = 0; S.raw = []; S.ema = []; S.emaV = null;
+  S.lastSample = -1; S.frame = 0; S.sps = 0;
+  paramBuf.cache = null; drawParamMap.grid = null;
+  if (!S.model.P[S.wbSel]) S.wbSel = 'wte';
+
+  $('#trainMeta').textContent = text.length + ' chars → ' + S.tok.trainIds.length + ' tokens';
+  $('#sampleOut').textContent = '(train the model to see samples)';
+
+  buildTF();
+  renderTokenizer();
+  renderTensorList();
+  renderWeights();
+  renderEncoded();
+  resetGen();
+  runPromptForward();
+  updateHeader();
+  updateCfgCount();
+  updateStats(NaN);
+  $('#pLoss').textContent = '—';
+  drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+  if (wasTraining && keepText) toggleTrain();
+}
+
+function resetWeights(){
+  stopGen();
+  S.model.initWeights((Math.random() * 4294967295) >>> 0);
+  S.step = 0; S.tokensSeen = 0; S.raw = []; S.ema = []; S.emaV = null; S.lastSample = -1;
+  $('#sampleOut').textContent = '(train the model to see samples)';
+  renderWeights();
+  runPromptForward();
+  resetGen();
+  updateStats(NaN);
+  $('#pLoss').textContent = '—';
+  drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+  toast('weights re-initialised');
+}
+
+/* ====================================================================== */
+/*  gradient check — verifies the hand-written backward pass              */
+/* ====================================================================== */
+
+/* Directional-derivative check: perturb a whole tensor along a random unit
+   direction v and compare (L(+e) − L(−e)) / 2e against grad · v. Averaging
+   over the tensor keeps the signal well above float32 rounding noise, which
+   a single-element check does not.                                        */
+function gradCheck(){
+  var m = S.model, c = S.cfg, n = Math.min(8, c.nCtx), i;
+  var inp = new Int32Array(n), tgt = new Int32Array(n);
+  for (i = 0; i < n; i++){
+    inp[i] = S.data[i % S.data.length];
+    tgt[i] = S.data[(i + 1) % S.data.length];
+  }
+  m.zeroGrad();
+  m.forward(inp, n, m.cacheTrain);
+  m.backward(tgt, n, m.cacheTrain, 1 / n);
+
+  var worst = 0, worstName = '', lines = [];
+  for (var pi = 0; pi < m.params.length; pi++){
+    var p = m.params[pi];
+    var v = new Float64Array(p.n), nrm = 0;
+    for (i = 0; i < p.n; i++){ v[i] = rand() * 2 - 1; nrm += v[i] * v[i]; }
+    nrm = Math.sqrt(nrm) || 1;
+    var ana = 0;
+    for (i = 0; i < p.n; i++){ v[i] /= nrm; ana += p.grad[i] * v[i]; }
+
+    var orig = Float32Array.from(p.data), eps = 1e-2;
+    for (i = 0; i < p.n; i++) p.data[i] = orig[i] + eps * v[i];
+    var lp = m.lossOn(inp, tgt, n, m.cacheAux);
+    for (i = 0; i < p.n; i++) p.data[i] = orig[i] - eps * v[i];
+    var lm = m.lossOn(inp, tgt, n, m.cacheAux);
+    p.data.set(orig);
+
+    var num = (lp - lm) / (2 * eps);
+    /* floor the denominator so near-zero derivatives are judged on absolute
+       error rather than on ratios of numerical noise */
+    var rel = Math.abs(num - ana) / Math.max(Math.abs(num) + Math.abs(ana), 1e-3);
+    lines.push(p.name.padEnd(14) + ' analytic ' + ana.toExponential(4) +
+               '  numeric ' + num.toExponential(4) + '  err ' + rel.toExponential(2));
+    if (rel > worst){ worst = rel; worstName = p.name; }
+  }
+  m.zeroGrad();
+  console.log(lines.join('\n'));
+  console.log('worst error ' + worst.toExponential(3) + ' at ' + worstName +
+              (worst < 5e-3 ? '  — backward pass OK' : '  — CHECK FAILED'));
+  return worst;
+}
+
+/* ====================================================================== */
+/*  wiring                                                                */
+/* ====================================================================== */
+
+var promptTimer = null;
+
+function wire(){
+  $('#btnTrain').onclick = toggleTrain;
+  $('#btnReset').onclick = resetWeights;
+  $('#btnApply').onclick = function(){ rebuildAll(true); toast('tokenizer + model rebuilt'); };
+  $('#btnRebuild').onclick = function(){
+    var c = readCfg();
+    if (!cfgValid(c)){
+      toast('d_model ' + c.nEmbd + ' must be a multiple of ' + c.nHead + ' heads');
+      return;
+    }
+    S.cfg = c; writeCfg(c); rebuildAll(true);
+    toast(commas(paramCount(c)) + ' parameters');
+  };
+  ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT', '#cfgV'].forEach(function(sel){
+    $(sel).oninput = updateCfgCount;
+  });
+
+  $('#inLr').oninput = function(){ S.lr = clamp(parseFloat(this.value) || 0.02, 0.0001, 0.5); };
+  $('#inBatch').oninput = function(){ S.batch = clamp(parseInt(this.value, 10) || 16, 1, 64); };
+  $('#chkLive').onchange = function(){ S.live = this.checked; };
+  $('#chkDetail').onchange = function(){
+    S.detail = this.checked;
+    $('#tfFlow').classList.toggle('compact', !S.detail);
+  };
+
+  $('#promptText').oninput = function(){
+    clearTimeout(promptTimer);
+    promptTimer = setTimeout(function(){
+      stopGen();
+      renderEncoded();
+      resetGen();
+      runPromptForward();
+    }, 200);
+  };
+
+  function slider(sel, out, key, fixed){
+    var f = $(sel);
+    f.oninput = function(){
+      S[key] = parseFloat(this.value);
+      $(out).textContent = fixed ? S[key].toFixed(fixed) : S[key];
+    };
+    f.oninput();
+  }
+  slider('#inTemp', '#vTemp', 'temp', 2);
+  slider('#inTopk', '#vTopk', 'topk', 0);
+  slider('#inMax', '#vMax', 'maxNew', 0);
+
+  $('#btnGen').onclick = startGen;
+  $('#btnStep').onclick = function(){ stopGen(); genOne(); };
+  $('#btnClear').onclick = function(){ stopGen(); resetGen(); runPromptForward(); };
+
+  $$('#wbMode button').forEach(function(b){
+    b.onclick = function(){
+      $$('#wbMode button').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      S.wbMode = b.getAttribute('data-m');
+      if (S.wbMode === 'grad' && !S.training && S.model.gradNorm === 0) primeGrads();
+      renderWeights();
+    };
+  });
+
+  var rt = null;
+  window.addEventListener('resize', function(){
+    clearTimeout(rt);
+    rt = setTimeout(function(){
+      drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+      drawHist($('#histChart'), S.model.P[S.wbSel].data, S.model.P[S.wbSel].n, '');
+      drawTensor();
+      drawFreq($('#freqChart'), S.tok);
+    }, 180);
+  });
+}
+
+/* ====================================================================== */
+/*  boot                                                                  */
+/* ====================================================================== */
+
+function boot(){
+  initTip();
+  $('#trainText').value = DEFAULT_CORPUS;
+  writeCfg(S.cfg);
+  wire();
+  drawRampLegend($('#legDiv'));
+  rebuildAll(false);
+  selectTensor('wte');
+  window.slm = { S: S, gradCheck: gradCheck, GPT: GPT, paramCount: paramCount };
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+</script>
+</body>
+</html>
