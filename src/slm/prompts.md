@@ -132,3 +132,16 @@ Place the outCount next to the sub div above #outText.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
+
+## Session 9 - merge input panel and output panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+Look at the #outText div. This output div should have an exact height of 136px. It should not fill the height of the panel.
+Please make it have height 136px, and make the code clean.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
