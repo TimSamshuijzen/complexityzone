@@ -74,13 +74,13 @@ body{
   grid-template-areas:
     "train tf weights"
     "train tf arch"
-    "train tf input"
-    "tok   tf output";
+    "train tf io"
+    "tok   tf io";
   align-items:start;
 }
 .a-train{grid-area:train}.a-tok{grid-area:tok}.a-tf{grid-area:tf}
 .a-w{grid-area:weights}.a-arch{grid-area:arch}
-.a-in{grid-area:input}.a-out{grid-area:output}
+.a-io{grid-area:io}
 @media (min-width:1321px){
   .dash{overflow:hidden;align-items:stretch;
         grid-template-rows:minmax(0,1.49fr) max-content minmax(0,1fr) minmax(0,1.07fr)}
@@ -88,6 +88,9 @@ body{
   .pbody{flex:1 1 auto;max-height:none !important}
   .a-train .cv-wrap{flex:3 1 0;min-height:98px}
   .a-train #sampleOut{flex:1 1 0;max-height:none}
+  /* the generated text keeps the height it has everywhere else as a floor
+     and grows into whatever slack the input & output panel has left */
+  .a-io #outText{flex:1 1 0;min-height:136px;max-height:none}
 }
 @media (min-width:1560px){
   .dash{
@@ -95,16 +98,16 @@ body{
                           minmax(328px,352px) minmax(296px,336px);
     grid-template-rows:minmax(0,2.95fr) minmax(0,1.77fr) minmax(0,1fr) max-content;
     grid-template-areas:
-      "train tf weights input"
-      "train tf weights output"
-      "tok   tf weights output"
-      "tok   tf arch    output";
+      "train tf weights io"
+      "train tf weights io"
+      "tok   tf weights io"
+      "tok   tf arch    io";
   }
 }
 @media (max-width:1320px){
   .dash{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);
-    grid-template-rows:repeat(6,max-content);
-    grid-template-areas:"train tf" "tok tf" "weights tf" "arch tf" "input tf" "output tf";}
+    grid-template-rows:repeat(5,max-content);
+    grid-template-areas:"train tf" "tok tf" "weights tf" "arch tf" "io tf";}
 }
 @media (min-width:901px) and (max-width:1320px){
   .a-tf{align-self:start;position:sticky;top:0}
@@ -115,8 +118,8 @@ body{
   html,body{height:auto;overflow:auto}
   body{min-height:100%}
   .dash{grid-template-columns:minmax(0,1fr);overflow:visible;
-    grid-template-rows:repeat(7,max-content);
-    grid-template-areas:"train" "tok" "tf" "weights" "arch" "input" "output";}
+    grid-template-rows:repeat(6,max-content);
+    grid-template-areas:"train" "tok" "tf" "weights" "arch" "io";}
   .pbody{max-height:none !important}
   .panel{overflow:hidden}
 }
@@ -477,10 +480,10 @@ canvas.fluid{width:100%}
     </div>
   </section>
 
-  <!-- ============ INPUT ============ -->
-  <section class="panel a-in">
+  <!-- ============ INPUT & OUTPUT ============ -->
+  <section class="panel a-io">
     <div class="phead">
-      <h2>input</h2><span class="n">prompt</span>
+      <h2>input &amp; output</h2><span class="n">prompt &rarr; generation</span>
       <div class="row gen-controls">
         <button id="btnGen" class="btn primary">▶ generate</button>
         <button id="btnStep" class="btn">+1 token</button>
@@ -493,16 +496,7 @@ canvas.fluid{width:100%}
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
-    </div>
-  </section>
-
-  <!-- ============ OUTPUT ============ -->
-  <section class="panel a-out">
-    <div class="phead">
-      <h2>output</h2><span class="n" id="outCount">0 tokens</span>
-    </div>
-    <div class="pbody">
-      <div class="sub">output</div>
+      <div class="sub">output <span class="dim" id="outCount">0 tokens</span></div>
       <div class="outtext" id="outText"></div>
       <div class="sub">next-token distribution <span class="dim" id="distMeta"></span></div>
       <div class="bars" id="distBars"></div>
