@@ -145,3 +145,16 @@ Please make it have height 136px, and make the code clean.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
+
+## Session 10 - merge input panel and output panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+Look at the input & output panel. In between #distBars and #outChips, make a canvas showing distribution of probabilities over all tokens. It should look similar to the #freqChart canvas in the tokenization panel.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
+
