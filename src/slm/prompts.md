@@ -170,7 +170,7 @@ Look at the training panel and tokenization panel. Merge the training panel and 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
 
-## Session 12 - merge training panel and tokenization panel
+## Session 12 - remove #btnApply button
 
 **Prompt 1**
 
@@ -178,6 +178,21 @@ Take your time in working this out, you are given plenty of time to think, make 
 Read `index.html`. It is a simple transformer.
 
 Look at the training & tokenization panel. Remove the #btnApply button and event lister. The rebuildAll function should be called during text input or change in text of #trainText.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
+
+## Session 13 - 
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer.
+
+Look at the #btnTrain "train" button in the training & tokenization panel.
+Look at the #btnGen "generate" button in the input & output panel.
+These are the primary buttons.
+Make these buttons slightly larger, slightly more prominent and vibrant.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
