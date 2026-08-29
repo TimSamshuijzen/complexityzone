@@ -354,8 +354,9 @@ canvas.fluid{width:100%}
 </head>
 <body>
 
-<div class="banner">
-  <a href="https://complexity.zone">complexity.zone</a>
+<div id="banner" class="banner">
+  <div style="display: inline-block;"><a href="https://complexity.zone">complexity.zone</a></div>
+  <div style="display: inline-block; margin-left: 60px; font-size: 16px;">slm</div>
 </div>
 
 <header class="top">
@@ -2590,6 +2591,72 @@ function boot(){
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
+
+// DOWNLOADLINKSTART
+// This code is removed in the downloaded html file.
+if (window.location.protocol === 'https:') {
+  const bannerpanel = document.getElementById('banner');
+  const bannerpaneldownloadlink = document.createElement('div');
+  Object.assign(bannerpaneldownloadlink.style, {
+    display: 'inline-block',
+    position: 'relative',
+    marginLeft: '60px',
+    width: '40px',
+    height: '40px'
+  });
+  bannerpanel.appendChild(bannerpaneldownloadlink);
+  const downloadlink = document.createElement('div');
+  downloadlink.title = 'Download html file with all the code, if you want to run it offline and tinker with the code.';
+  Object.assign(downloadlink.style, {
+    position: 'absolute',
+    left: '8px',
+    top: '8px',
+    width: '24px',
+    height: '24px',
+    cursor: 'pointer'
+  });
+  bannerpaneldownloadlink.appendChild(downloadlink);
+  const downloadlink_svg = document.createElement('div');
+  Object.assign(downloadlink_svg.style, {
+    position: 'absolute',
+    left: '0px',
+    top: '0px',
+    width: '24px',
+    height: '24px',
+    cursor: 'pointer'
+  });
+  downloadlink_svg.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 24px; height: 24px;">
+      <path fill="#ffffff" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+    </svg>
+  `;
+  downloadlink.appendChild(downloadlink_svg);
+  let downloaded = false;
+  downloadlink.addEventListener('click', async () => {
+    if (downloaded) {
+      return;
+    }
+    downloaded = true;
+    downloadlink.title = '';
+    downloadlink.style.cursor = 'default';
+    downloadlink_svg.style.display = 'none';
+    try {
+      const response = await fetch(window.location.href);
+      let html = await response.text();
+      html = html.replace(/\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g, '');
+      const blob = new Blob([html], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      a.href = url;
+      a.download = `slm_${dateYYYYMMDD}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+    }
+  });
+}
+// DOWNLOADLINKEND
 </script>
 </body>
 </html>

@@ -1788,8 +1788,7 @@ window.html3dInstance = new HTML3D(document.getElementById('container'), SCENE);
 
 // DOWNLOADLINKSTART
 // This code is removed in the downloaded html file.
-//if (window.location.protocol === 'https:') {
-{
+if (window.location.protocol === 'https:') {
   const headerpanel = document.getElementById('headerpanel');
   const headerpaneldownloadlink = document.createElement('div');
   Object.assign(headerpaneldownloadlink.style, {
