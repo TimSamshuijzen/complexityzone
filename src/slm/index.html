@@ -87,10 +87,7 @@ body{
   .panel{min-height:0}
   .pbody{flex:1 1 auto;max-height:none !important}
   .a-train .cv-wrap{flex:3 1 0;min-height:98px}
-  .a-train #sampleOut{flex:1 1 0;max-height:none}
-  /* the generated text keeps the height it has everywhere else as a floor
-     and grows into whatever slack the input & output panel has left */
-  .a-io #outText{flex:1 1 0;min-height:136px;max-height:none}
+  .a-train #sampleOut{flex:1 1 0;min-height:58px}
 }
 @media (min-width:1560px){
   .dash{
@@ -313,14 +310,12 @@ canvas.fluid{width:100%}
 /* ---------- output ---------- */
 .outtext{
   font-family:var(--mono);font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-word;
-  background:#080c12;border:1px solid var(--line2);border-radius:5px;padding:8px;min-height:70px;
-  max-height:136px;overflow:auto;
+  background:#080c12;border:1px solid var(--line2);border-radius:5px;padding:8px;overflow:auto;
 }
 .outtext .p{color:var(--dim2)}
 .outtext .g{color:var(--accent2)}
-#sampleOut{font-size:11px;min-height:58px;max-height:58px}
-
-#outText {background:#cccccc;}
+#sampleOut{height:58px;font-size:11px}
+#outText{height:136px;background:#cccccc}
 #outText .p{color:#000000}
 #outText .g{color:#352601}
 
