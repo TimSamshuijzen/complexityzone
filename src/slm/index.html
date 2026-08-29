@@ -149,8 +149,7 @@ body{
   flex:1 0 100%;align-items:center;gap:6px;
   margin-top:1px;padding-top:7px;border-top:1px solid var(--line);
 }
-/* the label flips to "■ stop" while generating; holding the width keeps
-   the two buttons beside it from jumping */
+#btnTrain{min-width:66px}
 #btnGen{min-width:80px}
 .pbody{padding:10px 11px;overflow:auto;display:flex;flex-direction:column;gap:9px;min-height:0}
 .pbody > *{flex:0 0 auto}
@@ -159,7 +158,6 @@ body{
 .hrow > .chips{flex:1 1 100%;min-width:0}
 /* below the dashboard breakpoint every panel simply takes the height it needs
    and the dashboard itself scrolls */
-
 
 /* ---------- controls ---------- */
 .row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -192,9 +190,6 @@ input[type=range]{width:100%;accent-color:var(--accent);height:16px}
 label.f{display:flex;flex-direction:column;gap:2px;font-size:9.5px;text-transform:uppercase;
   letter-spacing:.07em;color:var(--dim2);min-width:0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-/* the six numbers that fix the shape of the model, one strip across the
-   architecture panel; the boxes are narrow enough that the spinners would sit
-   on top of the value, so they are dropped and the arrow keys do that job */
 .archgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
 .archgrid label.f{font-size:9px;letter-spacing:.03em}
 .archgrid input[type=number]{-moz-appearance:textfield}
@@ -322,6 +317,10 @@ canvas.fluid{width:100%}
 .outtext .g{color:var(--accent2)}
 #sampleOut{font-size:11px;min-height:58px;max-height:58px}
 
+#outText {background:#cccccc;}
+#outText .p{color:#000000}
+#outText .g{color:#352601}
+
 /* ---------- tooltip / toast ---------- */
 #tip{
   position:fixed;pointer-events:none;z-index:99;background:#05080c;border:1px solid var(--line2);
@@ -367,7 +366,6 @@ canvas.fluid{width:100%}
   <section class="panel a-train">
     <div class="phead">
       <h2>training</h2><span class="n">corpus</span>
-      <div class="phint">gradient descent</div>
       <div class="row train-controls">
         <button id="btnTrain" class="btn primary">▶ train</button>
         <button id="btnReset" class="btn">reset weights</button>
@@ -483,7 +481,6 @@ canvas.fluid{width:100%}
   <section class="panel a-in">
     <div class="phead">
       <h2>input</h2><span class="n">prompt</span>
-      <div class="phint">type to run a forward pass</div>
       <div class="row gen-controls">
         <button id="btnGen" class="btn primary">▶ generate</button>
         <button id="btnStep" class="btn">+1 token</button>
@@ -491,14 +488,11 @@ canvas.fluid{width:100%}
       </div>
     </div>
     <div class="pbody">
+      <div class="sub">input</div>
       <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false">Once upon a time</textarea>
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
-      <div class="note">
-        <b style="color:var(--dim)">temperature</b> reshapes the distribution before sampling. 0 always takes the most likely token, higher values flatten the odds.
-        <b style="color:var(--dim)">top-k</b> throws away everything outside the k best candidates.
-      </div>
     </div>
   </section>
 
@@ -508,6 +502,7 @@ canvas.fluid{width:100%}
       <h2>output</h2><span class="n" id="outCount">0 tokens</span>
     </div>
     <div class="pbody">
+      <div class="sub">output</div>
       <div class="outtext" id="outText"></div>
       <div class="sub">next-token distribution <span class="dim" id="distMeta"></span></div>
       <div class="bars" id="distBars"></div>
@@ -1895,7 +1890,6 @@ function renderTF(C, label){
     res(G.mlpOut, B.mlpOut, d, CW, dim, null, undefined, `block ${l} · mlp output`);
     res(G.xout, B.xout, d, CW, dim, null, undefined, `block ${l} · stream after mlp`);
   }
-
   res(TF.lnf, C.lnf.out, d, CW, dim, null, undefined, 'final layernorm');
   res(TF.logits, C.logits, V, VW, voc, null, undefined, 'logits');
   drawHeat(TF.probs, C.probs, n, V, { cellW: VW, cellH: CH, rowLab: pos, colLab: voc,
@@ -1922,18 +1916,16 @@ function renderDist(probs, picked){
     const row = el('div', `bar${id === picked ? ' sel' : ''}`);
     row.appendChild(el('div', 't', (id === picked ? '▸' : ' ') + tokDisp(S.tok.vocab[id])));
     const tr = el('div', 'track'), f = el('div', 'fill');
-    /* bars are scaled against the most likely token so a flat distribution is
-       still readable; the printed number stays the absolute probability */
     f.style.width = `${clamp((p / top) * 100, 0, 100).toFixed(1)}%`;
-
     tr.appendChild(f);
     row.append(tr, el('div', 'p', `${(p * 100).toFixed(1)}%`));
     box.appendChild(row);
   }
   let ent = 0;
-  for (let i = 0; i < V; i++) if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
-  $('#distMeta').textContent = `entropy ${fmt(ent, 2)} nats · ` +
-    (picked >= 0 ? `sampled "${tokDisp(S.tok.vocab[picked])}"` : `top ${K} of ${V}`);
+  for (let i = 0; i < V; i++){ 
+    if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
+  }
+  $('#distMeta').textContent = `entropy ${fmt(ent, 2)} nats · ` + (picked >= 0 ? `sampled "${tokDisp(S.tok.vocab[picked])}"` : `top ${K} of ${V}`);
 }
 
 function renderOutput(){
@@ -1948,8 +1940,9 @@ function renderOutput(){
   const chips = $('#outChips');
   chips.innerHTML = '';
   const start = Math.max(0, S.genTokens.length - 36);
-  for (let i = start; i < S.genTokens.length; i++)
+  for (let i = start; i < S.genTokens.length; i++){
     chips.appendChild(chipFor(S.genTokens[i], i >= S.promptLen ? 'gen' : ''));
+  }
 }
 
 /* ====================================================================== */
