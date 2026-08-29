@@ -127,7 +127,8 @@ Take your time in working this out, you are given plenty of time to think, make 
 ```
 Read `index.html`. It is a simple transformer. 
 
-Look at the input panel and output panel. The input panel and output panel should be merged into single panel "input & output".
+Look at the input panel and output panel. Merge the input panel and output panel into single panel "input & output".
+Place the outCount next to the sub div above #outText.
 
-Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
