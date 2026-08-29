@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>slm - small language model</title>
+<title>slm — small language model</title>
 <link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
 <style>
 :root{
@@ -497,52 +497,54 @@ canvas.fluid{width:100%}
 'use strict';
 
 /* ------------------------------------------------------------------ utils */
-function $(s, r){ return (r || document).querySelector(s); }
-function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
 function el(tag, cls, txt){
-  var e = document.createElement(tag);
+  const e = document.createElement(tag);
   if (cls) e.className = cls;
   if (txt !== undefined) e.textContent = txt;
   return e;
 }
-function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
-function F32(n){ return new Float32Array(n); }
-function fmt(v, n){
-  if (v === undefined || v === null || !isFinite(v)) return '—';
-  return v.toFixed(n === undefined ? 3 : n);
-}
-function commas(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+const F32 = (n) => new Float32Array(n);
+const fmt = (v, n = 3) => (v === undefined || v === null || !Number.isFinite(v) ? '—' : v.toFixed(n));
+const commas = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 /* deterministic RNG so every reload gives the same starting model */
-function mulberry32(a){
-  return function(){
+function mulberry32(seed){
+  let a = seed;
+  return () => {
     a |= 0; a = a + 0x6D2B79F5 | 0;
-    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-var RNG = mulberry32(20240517);
-function rand(){ return RNG(); }
-function randInt(n){ return (RNG() * n) | 0; }
+
+let RNG = mulberry32(20240517);
+const rand = () => RNG();
+const randInt = (n) => (RNG() * n) | 0;
+
 function randn(){
-  var u = 0, v = 0;
+  let u = 0, v = 0;
   while (u === 0) u = RNG();
   while (v === 0) v = RNG();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
 }
 
-var toastTimer = null;
+let toastTimer = null;
 function toast(msg){
-  var t = $('#toast');
+  const t = $('#toast');
   t.textContent = msg;
   t.classList.add('on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 2200);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
 }
 
 /* ------------------------------------------------------------- the corpus */
-var DEFAULT_CORPUS = [
+const DEFAULT_CORPUS = [
   'the cat sat on the mat.',
   'the dog sat on the log.',
   'the cat ran to the dog.',
@@ -578,102 +580,97 @@ var DEFAULT_CORPUS = [
 /* ---------------------------------------------------------- tokenizer (BPE)
    id 0 is always the unknown token. Base ids are the most frequent characters
    of the corpus. Everything above that is a learned merge of two ids.        */
-var UNK = 0;
+const UNK = 0;
 
-function Tokenizer(){ this.reset(); }
-
-Tokenizer.prototype.reset = function(){
-  this.vocab = ['�'];      // decoded string for each id
-  this.merges = [];             // {a,b,id,count}
-  this.charToId = new Map();
-  this.baseSize = 1;
-  this.unused = 0;
-  this.trainIds = new Int32Array(0);
-  this.counts = new Int32Array(1);
-};
-
-Tokenizer.prototype.build = function(text, target){
-  this.reset();
-  target = Math.max(2, target | 0);
-
-  /* --- 1. base vocabulary: the most frequent characters --- */
-  var freq = new Map(), ch, i;
-  for (ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
-  var chars = Array.from(freq.keys());
-  chars.sort(function(a, b){
-    var d = freq.get(b) - freq.get(a);
-    return d !== 0 ? d : (a < b ? -1 : 1);
-  });
-  var maxBase = Math.max(1, target - 1);
-  if (chars.length > maxBase) chars = chars.slice(0, maxBase);
-  chars.sort(function(a, b){ return a.codePointAt(0) - b.codePointAt(0); });
-  for (i = 0; i < chars.length; i++){
-    this.charToId.set(chars[i], this.vocab.length);
-    this.vocab.push(chars[i]);
-  }
-  this.baseSize = this.vocab.length;
-
-  /* --- 2. encode corpus with base ids --- */
-  var ids = [];
-  for (ch of text){
-    var id = this.charToId.get(ch);
-    ids.push(id === undefined ? UNK : id);
+class Tokenizer {
+  constructor(){
+    this.reset();
   }
 
-  /* --- 3. repeatedly merge the most frequent adjacent pair --- */
-  while (this.vocab.length < target){
-    var counts = new Map();
-    for (i = 0; i + 1 < ids.length; i++){
-      var key = ids[i] * 4096 + ids[i + 1];
-      counts.set(key, (counts.get(key) || 0) + 1);
+  reset(){
+    this.vocab = ['�'];           // decoded string for each id
+    this.merges = [];             // {a,b,id,count}
+    this.charToId = new Map();
+    this.baseSize = 1;
+    this.unused = 0;
+    this.trainIds = new Int32Array(0);
+    this.counts = new Int32Array(1);
+  }
+
+  /* rewrite every adjacent (a,b) pair as the single id nid, left to right */
+  static #applyMerge(ids, a, b, nid){
+    const out = [];
+    const n = ids.length;
+    let i = 0;
+    while (i < n){
+      if (i + 1 < n && ids[i] === a && ids[i + 1] === b){ out.push(nid); i += 2; }
+      else out.push(ids[i++]);
     }
-    var bestKey = -1, bestC = 1;
-    counts.forEach(function(c, k){ if (c > bestC){ bestC = c; bestKey = k; } });
-    if (bestKey < 0) break;                       // nothing repeats any more
-    var a = Math.floor(bestKey / 4096), b = bestKey % 4096;
-    var nid = this.vocab.length;
-    this.vocab.push(this.vocab[a] + this.vocab[b]);
-    this.merges.push({ a: a, b: b, id: nid, count: bestC });
-    ids = applyMerge(ids, a, b, nid);
+    return out;
   }
-  /* keep the embedding matrix a fixed size even for degenerate corpora */
-  while (this.vocab.length < target){ this.vocab.push(''); this.unused++; }
 
-  this.trainIds = Int32Array.from(ids);
+  build(text, target){
+    this.reset();
+    const size = Math.max(2, target | 0);
 
-  /* --- 4. how often each token actually occurs --- */
-  this.counts = new Int32Array(this.vocab.length);
-  for (i = 0; i < ids.length; i++) this.counts[ids[i]]++;
-  return this.trainIds;
-};
+    /* --- 1. base vocabulary: the most frequent characters --- */
+    const freq = new Map();
+    for (const ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
+    let chars = [...freq.keys()];
+    chars.sort((a, b) => (freq.get(b) - freq.get(a)) || (a < b ? -1 : 1));
+    const maxBase = Math.max(1, size - 1);
+    if (chars.length > maxBase) chars = chars.slice(0, maxBase);
+    chars.sort((a, b) => a.codePointAt(0) - b.codePointAt(0));
+    for (const ch of chars){
+      this.charToId.set(ch, this.vocab.length);
+      this.vocab.push(ch);
+    }
+    this.baseSize = this.vocab.length;
 
-function applyMerge(ids, a, b, nid){
-  var out = [], i = 0, n = ids.length;
-  while (i < n){
-    if (i + 1 < n && ids[i] === a && ids[i + 1] === b){ out.push(nid); i += 2; }
-    else out.push(ids[i++]);
+    /* --- 2. encode corpus with base ids --- */
+    let ids = [];
+    for (const ch of text) ids.push(this.charToId.get(ch) ?? UNK);
+
+    /* --- 3. repeatedly merge the most frequent adjacent pair --- */
+    while (this.vocab.length < size){
+      const counts = new Map();
+      for (let i = 0; i + 1 < ids.length; i++){
+        const key = ids[i] * 4096 + ids[i + 1];
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+      let bestKey = -1, bestC = 1;
+      for (const [key, c] of counts) if (c > bestC){ bestC = c; bestKey = key; }
+      if (bestKey < 0) break;                       // nothing repeats any more
+      const a = Math.floor(bestKey / 4096), b = bestKey % 4096;
+      const nid = this.vocab.length;
+      this.vocab.push(this.vocab[a] + this.vocab[b]);
+      this.merges.push({ a, b, id: nid, count: bestC });
+      ids = Tokenizer.#applyMerge(ids, a, b, nid);
+    }
+    /* keep the embedding matrix a fixed size even for degenerate corpora */
+    while (this.vocab.length < size){ this.vocab.push(''); this.unused++; }
+
+    this.trainIds = Int32Array.from(ids);
+
+    /* --- 4. how often each token actually occurs --- */
+    this.counts = new Int32Array(this.vocab.length);
+    for (const id of ids) this.counts[id]++;
+    return this.trainIds;
   }
-  return out;
+
+  encode(text){
+    let ids = [];
+    for (const ch of text) ids.push(this.charToId.get(ch) ?? UNK);
+    for (const m of this.merges) ids = Tokenizer.#applyMerge(ids, m.a, m.b, m.id);
+    return ids;
+  }
+
+  decode(ids){
+    let s = '';
+    for (const id of ids) s += this.vocab[id] ?? '';
+    return s;
+  }
 }
-
-Tokenizer.prototype.encode = function(text){
-  var ids = [], ch;
-  for (ch of text){
-    var id = this.charToId.get(ch);
-    ids.push(id === undefined ? UNK : id);
-  }
-  for (var m = 0; m < this.merges.length; m++){
-    var mm = this.merges[m];
-    ids = applyMerge(ids, mm.a, mm.b, mm.id);
-  }
-  return ids;
-};
-
-Tokenizer.prototype.decode = function(ids){
-  var s = '';
-  for (var i = 0; i < ids.length; i++) s += (this.vocab[ids[i]] || '');
-  return s;
-};
 
 /* printable form of a token: spaces and newlines get visible glyphs */
 function tokDisp(s){
@@ -689,48 +686,50 @@ function tokDisp(s){
 
 /* out[t,o] = sum_i inp[t,i] * W[i,o] (+ b[o]) ; W is [DI x DO] row-major */
 function mm(out, inp, W, b, N, DI, DO){
-  for (var t = 0; t < N; t++){
-    var io = t * DI, oo = t * DO, o, i;
-    if (b){ for (o = 0; o < DO; o++) out[oo + o] = b[o]; }
-    else  { for (o = 0; o < DO; o++) out[oo + o] = 0; }
-    for (i = 0; i < DI; i++){
-      var xi = inp[io + i];
+  for (let t = 0; t < N; t++){
+    const io = t * DI, oo = t * DO;
+    if (b){ for (let o = 0; o < DO; o++) out[oo + o] = b[o]; }
+    else out.fill(0, oo, oo + DO);
+    for (let i = 0; i < DI; i++){
+      const xi = inp[io + i];
       if (xi === 0) continue;
-      var wo = i * DO;
-      for (o = 0; o < DO; o++) out[oo + o] += xi * W[wo + o];
+      const wo = i * DO;
+      for (let o = 0; o < DO; o++) out[oo + o] += xi * W[wo + o];
     }
   }
 }
 
 /* accumulates dInp += dOut W^T ; dW += inp^T dOut ; db += sum dOut */
 function mmBack(dInp, dW, db, dOut, inp, W, N, DI, DO){
-  for (var t = 0; t < N; t++){
-    var io = t * DI, oo = t * DO, i, o;
-    for (i = 0; i < DI; i++){
-      var wo = i * DO, xi = inp[io + i], s = 0;
-      for (o = 0; o < DO; o++){
-        var g = dOut[oo + o];
+  for (let t = 0; t < N; t++){
+    const io = t * DI, oo = t * DO;
+    for (let i = 0; i < DI; i++){
+      const wo = i * DO, xi = inp[io + i];
+      let s = 0;
+      for (let o = 0; o < DO; o++){
+        const g = dOut[oo + o];
         s += g * W[wo + o];
         dW[wo + o] += xi * g;
       }
       dInp[io + i] += s;
     }
-    if (db){ for (o = 0; o < DO; o++) db[o] += dOut[oo + o]; }
+    if (db){ for (let o = 0; o < DO; o++) db[o] += dOut[oo + o]; }
   }
 }
 
 /* layer norm over the last dimension, storing what backprop needs */
 function lnFwd(C, inp, g, b, N, D){
-  for (var t = 0; t < N; t++){
-    var o = t * D, i, m = 0, v = 0;
-    for (i = 0; i < D; i++) m += inp[o + i];
+  for (let t = 0; t < N; t++){
+    const o = t * D;
+    let m = 0, v = 0;
+    for (let i = 0; i < D; i++) m += inp[o + i];
     m /= D;
-    for (i = 0; i < D; i++){ var dd = inp[o + i] - m; v += dd * dd; }
+    for (let i = 0; i < D; i++){ const dd = inp[o + i] - m; v += dd * dd; }
     v /= D;
-    var rs = 1 / Math.sqrt(v + 1e-5);
+    const rs = 1 / Math.sqrt(v + 1e-5);
     C.mu[t] = m; C.rstd[t] = rs;
-    for (i = 0; i < D; i++){
-      var xh = (inp[o + i] - m) * rs;
+    for (let i = 0; i < D; i++){
+      const xh = (inp[o + i] - m) * rs;
       C.xhat[o + i] = xh;
       C.out[o + i] = xh * g[i] + b[i];
     }
@@ -738,17 +737,18 @@ function lnFwd(C, inp, g, b, N, D){
 }
 
 function lnBack(dInp, pg, pb, dOut, C, N, D){
-  var g = pg.data, dg = pg.grad, db = pb.grad;
-  for (var t = 0; t < N; t++){
-    var o = t * D, i, m1 = 0, m2 = 0, dxh;
-    for (i = 0; i < D; i++){
-      dxh = dOut[o + i] * g[i];
+  const g = pg.data, dg = pg.grad, db = pb.grad;
+  for (let t = 0; t < N; t++){
+    const o = t * D;
+    let m1 = 0, m2 = 0;
+    for (let i = 0; i < D; i++){
+      const dxh = dOut[o + i] * g[i];
       m1 += dxh; m2 += dxh * C.xhat[o + i];
     }
     m1 /= D; m2 /= D;
-    var rs = C.rstd[t];
-    for (i = 0; i < D; i++){
-      dxh = dOut[o + i] * g[i];
+    const rs = C.rstd[t];
+    for (let i = 0; i < D; i++){
+      const dxh = dOut[o + i] * g[i];
       dInp[o + i] += (dxh - m1 - C.xhat[o + i] * m2) * rs;
       dg[i] += dOut[o + i] * C.xhat[o + i];
       db[i] += dOut[o + i];
@@ -756,17 +756,19 @@ function lnBack(dInp, pg, pb, dOut, C, N, D){
   }
 }
 
-var GELU_C = 0.7978845608028654;   /* sqrt(2/pi) */
+const GELU_C = 0.7978845608028654;   /* sqrt(2/pi) */
+
 function gelu(y, x, n){
-  for (var i = 0; i < n; i++){
-    var v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
+  for (let i = 0; i < n; i++){
+    const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
     y[i] = 0.5 * v * (1 + t);
   }
 }
+
 function geluBack(dx, dy, x, n){
-  for (var i = 0; i < n; i++){
-    var v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
-    var dt = (1 - t * t) * GELU_C * (1 + 3 * 0.044715 * v * v);
+  for (let i = 0; i < n; i++){
+    const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
+    const dt = (1 - t * t) * GELU_C * (1 + 3 * 0.044715 * v * v);
     dx[i] = dy[i] * (0.5 * (1 + t) + 0.5 * v * dt);
   }
 }
@@ -775,362 +777,378 @@ function geluBack(dx, dy, x, n){
 /*  the model                                                             */
 /* ====================================================================== */
 
-var DEFAULT_CFG = { nVocab: 42, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
+const DEFAULT_CFG = { nVocab: 42, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
 
-/* how many parameters a config needs, without building it */
-function paramCount(c){
-  var d = c.nEmbd;
-  var per = 4 * d * d          /* Wq Wk Wv Wo   */
-          + 4 * d              /* two layernorms */
-          + 2 * d * c.nFF + c.nFF + d;  /* mlp */
-  return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
-}
+const lnCache = (T, d) => ({ out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) });
 
-function GPT(cfg){
-  this.cfg = { nVocab: cfg.nVocab, nCtx: cfg.nCtx, nEmbd: cfg.nEmbd,
-               nLayer: cfg.nLayer, nHead: cfg.nHead, nFF: cfg.nFF };
-  this.params = [];
-  this.P = {};
-  this.layers = [];
-  this.t = 0;
-  this.gradNorm = 0;
-  this.alloc();
-  this.initWeights(20240517);
-  this.cacheTrain = this.makeCache();
-  this.cacheViz = this.makeCache();
-  this.cacheAux = this.makeCache();
-  this.scratch = this.makeScratch();
-}
-
-GPT.prototype.add = function(name, shape, role){
-  var n = shape.reduce(function(a, b){ return a * b; }, 1);
-  var p = { name: name, shape: shape, n: n, role: role,
-            data: F32(n), grad: F32(n), m: F32(n), v: F32(n), offset: 0 };
-  this.params.push(p);
-  this.P[name] = p;
-  return p;
-};
-
-GPT.prototype.alloc = function(){
-  var c = this.cfg, l;
-  this.add('wte', [c.nVocab, c.nEmbd], 'emb');
-  this.add('wpe', [c.nCtx, c.nEmbd], 'emb');
-  for (l = 0; l < c.nLayer; l++){
-    var p = {};
-    p.ln1g = this.add('h' + l + '.ln1.g', [c.nEmbd], 'lng');
-    p.ln1b = this.add('h' + l + '.ln1.b', [c.nEmbd], 'lnb');
-    p.Wq   = this.add('h' + l + '.attn.Wq', [c.nEmbd, c.nEmbd], 'w');
-    p.Wk   = this.add('h' + l + '.attn.Wk', [c.nEmbd, c.nEmbd], 'w');
-    p.Wv   = this.add('h' + l + '.attn.Wv', [c.nEmbd, c.nEmbd], 'w');
-    p.Wo   = this.add('h' + l + '.attn.Wo', [c.nEmbd, c.nEmbd], 'wproj');
-    p.ln2g = this.add('h' + l + '.ln2.g', [c.nEmbd], 'lng');
-    p.ln2b = this.add('h' + l + '.ln2.b', [c.nEmbd], 'lnb');
-    p.W1   = this.add('h' + l + '.mlp.W1', [c.nEmbd, c.nFF], 'w');
-    p.b1   = this.add('h' + l + '.mlp.b1', [c.nFF], 'b');
-    p.W2   = this.add('h' + l + '.mlp.W2', [c.nFF, c.nEmbd], 'wproj');
-    p.b2   = this.add('h' + l + '.mlp.b2', [c.nEmbd], 'b');
-    this.layers.push(p);
+class GPT {
+  /* how many parameters a config needs, without building it */
+  static paramCount(c){
+    const d = c.nEmbd;
+    const per = 4 * d * d          /* Wq Wk Wv Wo   */
+              + 4 * d              /* two layernorms */
+              + 2 * d * c.nFF + c.nFF + d;  /* mlp */
+    return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
   }
-  this.add('lnf.g', [c.nEmbd], 'lng');
-  this.add('lnf.b', [c.nEmbd], 'lnb');
 
-  var off = 0;
-  for (var i = 0; i < this.params.length; i++){
-    this.params[i].offset = off;
-    off += this.params[i].n;
+  constructor(cfg){
+    const { nVocab, nCtx, nEmbd, nLayer, nHead, nFF } = cfg;
+    this.cfg = { nVocab, nCtx, nEmbd, nLayer, nHead, nFF };
+    this.params = [];
+    this.P = {};
+    this.layers = [];
+    this.t = 0;
+    this.gradNorm = 0;
+    this.#alloc();
+    this.initWeights(20240517);
+    this.cacheTrain = this.#makeCache();
+    this.cacheViz = this.#makeCache();
+    this.cacheAux = this.#makeCache();
+    this.scratch = this.#makeScratch();
   }
-  this.nParams = off;
-};
 
-GPT.prototype.initWeights = function(seed){
-  RNG = mulberry32(seed >>> 0);
-  var c = this.cfg;
-  for (var i = 0; i < this.params.length; i++){
-    var p = this.params[i], j;
-    if (p.role === 'lng') p.data.fill(1);
-    else if (p.role === 'lnb' || p.role === 'b') p.data.fill(0);
-    else if (p.role === 'emb'){ for (j = 0; j < p.n; j++) p.data[j] = randn() * 0.08; }
-    else {
-      var s = 1 / Math.sqrt(p.shape[0]);
-      if (p.role === 'wproj') s /= Math.sqrt(2 * c.nLayer);  /* GPT-2 residual scaling */
-      for (j = 0; j < p.n; j++) p.data[j] = randn() * s;
+  #add(name, shape, role){
+    const n = shape.reduce((a, b) => a * b, 1);
+    const p = { name, shape, n, role,
+                data: F32(n), grad: F32(n), m: F32(n), v: F32(n), offset: 0 };
+    this.params.push(p);
+    this.P[name] = p;
+    return p;
+  }
+
+  /* the object literal below is evaluated in source order, so params keep the
+     declaration order the offsets and the init RNG stream depend on */
+  #alloc(){
+    const c = this.cfg;
+    this.#add('wte', [c.nVocab, c.nEmbd], 'emb');
+    this.#add('wpe', [c.nCtx, c.nEmbd], 'emb');
+    for (let l = 0; l < c.nLayer; l++){
+      this.layers.push({
+        ln1g: this.#add(`h${l}.ln1.g`, [c.nEmbd], 'lng'),
+        ln1b: this.#add(`h${l}.ln1.b`, [c.nEmbd], 'lnb'),
+        Wq:   this.#add(`h${l}.attn.Wq`, [c.nEmbd, c.nEmbd], 'w'),
+        Wk:   this.#add(`h${l}.attn.Wk`, [c.nEmbd, c.nEmbd], 'w'),
+        Wv:   this.#add(`h${l}.attn.Wv`, [c.nEmbd, c.nEmbd], 'w'),
+        Wo:   this.#add(`h${l}.attn.Wo`, [c.nEmbd, c.nEmbd], 'wproj'),
+        ln2g: this.#add(`h${l}.ln2.g`, [c.nEmbd], 'lng'),
+        ln2b: this.#add(`h${l}.ln2.b`, [c.nEmbd], 'lnb'),
+        W1:   this.#add(`h${l}.mlp.W1`, [c.nEmbd, c.nFF], 'w'),
+        b1:   this.#add(`h${l}.mlp.b1`, [c.nFF], 'b'),
+        W2:   this.#add(`h${l}.mlp.W2`, [c.nFF, c.nEmbd], 'wproj'),
+        b2:   this.#add(`h${l}.mlp.b2`, [c.nEmbd], 'b')
+      });
     }
-    p.grad.fill(0); p.m.fill(0); p.v.fill(0);
+    this.#add('lnf.g', [c.nEmbd], 'lng');
+    this.#add('lnf.b', [c.nEmbd], 'lnb');
+
+    let off = 0;
+    for (const p of this.params){ p.offset = off; off += p.n; }
+    this.nParams = off;
   }
-  this.t = 0; this.gradNorm = 0;
-};
 
-function lnCache(T, d){ return { out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) }; }
-
-GPT.prototype.makeCache = function(){
-  var c = this.cfg, T = c.nCtx, d = c.nEmbd, B = [], l;
-  for (l = 0; l < c.nLayer; l++){
-    B.push({
-      xin: F32(T * d), ln1: lnCache(T, d),
-      q: F32(T * d), k: F32(T * d), v: F32(T * d),
-      att: F32(c.nHead * T * T), ao: F32(T * d), attnOut: F32(T * d), xres1: F32(T * d),
-      ln2: lnCache(T, d),
-      hpre: F32(T * c.nFF), hact: F32(T * c.nFF), mlpOut: F32(T * d), xout: F32(T * d)
-    });
-  }
-  return { n: 0, tokens: new Int32Array(T), x0: F32(T * d), tokEmb: F32(T * d), posEmb: F32(T * d),
-           blocks: B, lnf: lnCache(T, d), logits: F32(T * c.nVocab), probs: F32(T * c.nVocab) };
-};
-
-GPT.prototype.makeScratch = function(){
-  var c = this.cfg, T = c.nCtx, d = c.nEmbd;
-  return { dx: F32(T * d), dres: F32(T * d), din: F32(T * d), dtmp: F32(T * d), dxf: F32(T * d),
-           dq: F32(T * d), dk: F32(T * d), dv: F32(T * d), dao: F32(T * d),
-           dh1: F32(T * c.nFF), dh2: F32(T * c.nFF),
-           dlogits: F32(T * c.nVocab), datt: F32(T), dsc: F32(T) };
-};
-
-/* ---------------------------------------------------------- forward pass */
-GPT.prototype.forward = function(tokens, n, C){
-  var c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
-      hf = c.nFF, V = c.nVocab, T = c.nCtx;
-  var scale = 1 / Math.sqrt(dh);
-  var wte = this.P.wte.data, wpe = this.P.wpe.data;
-  var t, i, j, z, l, h, o;
-
-  C.n = n;
-  for (t = 0; t < n; t++){
-    C.tokens[t] = tokens[t];
-    var oo = t * d, to = tokens[t] * d;
-    for (i = 0; i < d; i++){
-      C.tokEmb[oo + i] = wte[to + i];
-      C.posEmb[oo + i] = wpe[oo + i];
-      C.x0[oo + i] = wte[to + i] + wpe[oo + i];
+  initWeights(seed){
+    RNG = mulberry32(seed >>> 0);
+    const c = this.cfg;
+    for (const p of this.params){
+      if (p.role === 'lng') p.data.fill(1);
+      else if (p.role === 'lnb' || p.role === 'b') p.data.fill(0);
+      else if (p.role === 'emb'){
+        for (let j = 0; j < p.n; j++) p.data[j] = randn() * 0.08;
+      } else {
+        let s = 1 / Math.sqrt(p.shape[0]);
+        if (p.role === 'wproj') s /= Math.sqrt(2 * c.nLayer);  /* GPT-2 residual scaling */
+        for (let j = 0; j < p.n; j++) p.data[j] = randn() * s;
+      }
+      p.grad.fill(0); p.m.fill(0); p.v.fill(0);
     }
+    this.t = 0; this.gradNorm = 0;
   }
 
-  var x = C.x0;
-  for (l = 0; l < L; l++){
-    var B = C.blocks[l], p = this.layers[l];
-    for (i = 0; i < n * d; i++) B.xin[i] = x[i];
+  #makeCache(){
+    const c = this.cfg, T = c.nCtx, d = c.nEmbd;
+    const blocks = [];
+    for (let l = 0; l < c.nLayer; l++){
+      blocks.push({
+        xin: F32(T * d), ln1: lnCache(T, d),
+        q: F32(T * d), k: F32(T * d), v: F32(T * d),
+        att: F32(c.nHead * T * T), ao: F32(T * d), attnOut: F32(T * d), xres1: F32(T * d),
+        ln2: lnCache(T, d),
+        hpre: F32(T * c.nFF), hact: F32(T * c.nFF), mlpOut: F32(T * d), xout: F32(T * d)
+      });
+    }
+    return { n: 0, tokens: new Int32Array(T), x0: F32(T * d), tokEmb: F32(T * d), posEmb: F32(T * d),
+             blocks, lnf: lnCache(T, d), logits: F32(T * c.nVocab), probs: F32(T * c.nVocab) };
+  }
 
-    lnFwd(B.ln1, B.xin, p.ln1g.data, p.ln1b.data, n, d);
-    mm(B.q, B.ln1.out, p.Wq.data, null, n, d, d);
-    mm(B.k, B.ln1.out, p.Wk.data, null, n, d, d);
-    mm(B.v, B.ln1.out, p.Wv.data, null, n, d, d);
+  #makeScratch(){
+    const c = this.cfg, T = c.nCtx, d = c.nEmbd;
+    return { dx: F32(T * d), dres: F32(T * d), din: F32(T * d), dtmp: F32(T * d), dxf: F32(T * d),
+             dq: F32(T * d), dk: F32(T * d), dv: F32(T * d), dao: F32(T * d),
+             dh1: F32(T * c.nFF), dh2: F32(T * c.nFF),
+             dlogits: F32(T * c.nVocab), datt: F32(T), dsc: F32(T) };
+  }
 
-    /* causal multi-head self-attention */
-    for (h = 0; h < H; h++){
-      var hd = h * dh, ab = h * T * T;
-      for (i = 0; i < n; i++){
-        var row = ab + i * T, qo = i * d + hd, mx = -1e30, s;
-        for (j = 0; j <= i; j++){
-          var ko = j * d + hd;
-          s = 0;
-          for (z = 0; z < dh; z++) s += B.q[qo + z] * B.k[ko + z];
-          s *= scale;
-          B.att[row + j] = s;
-          if (s > mx) mx = s;
-        }
-        var sum = 0;
-        for (j = 0; j <= i; j++){ var e = Math.exp(B.att[row + j] - mx); B.att[row + j] = e; sum += e; }
-        var inv = 1 / sum;
-        for (j = 0; j <= i; j++) B.att[row + j] *= inv;
-        for (j = i + 1; j < T; j++) B.att[row + j] = 0;      /* masked future */
-        var ao = i * d + hd;
-        for (z = 0; z < dh; z++) B.ao[ao + z] = 0;
-        for (j = 0; j <= i; j++){
-          var a = B.att[row + j], vo = j * d + hd;
-          for (z = 0; z < dh; z++) B.ao[ao + z] += a * B.v[vo + z];
-        }
+  /* -------------------------------------------------------- forward pass */
+  forward(tokens, n, C){
+    const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
+          hf = c.nFF, V = c.nVocab, T = c.nCtx;
+    const scale = 1 / Math.sqrt(dh);
+    const wte = this.P.wte.data, wpe = this.P.wpe.data;
+
+    C.n = n;
+    for (let t = 0; t < n; t++){
+      C.tokens[t] = tokens[t];
+      const oo = t * d, to = tokens[t] * d;
+      for (let i = 0; i < d; i++){
+        C.tokEmb[oo + i] = wte[to + i];
+        C.posEmb[oo + i] = wpe[oo + i];
+        C.x0[oo + i] = wte[to + i] + wpe[oo + i];
       }
     }
 
-    mm(B.attnOut, B.ao, p.Wo.data, null, n, d, d);
-    for (i = 0; i < n * d; i++) B.xres1[i] = B.xin[i] + B.attnOut[i];
+    let x = C.x0;
+    for (let l = 0; l < L; l++){
+      const B = C.blocks[l], p = this.layers[l];
+      for (let i = 0; i < n * d; i++) B.xin[i] = x[i];
 
-    lnFwd(B.ln2, B.xres1, p.ln2g.data, p.ln2b.data, n, d);
-    mm(B.hpre, B.ln2.out, p.W1.data, p.b1.data, n, d, hf);
-    gelu(B.hact, B.hpre, n * hf);
-    mm(B.mlpOut, B.hact, p.W2.data, p.b2.data, n, hf, d);
-    for (i = 0; i < n * d; i++) B.xout[i] = B.xres1[i] + B.mlpOut[i];
+      lnFwd(B.ln1, B.xin, p.ln1g.data, p.ln1b.data, n, d);
+      mm(B.q, B.ln1.out, p.Wq.data, null, n, d, d);
+      mm(B.k, B.ln1.out, p.Wk.data, null, n, d, d);
+      mm(B.v, B.ln1.out, p.Wv.data, null, n, d, d);
 
-    x = B.xout;
-  }
-
-  lnFwd(C.lnf, x, this.P['lnf.g'].data, this.P['lnf.b'].data, n, d);
-
-  /* output head, weights tied to the token embedding */
-  for (t = 0; t < n; t++){
-    var xo = t * d, lo = t * V, mx2 = -1e30;
-    for (var k = 0; k < V; k++){
-      var wo2 = k * d, sv = 0;
-      for (i = 0; i < d; i++) sv += C.lnf.out[xo + i] * wte[wo2 + i];
-      C.logits[lo + k] = sv;
-      if (sv > mx2) mx2 = sv;
-    }
-    var sm = 0;
-    for (k = 0; k < V; k++){ var ev = Math.exp(C.logits[lo + k] - mx2); C.probs[lo + k] = ev; sm += ev; }
-    var iv = 1 / sm;
-    for (k = 0; k < V; k++) C.probs[lo + k] *= iv;
-  }
-  return C;
-};
-
-/* --------------------------------------------------------- backward pass */
-GPT.prototype.backward = function(targets, n, C, lossScale){
-  var c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
-      hf = c.nFF, V = c.nVocab, T = c.nCtx;
-  var s = this.scratch, scale = 1 / Math.sqrt(dh);
-  var wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
-  var t, i, j, z, k, l, h, loss = 0;
-
-  /* softmax cross-entropy */
-  for (t = 0; t < n; t++){
-    var lo = t * V, tg = targets[t];
-    loss += -Math.log(Math.max(C.probs[lo + tg], 1e-12));
-    for (k = 0; k < V; k++) s.dlogits[lo + k] = (C.probs[lo + k] - (k === tg ? 1 : 0)) * lossScale;
-  }
-
-  /* tied head: logits = lnf.out @ wte^T */
-  var dxf = s.dxf;
-  dxf.fill(0, 0, n * d);
-  for (t = 0; t < n; t++){
-    var lo2 = t * V, xo = t * d;
-    for (k = 0; k < V; k++){
-      var g = s.dlogits[lo2 + k];
-      if (g === 0) continue;
-      var wo = k * d;
-      for (i = 0; i < d; i++){
-        dxf[xo + i] += g * wte[wo + i];
-        gwte[wo + i] += g * C.lnf.out[xo + i];
-      }
-    }
-  }
-
-  var dx = s.dx;
-  dx.fill(0, 0, n * d);
-  lnBack(dx, this.P['lnf.g'], this.P['lnf.b'], dxf, C.lnf, n, d);
-
-  for (l = L - 1; l >= 0; l--){
-    var B = C.blocks[l], p = this.layers[l];
-
-    /* --- residual 2: xout = xres1 + mlpOut --- */
-    var dres = s.dres;
-    for (i = 0; i < n * d; i++) dres[i] = dx[i];
-
-    s.dh1.fill(0, 0, n * hf);
-    mmBack(s.dh1, p.W2.grad, p.b2.grad, dx, B.hact, p.W2.data, n, hf, d);
-    geluBack(s.dh2, s.dh1, B.hpre, n * hf);
-    var dtmp = s.dtmp;
-    dtmp.fill(0, 0, n * d);
-    mmBack(dtmp, p.W1.grad, p.b1.grad, s.dh2, B.ln2.out, p.W1.data, n, d, hf);
-    lnBack(dres, p.ln2g, p.ln2b, dtmp, B.ln2, n, d);
-
-    /* --- residual 1: xres1 = xin + attnOut --- */
-    var din = s.din;
-    for (i = 0; i < n * d; i++) din[i] = dres[i];
-
-    s.dao.fill(0, 0, n * d);
-    mmBack(s.dao, p.Wo.grad, null, dres, B.ao, p.Wo.data, n, d, d);
-
-    s.dq.fill(0, 0, n * d); s.dk.fill(0, 0, n * d); s.dv.fill(0, 0, n * d);
-    for (h = 0; h < H; h++){
-      var hd = h * dh, ab = h * T * T;
-      for (i = 0; i < n; i++){
-        var row = ab + i * T, ao = i * d + hd, qo = i * d + hd;
-        for (j = 0; j <= i; j++){
-          var a = B.att[row + j], vo = j * d + hd, da = 0;
-          for (z = 0; z < dh; z++){
-            da += s.dao[ao + z] * B.v[vo + z];
-            s.dv[vo + z] += a * s.dao[ao + z];
+      /* causal multi-head self-attention */
+      for (let h = 0; h < H; h++){
+        const hd = h * dh, ab = h * T * T;
+        for (let i = 0; i < n; i++){
+          const row = ab + i * T, qo = i * d + hd;
+          let mx = -1e30;
+          for (let j = 0; j <= i; j++){
+            const ko = j * d + hd;
+            let s = 0;
+            for (let z = 0; z < dh; z++) s += B.q[qo + z] * B.k[ko + z];
+            s *= scale;
+            B.att[row + j] = s;
+            if (s > mx) mx = s;
           }
-          s.datt[j] = da;
-        }
-        var dot = 0;
-        for (j = 0; j <= i; j++) dot += B.att[row + j] * s.datt[j];
-        for (j = 0; j <= i; j++) s.dsc[j] = B.att[row + j] * (s.datt[j] - dot) * scale;
-        for (j = 0; j <= i; j++){
-          var gg = s.dsc[j], ko = j * d + hd;
-          for (z = 0; z < dh; z++){
-            s.dq[qo + z] += gg * B.k[ko + z];
-            s.dk[ko + z] += gg * B.q[qo + z];
+          let sum = 0;
+          for (let j = 0; j <= i; j++){
+            const e = Math.exp(B.att[row + j] - mx);
+            B.att[row + j] = e; sum += e;
+          }
+          const inv = 1 / sum;
+          for (let j = 0; j <= i; j++) B.att[row + j] *= inv;
+          for (let j = i + 1; j < T; j++) B.att[row + j] = 0;   /* masked future */
+          const ao = i * d + hd;
+          for (let z = 0; z < dh; z++) B.ao[ao + z] = 0;
+          for (let j = 0; j <= i; j++){
+            const a = B.att[row + j], vo = j * d + hd;
+            for (let z = 0; z < dh; z++) B.ao[ao + z] += a * B.v[vo + z];
           }
         }
       }
+
+      mm(B.attnOut, B.ao, p.Wo.data, null, n, d, d);
+      for (let i = 0; i < n * d; i++) B.xres1[i] = B.xin[i] + B.attnOut[i];
+
+      lnFwd(B.ln2, B.xres1, p.ln2g.data, p.ln2b.data, n, d);
+      mm(B.hpre, B.ln2.out, p.W1.data, p.b1.data, n, d, hf);
+      gelu(B.hact, B.hpre, n * hf);
+      mm(B.mlpOut, B.hact, p.W2.data, p.b2.data, n, hf, d);
+      for (let i = 0; i < n * d; i++) B.xout[i] = B.xres1[i] + B.mlpOut[i];
+
+      x = B.xout;
     }
 
-    dtmp.fill(0, 0, n * d);
-    mmBack(dtmp, p.Wq.grad, null, s.dq, B.ln1.out, p.Wq.data, n, d, d);
-    mmBack(dtmp, p.Wk.grad, null, s.dk, B.ln1.out, p.Wk.data, n, d, d);
-    mmBack(dtmp, p.Wv.grad, null, s.dv, B.ln1.out, p.Wv.data, n, d, d);
-    lnBack(din, p.ln1g, p.ln1b, dtmp, B.ln1, n, d);
+    lnFwd(C.lnf, x, this.P['lnf.g'].data, this.P['lnf.b'].data, n, d);
 
-    for (i = 0; i < n * d; i++) dx[i] = din[i];
+    /* output head, weights tied to the token embedding */
+    for (let t = 0; t < n; t++){
+      const xo = t * d, lo = t * V;
+      let mx = -1e30;
+      for (let k = 0; k < V; k++){
+        const wo = k * d;
+        let sv = 0;
+        for (let i = 0; i < d; i++) sv += C.lnf.out[xo + i] * wte[wo + i];
+        C.logits[lo + k] = sv;
+        if (sv > mx) mx = sv;
+      }
+      let sm = 0;
+      for (let k = 0; k < V; k++){
+        const ev = Math.exp(C.logits[lo + k] - mx);
+        C.probs[lo + k] = ev; sm += ev;
+      }
+      const iv = 1 / sm;
+      for (let k = 0; k < V; k++) C.probs[lo + k] *= iv;
+    }
+    return C;
   }
 
-  /* --- embeddings --- */
-  for (t = 0; t < n; t++){
-    var eo = t * d, to = C.tokens[t] * d;
-    for (i = 0; i < d; i++){
-      gwte[to + i] += dx[eo + i];
-      gwpe[eo + i] += dx[eo + i];
+  /* ------------------------------------------------------- backward pass */
+  backward(targets, n, C, lossScale){
+    const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
+          hf = c.nFF, V = c.nVocab, T = c.nCtx;
+    const s = this.scratch, scale = 1 / Math.sqrt(dh);
+    const wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
+    let loss = 0;
+
+    /* softmax cross-entropy */
+    for (let t = 0; t < n; t++){
+      const lo = t * V, tg = targets[t];
+      loss += -Math.log(Math.max(C.probs[lo + tg], 1e-12));
+      for (let k = 0; k < V; k++) s.dlogits[lo + k] = (C.probs[lo + k] - (k === tg ? 1 : 0)) * lossScale;
+    }
+
+    /* tied head: logits = lnf.out @ wte^T */
+    const dxf = s.dxf;
+    dxf.fill(0, 0, n * d);
+    for (let t = 0; t < n; t++){
+      const lo = t * V, xo = t * d;
+      for (let k = 0; k < V; k++){
+        const g = s.dlogits[lo + k];
+        if (g === 0) continue;
+        const wo = k * d;
+        for (let i = 0; i < d; i++){
+          dxf[xo + i] += g * wte[wo + i];
+          gwte[wo + i] += g * C.lnf.out[xo + i];
+        }
+      }
+    }
+
+    const dx = s.dx;
+    dx.fill(0, 0, n * d);
+    lnBack(dx, this.P['lnf.g'], this.P['lnf.b'], dxf, C.lnf, n, d);
+
+    for (let l = L - 1; l >= 0; l--){
+      const B = C.blocks[l], p = this.layers[l];
+
+      /* --- residual 2: xout = xres1 + mlpOut --- */
+      const dres = s.dres;
+      for (let i = 0; i < n * d; i++) dres[i] = dx[i];
+
+      s.dh1.fill(0, 0, n * hf);
+      mmBack(s.dh1, p.W2.grad, p.b2.grad, dx, B.hact, p.W2.data, n, hf, d);
+      geluBack(s.dh2, s.dh1, B.hpre, n * hf);
+      const dtmp = s.dtmp;
+      dtmp.fill(0, 0, n * d);
+      mmBack(dtmp, p.W1.grad, p.b1.grad, s.dh2, B.ln2.out, p.W1.data, n, d, hf);
+      lnBack(dres, p.ln2g, p.ln2b, dtmp, B.ln2, n, d);
+
+      /* --- residual 1: xres1 = xin + attnOut --- */
+      const din = s.din;
+      for (let i = 0; i < n * d; i++) din[i] = dres[i];
+
+      s.dao.fill(0, 0, n * d);
+      mmBack(s.dao, p.Wo.grad, null, dres, B.ao, p.Wo.data, n, d, d);
+
+      s.dq.fill(0, 0, n * d); s.dk.fill(0, 0, n * d); s.dv.fill(0, 0, n * d);
+      for (let h = 0; h < H; h++){
+        const hd = h * dh, ab = h * T * T;
+        for (let i = 0; i < n; i++){
+          const row = ab + i * T, ao = i * d + hd, qo = i * d + hd;
+          for (let j = 0; j <= i; j++){
+            const a = B.att[row + j], vo = j * d + hd;
+            let da = 0;
+            for (let z = 0; z < dh; z++){
+              da += s.dao[ao + z] * B.v[vo + z];
+              s.dv[vo + z] += a * s.dao[ao + z];
+            }
+            s.datt[j] = da;
+          }
+          let dot = 0;
+          for (let j = 0; j <= i; j++) dot += B.att[row + j] * s.datt[j];
+          for (let j = 0; j <= i; j++) s.dsc[j] = B.att[row + j] * (s.datt[j] - dot) * scale;
+          for (let j = 0; j <= i; j++){
+            const gg = s.dsc[j], ko = j * d + hd;
+            for (let z = 0; z < dh; z++){
+              s.dq[qo + z] += gg * B.k[ko + z];
+              s.dk[ko + z] += gg * B.q[qo + z];
+            }
+          }
+        }
+      }
+
+      dtmp.fill(0, 0, n * d);
+      mmBack(dtmp, p.Wq.grad, null, s.dq, B.ln1.out, p.Wq.data, n, d, d);
+      mmBack(dtmp, p.Wk.grad, null, s.dk, B.ln1.out, p.Wk.data, n, d, d);
+      mmBack(dtmp, p.Wv.grad, null, s.dv, B.ln1.out, p.Wv.data, n, d, d);
+      lnBack(din, p.ln1g, p.ln1b, dtmp, B.ln1, n, d);
+
+      for (let i = 0; i < n * d; i++) dx[i] = din[i];
+    }
+
+    /* --- embeddings --- */
+    for (let t = 0; t < n; t++){
+      const eo = t * d, to = C.tokens[t] * d;
+      for (let i = 0; i < d; i++){
+        gwte[to + i] += dx[eo + i];
+        gwpe[eo + i] += dx[eo + i];
+      }
+    }
+    return loss;
+  }
+
+  zeroGrad(){
+    for (const p of this.params) p.grad.fill(0);
+  }
+
+  /* AdamW with global gradient-norm clipping */
+  step(lr, wd){
+    this.t++;
+    const b1 = 0.9, b2 = 0.95, eps = 1e-8;
+    const bc1 = 1 - b1 ** this.t, bc2 = 1 - b2 ** this.t;
+    let sq = 0;
+    for (const p of this.params){
+      for (let j = 0; j < p.n; j++) sq += p.grad[j] * p.grad[j];
+    }
+    const gn = Math.sqrt(sq);
+    this.gradNorm = gn;
+    const cl = gn > 1 ? 1 / gn : 1;
+    for (const p of this.params){
+      const dec = p.shape.length === 2 ? wd * lr : 0;
+      const D = p.data, G = p.grad, M = p.m, V = p.v;
+      for (let j = 0; j < p.n; j++){
+        const g = G[j] * cl;
+        M[j] = b1 * M[j] + (1 - b1) * g;
+        V[j] = b2 * V[j] + (1 - b2) * g * g;
+        D[j] -= lr * (M[j] / bc1) / (Math.sqrt(V[j] / bc2) + eps) + dec * D[j];
+      }
     }
   }
-  return loss;
-};
 
-GPT.prototype.zeroGrad = function(){
-  for (var i = 0; i < this.params.length; i++) this.params[i].grad.fill(0);
-};
-
-/* AdamW with global gradient-norm clipping */
-GPT.prototype.step = function(lr, wd){
-  this.t++;
-  var b1 = 0.9, b2 = 0.95, eps = 1e-8;
-  var bc1 = 1 - Math.pow(b1, this.t), bc2 = 1 - Math.pow(b2, this.t);
-  var i, j, p, sq = 0;
-  for (i = 0; i < this.params.length; i++){
-    p = this.params[i];
-    for (j = 0; j < p.n; j++) sq += p.grad[j] * p.grad[j];
+  /* one full loss evaluation, used by the gradient checker */
+  lossOn(inp, tgt, n, C){
+    this.forward(inp, n, C);
+    const V = this.cfg.nVocab;
+    let loss = 0;
+    for (let t = 0; t < n; t++) loss += -Math.log(Math.max(C.probs[t * V + tgt[t]], 1e-12));
+    return loss / n;
   }
-  var gn = Math.sqrt(sq);
-  this.gradNorm = gn;
-  var cl = gn > 1 ? 1 / gn : 1;
-  for (i = 0; i < this.params.length; i++){
-    p = this.params[i];
-    var dec = p.shape.length === 2 ? wd * lr : 0;
-    var D = p.data, G = p.grad, M = p.m, Vv = p.v;
-    for (j = 0; j < p.n; j++){
-      var g = G[j] * cl;
-      M[j] = b1 * M[j] + (1 - b1) * g;
-      Vv[j] = b2 * Vv[j] + (1 - b2) * g * g;
-      D[j] -= lr * (M[j] / bc1) / (Math.sqrt(Vv[j] / bc2) + eps) + dec * D[j];
-    }
-  }
-};
-
-/* one full loss evaluation, used by the gradient checker */
-GPT.prototype.lossOn = function(inp, tgt, n, C){
-  this.forward(inp, n, C);
-  var V = this.cfg.nVocab, loss = 0;
-  for (var t = 0; t < n; t++) loss += -Math.log(Math.max(C.probs[t * V + tgt[t]], 1e-12));
-  return loss / n;
-};
+}
 
 /* ====================================================================== */
 /*  drawing primitives                                                    */
 /* ====================================================================== */
 
-var offCv = document.createElement('canvas');
-var offCx = offCv.getContext('2d');
-var DPR = Math.min(2, window.devicePixelRatio || 1);
+const offCv = document.createElement('canvas');
+const offCx = offCv.getContext('2d');
+const DPR = Math.min(2, window.devicePixelRatio || 1);
 
-var RAMP_POS = [[0, [13, 18, 25]], [0.45, [146, 64, 14]], [1, [253, 224, 71]]];
-var RAMP_NEG = [[0, [13, 18, 25]], [0.45, [30, 64, 175]], [1, [147, 214, 255]]];
-var RAMP_SEQ = [[0, [8, 12, 18]], [0.3, [8, 74, 96]], [0.65, [34, 211, 238]], [1, [240, 253, 255]]];
+/* canvas → what its pixels mean, for the shared hover tooltip and click
+   handling; a WeakMap keeps the metadata off the DOM nodes themselves */
+const heatMeta = new WeakMap();
+/* canvas → the small caption element underneath it */
+const subLabel = new WeakMap();
+
+const RAMP_POS = [[0, [13, 18, 25]], [0.45, [146, 64, 14]], [1, [253, 224, 71]]];
+const RAMP_NEG = [[0, [13, 18, 25]], [0.45, [30, 64, 175]], [1, [147, 214, 255]]];
+const RAMP_SEQ = [[0, [8, 12, 18]], [0.3, [8, 74, 96]], [0.65, [34, 211, 238]], [1, [240, 253, 255]]];
 
 function ramp(stops, t){
   t = clamp(t, 0, 1);
-  for (var i = 1; i < stops.length; i++){
+  for (let i = 1; i < stops.length; i++){
     if (t <= stops[i][0]){
-      var a = stops[i - 1], b = stops[i];
-      var span = b[0] - a[0] || 1, u = (t - a[0]) / span;
+      const a = stops[i - 1], b = stops[i];
+      const span = b[0] - a[0] || 1, u = (t - a[0]) / span;
       return [a[1][0] + (b[1][0] - a[1][0]) * u,
               a[1][1] + (b[1][1] - a[1][1]) * u,
               a[1][2] + (b[1][2] - a[1][2]) * u];
@@ -1139,73 +1157,73 @@ function ramp(stops, t){
   return stops[stops.length - 1][1];
 }
 
+const rgb = (c) => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+
 function autoCell(rows, cols, maxW, maxH){
-  var cw = Math.floor(maxW / Math.max(1, cols));
-  var chh = Math.floor(maxH / Math.max(1, rows));
-  var c = Math.max(2, Math.min(cw, chh, 14));
-  return c;
+  const cw = Math.floor(maxW / Math.max(1, cols));
+  const chh = Math.floor(maxH / Math.max(1, rows));
+  return Math.max(2, Math.min(cw, chh, 14));
 }
 
 function prep(cv, w, h){
-  cv.style.width = w + 'px';
-  cv.style.height = h + 'px';
+  cv.style.width = `${w}px`;
+  cv.style.height = `${h}px`;
   cv.width = Math.max(1, Math.round(w * DPR));
   cv.height = Math.max(1, Math.round(h * DPR));
-  var x = cv.getContext('2d');
-  x.setTransform(DPR, 0, 0, DPR, 0, 0);
-  x.clearRect(0, 0, w, h);
-  return x;
+  const cx = cv.getContext('2d');
+  cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cx.clearRect(0, 0, w, h);
+  return cx;
 }
 
+/* a canvas that takes the width of its column; returns the CSS width too,
+   since that is what every caller needs to lay its drawing out */
 function prepFluid(cv, h){
-  var w = Math.max(80, cv.clientWidth || (cv.parentElement && cv.parentElement.clientWidth) || 260);
-  cv.style.height = h + 'px';
+  const w = Math.max(80, cv.clientWidth || cv.parentElement?.clientWidth || 260);
+  cv.style.height = `${h}px`;
   cv.width = Math.round(w * DPR);
   cv.height = Math.round(h * DPR);
-  var x = cv.getContext('2d');
-  x.setTransform(DPR, 0, 0, DPR, 0, 0);
-  x.clearRect(0, 0, w, h);
-  cv.__w = w; cv.__h = h;
-  return x;
+  const cx = cv.getContext('2d');
+  cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cx.clearRect(0, 0, w, h);
+  return { cx, w };
 }
 
 /* the workhorse: draw a matrix as a heatmap and register hover metadata */
-function drawHeat(cv, data, rows, cols, opt){
-  opt = opt || {};
-  var stride = opt.stride || cols;
-  var base = opt.offset || 0;
-  var cw = opt.cellW || opt.cell || autoCell(rows, cols, opt.maxW || 190, opt.maxH || 190);
-  var ch = opt.cellH || cw;
-  var w = cols * cw, h = rows * ch;
-  var i, j, v;
+function drawHeat(cv, data, rows, cols, opt = {}){
+  const stride = opt.stride || cols;
+  const base = opt.offset || 0;
+  const cw = opt.cellW || opt.cell || autoCell(rows, cols, opt.maxW || 190, opt.maxH || 190);
+  const ch = opt.cellH || cw;
+  const w = cols * cw, h = rows * ch;
 
-  var mx = opt.max;
+  let mx = opt.max;
   if (mx === undefined){
     mx = 1e-9;
-    for (i = 0; i < rows; i++)
-      for (j = 0; j < cols; j++){
-        v = Math.abs(data[base + i * stride + j]);
+    for (let i = 0; i < rows; i++)
+      for (let j = 0; j < cols; j++){
+        const v = Math.abs(data[base + i * stride + j]);
         if (v > mx) mx = v;
       }
   }
-  var seq = opt.mode === 'seq';
+  const seq = opt.mode === 'seq';
 
   offCv.width = cols; offCv.height = rows;
-  var img = offCx.createImageData(cols, rows);
-  var px = img.data;
-  for (i = 0; i < rows; i++){
-    for (j = 0; j < cols; j++){
-      v = data[base + i * stride + j];
-      var col;
+  const img = offCx.createImageData(cols, rows);
+  const px = img.data;
+  for (let i = 0; i < rows; i++){
+    for (let j = 0; j < cols; j++){
+      const v = data[base + i * stride + j];
+      let col;
       if (seq) col = ramp(RAMP_SEQ, v / mx);
-      else { var r = v / mx; col = r >= 0 ? ramp(RAMP_POS, r) : ramp(RAMP_NEG, -r); }
-      var o = (i * cols + j) * 4;
+      else { const r = v / mx; col = r >= 0 ? ramp(RAMP_POS, r) : ramp(RAMP_NEG, -r); }
+      const o = (i * cols + j) * 4;
       px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = 255;
     }
   }
   offCx.putImageData(img, 0, 0);
 
-  var cx = prep(cv, w, h);
+  const cx = prep(cv, w, h);
   cx.imageSmoothingEnabled = false;
   cx.drawImage(offCv, 0, 0, cols, rows, 0, 0, w, h);
 
@@ -1217,35 +1235,33 @@ function drawHeat(cv, data, rows, cols, opt){
   if (opt.diag && cw >= 6){
     cx.strokeStyle = 'rgba(255,255,255,.10)';
     cx.beginPath();
-    for (i = 0; i <= rows; i++){ cx.moveTo(0, i * ch); cx.lineTo(w, i * ch); }
-    for (j = 0; j <= cols; j++){ cx.moveTo(j * cw, 0); cx.lineTo(j * cw, h); }
+    for (let i = 0; i <= rows; i++){ cx.moveTo(0, i * ch); cx.lineTo(w, i * ch); }
+    for (let j = 0; j <= cols; j++){ cx.moveTo(j * cw, 0); cx.lineTo(j * cw, h); }
     cx.stroke();
   }
 
-  cv.__heat = { data: data, rows: rows, cols: cols, stride: stride, base: base,
-                cell: cw, cellH: ch, max: mx, name: opt.name || '',
-                rowLab: opt.rowLab, colLab: opt.colLab, unit: opt.unit || '' };
+  heatMeta.set(cv, { data, rows, cols, stride, base,
+                     cell: cw, cellH: ch, max: mx, name: opt.name || '',
+                     rowLab: opt.rowLab, colLab: opt.colLab, unit: opt.unit || '' });
   return cv;
 }
 
 function drawRampLegend(cv){
-  var w = 120, h = 9;
-  var cx = prep(cv, w, h);
-  for (var i = 0; i < w; i++){
-    var t = (i / (w - 1)) * 2 - 1;
-    var c = t >= 0 ? ramp(RAMP_POS, t) : ramp(RAMP_NEG, -t);
-    cx.fillStyle = 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
+  const w = 120, h = 9;
+  const cx = prep(cv, w, h);
+  for (let i = 0; i < w; i++){
+    const t = (i / (w - 1)) * 2 - 1;
+    cx.fillStyle = rgb(t >= 0 ? ramp(RAMP_POS, t) : ramp(RAMP_NEG, -t));
     cx.fillRect(i, 0, 1, h);
   }
 }
 
 /* ---------------------------------------------------------- line chart  */
 function drawLoss(cv, raw, ema, ref){
-  var h = 86;
-  var cx = prepFluid(cv, h);
-  var w = cv.__w;
-  var padL = 30, padB = 13, padT = 6, padR = 4;
-  var iw = w - padL - padR, ih = h - padT - padB;
+  const h = 86;
+  const { cx, w } = prepFluid(cv, h);
+  const padL = 30, padB = 13, padT = 6, padR = 4;
+  const iw = w - padL - padR, ih = h - padT - padB;
 
   cx.fillStyle = '#080c12';
   cx.fillRect(0, 0, w, h);
@@ -1256,32 +1272,32 @@ function drawLoss(cv, raw, ema, ref){
     cx.fillText('press train to start', padL + 6, h / 2);
     return;
   }
-  var lo = Infinity, hi = -Infinity, i;
-  for (i = 0; i < raw.length; i++){
-    if (raw[i] < lo) lo = raw[i];
-    if (raw[i] > hi) hi = raw[i];
+  let lo = Infinity, hi = -Infinity;
+  for (const v of raw){
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
   }
   if (ref !== undefined && ref > hi) hi = ref;
   if (hi - lo < 1e-3){ hi += 0.05; lo -= 0.05; }
-  var pad = (hi - lo) * 0.08;
+  const pad = (hi - lo) * 0.08;
   hi += pad; lo = Math.max(0, lo - pad);
 
-  function X(i){ return padL + (raw.length < 2 ? iw : (i / (raw.length - 1)) * iw); }
-  function Y(v){ return padT + ih - ((v - lo) / (hi - lo)) * ih; }
+  const X = (i) => padL + (raw.length < 2 ? iw : (i / (raw.length - 1)) * iw);
+  const Y = (v) => padT + ih - ((v - lo) / (hi - lo)) * ih;
 
   /* axes */
   cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
   cx.beginPath();
-  for (i = 0; i <= 3; i++){
-    var yy = Math.round(padT + (ih * i) / 3) + 0.5;
+  for (let i = 0; i <= 3; i++){
+    const yy = Math.round(padT + (ih * i) / 3) + 0.5;
     cx.moveTo(padL, yy); cx.lineTo(w - padR, yy);
   }
   cx.stroke();
   cx.fillStyle = '#57657a';
   cx.font = '9px ui-monospace,monospace';
   cx.textAlign = 'right';
-  for (i = 0; i <= 3; i++){
-    var vv = hi - ((hi - lo) * i) / 3;
+  for (let i = 0; i <= 3; i++){
+    const vv = hi - ((hi - lo) * i) / 3;
     cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / 3 + 3);
   }
   cx.textAlign = 'left';
@@ -1296,23 +1312,17 @@ function drawLoss(cv, raw, ema, ref){
     cx.fillText('random', padL + 3, Y(ref) - 3);
   }
 
-  /* raw */
-  cx.strokeStyle = 'rgba(34,211,238,.28)';
-  cx.beginPath();
-  for (i = 0; i < raw.length; i++){
-    var x = X(i), y = Y(raw[i]);
-    if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
-  }
-  cx.stroke();
-
-  /* smoothed */
-  cx.strokeStyle = '#22d3ee'; cx.lineWidth = 1.5;
-  cx.beginPath();
-  for (i = 0; i < ema.length; i++){
-    var x2 = X(i), y2 = Y(ema[i]);
-    if (i === 0) cx.moveTo(x2, y2); else cx.lineTo(x2, y2);
-  }
-  cx.stroke();
+  const line = (vals, style, width) => {
+    cx.strokeStyle = style; cx.lineWidth = width;
+    cx.beginPath();
+    for (let i = 0; i < vals.length; i++){
+      const x = X(i), y = Y(vals[i]);
+      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+    }
+    cx.stroke();
+  };
+  line(raw, 'rgba(34,211,238,.28)', 1);   /* raw */
+  line(ema, '#22d3ee', 1.5);              /* smoothed */
 
   cx.fillStyle = '#57657a';
   cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
@@ -1320,25 +1330,24 @@ function drawLoss(cv, raw, ema, ref){
 
 /* ---------------------------------------------------------- histogram   */
 function drawHist(cv, data, n, title){
-  var h = 62;
-  var cx = prepFluid(cv, h);
-  var w = cv.__w, i;
+  const h = 62;
+  const { cx, w } = prepFluid(cv, h);
   cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
-  var mx = 1e-9;
-  for (i = 0; i < n; i++){ var a = Math.abs(data[i]); if (a > mx) mx = a; }
-  var NB = 41, bins = new Float64Array(NB);
-  for (i = 0; i < n; i++){
-    var b = Math.round(((data[i] / mx) * 0.5 + 0.5) * (NB - 1));
+  let mx = 1e-9;
+  for (let i = 0; i < n; i++){ const a = Math.abs(data[i]); if (a > mx) mx = a; }
+  const NB = 41, bins = new Float64Array(NB);
+  for (let i = 0; i < n; i++){
+    const b = Math.round(((data[i] / mx) * 0.5 + 0.5) * (NB - 1));
     bins[clamp(b, 0, NB - 1)]++;
   }
-  var bmx = 0;
-  for (i = 0; i < NB; i++) if (bins[i] > bmx) bmx = bins[i];
-  var bw = (w - 8) / NB, padB = 12;
-  for (i = 0; i < NB; i++){
-    var t = (i / (NB - 1)) * 2 - 1;
-    var c = t >= 0 ? ramp(RAMP_POS, Math.abs(t)) : ramp(RAMP_NEG, Math.abs(t));
-    var bh = bmx ? (bins[i] / bmx) * (h - padB - 6) : 0;
-    cx.fillStyle = 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
+  let bmx = 0;
+  for (let i = 0; i < NB; i++) if (bins[i] > bmx) bmx = bins[i];
+  const bw = (w - 8) / NB, padB = 12;
+  for (let i = 0; i < NB; i++){
+    const t = (i / (NB - 1)) * 2 - 1;
+    const c = t >= 0 ? ramp(RAMP_POS, Math.abs(t)) : ramp(RAMP_NEG, Math.abs(t));
+    const bh = bmx ? (bins[i] / bmx) * (h - padB - 6) : 0;
+    cx.fillStyle = rgb(c);
     cx.fillRect(4 + i * bw, h - padB - bh, Math.max(1, bw - 1), bh);
   }
   cx.strokeStyle = '#1b2431';
@@ -1347,65 +1356,66 @@ function drawHist(cv, data, n, title){
   cx.font = '9px ui-monospace,monospace';
   cx.fillText((-mx).toFixed(3), 4, h - 2);
   cx.textAlign = 'center'; cx.fillText(title || 'distribution', w / 2, h - 2);
-  cx.textAlign = 'right'; cx.fillText('+' + mx.toFixed(3), w - 4, h - 2);
+  cx.textAlign = 'right'; cx.fillText(`+${mx.toFixed(3)}`, w - 4, h - 2);
   cx.textAlign = 'left';
 }
 
 /* ---------------------------------------------------------- bar chart   */
 function drawFreq(cv, tok){
-  var h = 54;
-  var cx = prepFluid(cv, h);
-  var w = cv.__w, i;
+  const h = 54;
+  const { cx, w } = prepFluid(cv, h);
   cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
-  var V = tok.vocab.length, mx = 1;
-  for (i = 0; i < V; i++) if (tok.counts[i] > mx) mx = tok.counts[i];
-  var bw = (w - 6) / V;
-  for (i = 0; i < V; i++){
-    var bh = (tok.counts[i] / mx) * (h - 14);
-    cx.fillStyle = i < tok.baseSize ? '#2f7d5b' : '#b45309';
+  const V = tok.vocab.length;
+  let mx = 1;
+  for (let i = 0; i < V; i++) if (tok.counts[i] > mx) mx = tok.counts[i];
+  const bw = (w - 6) / V;
+  for (let i = 0; i < V; i++){
+    const bh = (tok.counts[i] / mx) * (h - 14);
     if (tok.counts[i] === 0) cx.fillStyle = '#1b2431';
+    else cx.fillStyle = i < tok.baseSize ? '#2f7d5b' : '#b45309';
     cx.fillRect(3 + i * bw, h - 11 - bh, Math.max(1, bw - 1), bh);
   }
   cx.fillStyle = '#57657a';
   cx.font = '9px ui-monospace,monospace';
   cx.fillText('id 0', 3, h - 2);
   cx.textAlign = 'right';
-  cx.fillText('id ' + (V - 1) + ' · max ' + mx, w - 3, h - 2);
+  cx.fillText(`id ${V - 1} · max ${mx}`, w - 3, h - 2);
   cx.textAlign = 'left';
 }
 
 /* ---------------------------------------------------------- tooltip     */
-var tipEl = null;
+let tipEl = null;
+
 function initTip(){
   tipEl = $('#tip');
-  document.addEventListener('mousemove', function(ev){
-    var cv = ev.target;
-    var H = cv && cv.__heat;
+  document.addEventListener('mousemove', (ev) => {
+    const cv = ev.target;
+    const H = heatMeta.get(cv);
     if (!H){ tipEl.classList.remove('on'); return; }
-    var r = cv.getBoundingClientRect();
-    var cj = Math.floor((ev.clientX - r.left) / H.cell);
-    var ci = Math.floor((ev.clientY - r.top) / H.cellH);
+    const r = cv.getBoundingClientRect();
+    const cj = Math.floor((ev.clientX - r.left) / H.cell);
+    const ci = Math.floor((ev.clientY - r.top) / H.cellH);
     if (ci < 0 || ci >= H.rows || cj < 0 || cj >= H.cols){ tipEl.classList.remove('on'); return; }
-    var v = H.data[H.base + ci * H.stride + cj];
-    var txt;
+    const v = H.data[H.base + ci * H.stride + cj];
+    let txt;
     if (H.describe) txt = H.describe(ci, cj, v);
     else {
-      var lines = [];
+      const lines = [];
       if (H.name) lines.push(H.name);
-      var rl = H.rowLab ? H.rowLab(ci) : ('row ' + ci);
-      var cl = H.colLab ? H.colLab(cj) : ('col ' + cj);
-      lines.push(rl + '   ×   ' + cl);
-      lines.push('= ' + (Math.abs(v) < 1e-4 && v !== 0 ? v.toExponential(2) : v.toFixed(5)) + (H.unit || ''));
+      const rl = H.rowLab ? H.rowLab(ci) : `row ${ci}`;
+      const cl = H.colLab ? H.colLab(cj) : `col ${cj}`;
+      lines.push(`${rl}   ×   ${cl}`);
+      lines.push(`= ${Math.abs(v) < 1e-4 && v !== 0 ? v.toExponential(2) : v.toFixed(5)}${H.unit || ''}`);
       txt = lines.join('\n');
     }
     tipEl.textContent = txt;
     tipEl.classList.add('on');
-    var tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
-    var x = ev.clientX + 14, y = ev.clientY + 14;
+    const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+    let x = ev.clientX + 14, y = ev.clientY + 14;
     if (x + tw > window.innerWidth - 6) x = ev.clientX - tw - 12;
     if (y + th > window.innerHeight - 6) y = ev.clientY - th - 12;
-    tipEl.style.left = x + 'px';
-    tipEl.style.top = y + 'px';
+    tipEl.style.left = `${x}px`;
+    tipEl.style.top = `${y}px`;
   }, { passive: true });
 }
 
@@ -1413,8 +1423,8 @@ function initTip(){
 /*  application state                                                     */
 /* ====================================================================== */
 
-var S = {
-  cfg: { nVocab: 42, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 },
+const S = {
+  cfg: { ...DEFAULT_CFG },
   tok: new Tokenizer(),
   model: null,
   data: null,
@@ -1434,70 +1444,69 @@ var S = {
   vizLabel: '', frame: 0, lastSample: -1
 };
 
-var TENSOR_HUES = { emb: '#22d3ee', w: '#a78bfa', wproj: '#f472b6', b: '#4ade80',
-                    lng: '#fbbf24', lnb: '#fb923c' };
+const TENSOR_HUES = { emb: '#22d3ee', w: '#a78bfa', wproj: '#f472b6', b: '#4ade80',
+                      lng: '#fbbf24', lnb: '#fb923c' };
 
 /* ====================================================================== */
 /*  tokenization panel                                                    */
 /* ====================================================================== */
 
 function chipFor(id, extraCls){
-  var tok = S.tok, s = tok.vocab[id];
-  var cls = 'chip';
+  const { tok } = S, s = tok.vocab[id];
+  let cls = 'chip';
   if (id === 0) cls += ' unk';
   else if (s === '') cls += ' unused';
   else if (id < tok.baseSize) cls += ' base';
   else cls += ' merged';
-  if (extraCls) cls += ' ' + extraCls;
-  var c = el('div', cls);
-  c.appendChild(el('span', 'id', String(id)));
-  c.appendChild(el('span', 't', tokDisp(s)));
+  if (extraCls) cls += ` ${extraCls}`;
+  const c = el('div', cls);
+  c.append(el('span', 'id', String(id)), el('span', 't', tokDisp(s)));
   return c;
 }
 
 function renderTokenizer(){
-  var tok = S.tok, i;
+  const { tok } = S;
   $('#tokVocabMeta').textContent =
-    tok.vocab.length + ' ids · ' + (tok.baseSize - 1) + ' chars + ' +
-    tok.merges.length + ' merges' + (tok.unused ? ' + ' + tok.unused + ' unused' : '');
+    `${tok.vocab.length} ids · ${tok.baseSize - 1} chars + ${tok.merges.length} merges` +
+    (tok.unused ? ` + ${tok.unused} unused` : '');
 
-  var list = $('#vocabList');
+  const list = $('#vocabList');
   list.innerHTML = '';
-  for (i = 0; i < tok.vocab.length; i++){
-    var c = chipFor(i);
-    c.title = 'id ' + i + '  ·  seen ' + tok.counts[i] + '× in corpus';
+  for (let i = 0; i < tok.vocab.length; i++){
+    const c = chipFor(i);
+    c.title = `id ${i}  ·  seen ${tok.counts[i]}× in corpus`;
     list.appendChild(c);
   }
 
-  var ml = $('#mergeList');
+  const ml = $('#mergeList');
   ml.innerHTML = '';
-  $('#tokMergeMeta').textContent = tok.merges.length + ' rules, applied in order';
-  for (i = 0; i < tok.merges.length; i++){
-    var m = tok.merges[i];
-    var r = el('div', 'merge');
-    r.appendChild(el('span', 'r', String(i + 1)));
-    r.appendChild(el('span', 'a', tokDisp(tok.vocab[m.a])));
-    r.appendChild(el('span', '', '+'));
-    r.appendChild(el('span', 'b', tokDisp(tok.vocab[m.b])));
-    r.appendChild(el('span', '', '→'));
-    r.appendChild(el('span', 'n', tokDisp(tok.vocab[m.id])));
-    r.appendChild(el('span', 'c', m.count + '×'));
+  $('#tokMergeMeta').textContent = `${tok.merges.length} rules, applied in order`;
+  tok.merges.forEach((m, i) => {
+    const r = el('div', 'merge');
+    r.append(
+      el('span', 'r', String(i + 1)),
+      el('span', 'a', tokDisp(tok.vocab[m.a])),
+      el('span', '', '+'),
+      el('span', 'b', tokDisp(tok.vocab[m.b])),
+      el('span', '', '→'),
+      el('span', 'n', tokDisp(tok.vocab[m.id])),
+      el('span', 'c', `${m.count}×`)
+    );
     ml.appendChild(r);
-  }
+  });
   if (!tok.merges.length) ml.appendChild(el('div', 'note', 'no repeated pairs left to merge'));
 
   drawFreq($('#freqChart'), tok);
 }
 
 function renderEncoded(){
-  var ids = S.tok.encode($('#promptText').value);
-  var box = $('#encPreview');
+  const ids = S.tok.encode($('#promptText').value);
+  const box = $('#encPreview');
   box.innerHTML = '';
-  var shown = ids.slice(-S.cfg.nCtx * 2);
-  for (var i = 0; i < shown.length; i++) box.appendChild(chipFor(shown[i]));
-  var cut = ids.length > S.cfg.nCtx;
+  for (const id of ids.slice(-S.cfg.nCtx * 2)) box.appendChild(chipFor(id));
+  const cut = ids.length > S.cfg.nCtx;
   $('#tokEncMeta').textContent =
-    ids.length + ' tokens' + (cut ? ' · last ' + S.cfg.nCtx + ' fed to the model' : '');
+    `${ids.length} tokens` + (cut ? ` · last ${S.cfg.nCtx} fed to the model` : '');
   return ids;
 }
 
@@ -1505,107 +1514,91 @@ function renderEncoded(){
 /*  weights & biases panel                                                */
 /* ====================================================================== */
 
+let paramBufCache = null;   /* every parameter laid end to end, for the map */
+let paramGrid = null;       /* that buffer padded out to a square           */
+
 function paramBuf(){
-  var m = S.model, buf = paramBuf.cache;
-  if (!buf || buf.length !== m.nParams){ buf = paramBuf.cache = F32(m.nParams); }
-  var src = S.wbMode === 'grad' ? 'grad' : 'data';
-  for (var i = 0; i < m.params.length; i++){
-    var p = m.params[i];
-    buf.set(p[src], p.offset);
-  }
-  return buf;
+  const m = S.model;
+  if (!paramBufCache || paramBufCache.length !== m.nParams) paramBufCache = F32(m.nParams);
+  const src = S.wbMode === 'grad' ? 'grad' : 'data';
+  for (const p of m.params) paramBufCache.set(p[src], p.offset);
+  return paramBufCache;
 }
-paramBuf.cache = null;
 
 function paramAt(idx){
-  var ps = S.model.params;
-  for (var i = 0; i < ps.length; i++){
-    if (idx >= ps[i].offset && idx < ps[i].offset + ps[i].n) return { p: ps[i], local: idx - ps[i].offset };
+  for (const p of S.model.params){
+    if (idx >= p.offset && idx < p.offset + p.n) return { p, local: idx - p.offset };
   }
   return null;
 }
 
 function drawParamMap(){
-  var m = S.model, cv = $('#paramMap');
-  var n = m.nParams;
-  var side = Math.ceil(Math.sqrt(n));
-  var buf = paramBuf();
-  var grid = drawParamMap.grid;
-  if (!grid || grid.length !== side * side) grid = drawParamMap.grid = F32(side * side);
-  grid.fill(0);
-  grid.set(buf.subarray(0, n), 0);
+  const m = S.model, cv = $('#paramMap');
+  const n = m.nParams;
+  const side = Math.ceil(Math.sqrt(n));
+  const buf = paramBuf();
+  if (!paramGrid || paramGrid.length !== side * side) paramGrid = F32(side * side);
+  paramGrid.fill(0);
+  paramGrid.set(buf.subarray(0, n), 0);
 
-  var cell = clamp(Math.floor(316 / side), 1, 8);
-  var scale = robustMax(buf, n);
-  drawHeat(cv, grid, side, side, {
-    cell: cell, max: scale,
+  const cell = clamp(Math.floor(316 / side), 1, 8);
+  const scale = robustMax(buf, n);
+  drawHeat(cv, paramGrid, side, side, {
+    cell, max: scale,
     name: S.wbMode === 'grad' ? 'gradient map' : 'parameter map'
   });
 
-  var H = cv.__heat;
-  H.describe = function(i, j){
-    var idx = i * side + j;
+  heatMeta.get(cv).describe = (i, j) => {
+    const idx = i * side + j;
     if (idx >= n) return '(padding)';
-    var hit = paramAt(idx);
-    var p = hit.p, loc = hit.local, where;
-    if (p.shape.length === 2){
-      var cols = p.shape[1];
-      where = p.name + '[' + Math.floor(loc / cols) + ',' + (loc % cols) + ']';
-    } else where = p.name + '[' + loc + ']';
-    return where + '\n#' + idx + ' of ' + n +
-           '\n= ' + buf[idx].toFixed(6) + (S.wbMode === 'grad' ? '  (gradient)' : '');
-  };
-  cv.onclick = function(ev){
-    var r = cv.getBoundingClientRect();
-    var j = Math.floor((ev.clientX - r.left) / cell), i = Math.floor((ev.clientY - r.top) / cell);
-    var idx = i * side + j;
-    if (idx < 0 || idx >= n) return;
-    var hit = paramAt(idx);
-    if (hit) selectTensor(hit.p.name);
+    const { p, local } = paramAt(idx);
+    const where = p.shape.length === 2
+      ? `${p.name}[${Math.floor(local / p.shape[1])},${local % p.shape[1]}]`
+      : `${p.name}[${local}]`;
+    return `${where}\n#${idx} of ${n}\n= ${buf[idx].toFixed(6)}` +
+           (S.wbMode === 'grad' ? '  (gradient)' : '');
   };
 
-  var stat = statsOf(buf, n);
-  $('#wbMeta').textContent = 'μ ' + fmt(stat.mean, 3) + '  σ ' + fmt(stat.std, 3) +
-                             '  max ' + fmt(stat.amax, 3) + '  scale ±' + fmt(scale, 3);
-  $('#wCount').textContent = commas(n) + ' parameters';
+  const stat = statsOf(buf, n);
+  $('#wbMeta').textContent =
+    `μ ${fmt(stat.mean, 3)}  σ ${fmt(stat.std, 3)}  max ${fmt(stat.amax, 3)}  scale ±${fmt(scale, 3)}`;
+  $('#wCount').textContent = `${commas(n)} parameters`;
 }
-drawParamMap.grid = null;
 
 /* colour scale that ignores a handful of outliers — without it the layernorm
    gains (all exactly 1.0) set the scale and every real weight renders nearly
    black */
 function robustMax(a, n){
-  var st = statsOf(a, n);
-  var s = Math.abs(st.mean) + 3 * st.std;
+  const st = statsOf(a, n);
+  let s = Math.abs(st.mean) + 3 * st.std;
   if (!(s > 1e-9)) s = st.amax;
   return Math.max(1e-9, Math.min(st.amax, s));
 }
 
 function statsOf(a, n){
-  var mean = 0, i, amax = 0;
-  for (i = 0; i < n; i++){ mean += a[i]; var t = Math.abs(a[i]); if (t > amax) amax = t; }
+  let mean = 0, amax = 0;
+  for (let i = 0; i < n; i++){
+    mean += a[i];
+    const t = Math.abs(a[i]);
+    if (t > amax) amax = t;
+  }
   mean /= n || 1;
-  var v = 0;
-  for (i = 0; i < n; i++){ var dd = a[i] - mean; v += dd * dd; }
-  return { mean: mean, std: Math.sqrt(v / (n || 1)), amax: amax };
+  let v = 0;
+  for (let i = 0; i < n; i++){ const dd = a[i] - mean; v += dd * dd; }
+  return { mean, std: Math.sqrt(v / (n || 1)), amax };
 }
 
 function renderTensorList(){
-  var box = $('#tensorList');
+  const box = $('#tensorList');
   box.innerHTML = '';
-  var m = S.model;
-  for (var i = 0; i < m.params.length; i++){
-    (function(p){
-      var r = el('div', 'tr' + (p.name === S.wbSel ? ' on' : ''));
-      var dot = el('div', 'dot');
-      dot.style.background = TENSOR_HUES[p.role] || '#7e8da3';
-      r.appendChild(dot);
-      r.appendChild(el('div', 'nm', p.name));
-      r.appendChild(el('div', 'sh', p.shape.join('×')));
-      r.appendChild(el('div', 'ct', commas(p.n)));
-      r.onclick = function(){ selectTensor(p.name); };
-      box.appendChild(r);
-    })(m.params[i]);
+  for (const p of S.model.params){
+    const r = el('div', `tr${p.name === S.wbSel ? ' on' : ''}`);
+    const dot = el('div', 'dot');
+    dot.style.background = TENSOR_HUES[p.role] || '#7e8da3';
+    r.append(dot, el('div', 'nm', p.name), el('div', 'sh', p.shape.join('×')),
+             el('div', 'ct', commas(p.n)));
+    r.addEventListener('click', () => selectTensor(p.name));
+    box.appendChild(r);
   }
 }
 
@@ -1616,33 +1609,34 @@ function selectTensor(name){
 }
 
 function drawTensor(){
-  var m = S.model, p = m.P[S.wbSel];
-  if (!p) { p = m.params[0]; S.wbSel = p.name; }
-  var src = S.wbMode === 'grad' ? p.grad : p.data;
-  var rows, cols;
-  if (p.shape.length === 2){ rows = p.shape[0]; cols = p.shape[1]; }
-  else { rows = 1; cols = p.shape[0]; }
+  const m = S.model;
+  let p = m.P[S.wbSel];
+  if (!p){ p = m.params[0]; S.wbSel = p.name; }
+  const src = S.wbMode === 'grad' ? p.grad : p.data;
+  const twoD = p.shape.length === 2;
+  const rows = twoD ? p.shape[0] : 1;
+  const cols = twoD ? p.shape[1] : p.shape[0];
 
-  var cell = clamp(Math.floor(330 / cols), 3, 12);
-  var cellH = p.shape.length === 2 ? clamp(Math.floor(240 / rows), 3, 12) : 14;
+  const cell = clamp(Math.floor(330 / cols), 3, 12);
+  const cellH = twoD ? clamp(Math.floor(240 / rows), 3, 12) : 14;
 
-  var tok = S.tok;
-  var rowLab, colLab;
-  if (p.name === 'wte') rowLab = function(i){ return 'token ' + i + '  ' + tokDisp(tok.vocab[i]); };
-  else if (p.name === 'wpe') rowLab = function(i){ return 'position ' + i; };
-  else rowLab = function(i){ return 'in ' + i; };
-  colLab = function(j){ return (p.shape.length === 2 ? 'out ' : 'idx ') + j; };
+  const { tok } = S;
+  let rowLab;
+  if (p.name === 'wte') rowLab = (i) => `token ${i}  ${tokDisp(tok.vocab[i])}`;
+  else if (p.name === 'wpe') rowLab = (i) => `position ${i}`;
+  else rowLab = (i) => `in ${i}`;
+  const colLab = (j) => `${twoD ? 'out ' : 'idx '}${j}`;
 
   drawHeat($('#tensorMap'), src, rows, cols, {
-    cell: cell, cellH: cellH, max: robustMax(src, p.n),
-    name: p.name + '  [' + p.shape.join('×') + ']',
-    rowLab: rowLab, colLab: colLab
+    cell, cellH, max: robustMax(src, p.n),
+    name: `${p.name}  [${p.shape.join('×')}]`,
+    rowLab, colLab
   });
 
-  var st = statsOf(src, p.n);
-  $('#selMeta').textContent = p.name + ' · ' + commas(p.n) + ' values · σ ' + fmt(st.std, 4);
+  const st = statsOf(src, p.n);
+  $('#selMeta').textContent = `${p.name} · ${commas(p.n)} values · σ ${fmt(st.std, 4)}`;
   drawHist($('#histChart'), src, p.n,
-           (S.wbMode === 'grad' ? 'gradients of ' : 'values of ') + p.name);
+           `${S.wbMode === 'grad' ? 'gradients of ' : 'values of '}${p.name}`);
 }
 
 function renderWeights(){
@@ -1655,84 +1649,87 @@ function renderWeights(){
 /* ====================================================================== */
 
 function stage(parent, title, sub, expl, cls, noBody){
-  var s = el('div', 'stage' + (cls ? ' ' + cls : ''));
-  var h = el('div', 'stage-h');
+  const s = el('div', `stage${cls ? ` ${cls}` : ''}`);
+  const h = el('div', 'stage-h');
   h.appendChild(el('span', 'stage-t', title));
   if (sub) h.appendChild(el('span', 'stage-s', sub));
   s.appendChild(h);
   if (expl) s.appendChild(el('div', 'stage-x', expl));
-  var b = null;
-  if (!noBody){ b = el('div', 'hrow'); s.appendChild(b); }
+  let body = null;
+  if (!noBody){ body = el('div', 'hrow'); s.appendChild(body); }
   parent.appendChild(s);
-  return { el: s, body: b, head: h };
+  return { el: s, body };
 }
 
+/* a labelled heatmap slot: caption above, canvas, size caption below */
 function hm(parent, label, det){
-  var w = el('div', 'hm' + (det ? ' det' : ''));
-  var l = el('div', 'hm-l');
+  const w = el('div', `hm${det ? ' det' : ''}`);
+  const l = el('div', 'hm-l');
   l.innerHTML = label;
-  w.appendChild(l);
-  var cv = document.createElement('canvas');
-  w.appendChild(cv);
-  var sub = el('div', 'hm-s', '');
-  w.appendChild(sub);
+  const cv = document.createElement('canvas');
+  const sub = el('div', 'hm-s', '');
+  w.append(l, cv, sub);
   parent.appendChild(w);
-  cv.__sub = sub;
+  subLabel.set(cv, sub);
   return cv;
 }
 
-function opsym(parent, sym, det){
-  var e = el('div', 'opsym' + (det ? ' det' : ''), sym);
-  parent.appendChild(e);
+function setSub(cv, text){
+  const sub = subLabel.get(cv);
+  if (sub) sub.textContent = text;
 }
 
-var TF = null;
+function opsym(parent, sym, det){
+  parent.appendChild(el('div', `opsym${det ? ' det' : ''}`, sym));
+}
+
+let TF = null;
 
 function buildTF(){
-  var root = $('#tfFlow');
+  const root = $('#tfFlow');
   root.innerHTML = '';
-  var c = S.cfg, l, h;
+  const c = S.cfg;
   TF = { blocks: [] };
 
-  var s0 = stage(root, '0 · context', 'up to ' + c.nCtx + ' tokens',
+  const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
     'The model only ever sees this window of token ids. The highlighted token is the last one; ' +
     'the prediction for what comes next is read off that position.');
   TF.tokRow = el('div', 'chips');
   s0.body.appendChild(TF.tokRow);
 
-  var s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
+  const s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
     'Each id indexes a row of the token-embedding table; a learned position vector is added on top. ' +
-    'The result is the residual stream: one row per position, ' + c.nEmbd + ' channels wide.');
+    `The result is the residual stream: one row per position, ${c.nEmbd} channels wide.`);
   TF.tokEmb = hm(s1.body, 'token emb');
   opsym(s1.body, '+');
   TF.posEmb = hm(s1.body, 'position emb');
   opsym(s1.body, '=');
   TF.x0 = hm(s1.body, 'x&#8320; stream');
 
-  for (l = 0; l < c.nLayer; l++){
-    var B = { att: [] };
-    var sb = stage(root, (l + 2) + ' · block ' + l, c.nHead + ' heads · head dim ' + (c.nEmbd / c.nHead) +
-                   ' · d_ff ' + c.nFF, null, 'blk', true);
-    var wrap = el('div', 'tfflow');
+  for (let l = 0; l < c.nLayer; l++){
+    const B = { att: [] };
+    const sb = stage(root, `${l + 2} · block ${l}`,
+      `${c.nHead} heads · head dim ${c.nEmbd / c.nHead} · d_ff ${c.nFF}`, null, 'blk', true);
+    const wrap = el('div', 'tfflow');
     sb.el.appendChild(wrap);
 
     /* ---- attention ---- */
-    var sa = el('div', 'substage');
+    const sa = el('div', 'substage');
     wrap.appendChild(sa);
     sa.appendChild(el('div', 'substage-t', 'a · causal self-attention'));
     sa.appendChild(el('div', 'stage-x',
       'Every position projects its normalised stream into a query, a key and a value. ' +
       'Each query is dotted with the keys of all positions up to and including itself; ' +
       'softmax turns those scores into mixing weights, and the values are blended accordingly.'));
-    var r1 = el('div', 'hrow'); sa.appendChild(r1);
+    const r1 = el('div', 'hrow'); sa.appendChild(r1);
     B.ln1 = hm(r1, 'layernorm', true);
     opsym(r1, '→', true);
     B.q = hm(r1, 'Q = ln·W<sub>q</sub>', true);
     B.k = hm(r1, 'K = ln·W<sub>k</sub>', true);
     B.v = hm(r1, 'V = ln·W<sub>v</sub>', true);
-    var r2 = el('div', 'hrow'); sa.appendChild(r2);
-    for (h = 0; h < c.nHead; h++) B.att.push(hm(r2, 'head ' + h + ' attention'));
-    var r3 = el('div', 'hrow'); sa.appendChild(r3);
+    const r2 = el('div', 'hrow'); sa.appendChild(r2);
+    for (let h = 0; h < c.nHead; h++) B.att.push(hm(r2, `head ${h} attention`));
+    const r3 = el('div', 'hrow'); sa.appendChild(r3);
     B.ao = hm(r3, 'blended values', true);
     opsym(r3, '→', true);
     B.attnOut = hm(r3, 'W<sub>o</sub> out', true);
@@ -1740,14 +1737,14 @@ function buildTF(){
     B.xres1 = hm(r3, 'x <span class="op">+ attn</span>');
 
     /* ---- mlp ---- */
-    var sm = el('div', 'substage');
+    const sm = el('div', 'substage');
     wrap.appendChild(sm);
     sm.appendChild(el('div', 'substage-t', 'b · feed-forward network'));
     sm.appendChild(el('div', 'stage-x',
-      'Each position is processed on its own: expand to ' + c.nFF +
-      ' channels, apply GELU, project back, add to the stream. This is where most of the ' +
+      `Each position is processed on its own: expand to ${c.nFF} channels, apply GELU, ` +
+      'project back, add to the stream. This is where most of the ' +
       'per-token knowledge is stored.'));
-    var r4 = el('div', 'hrow'); sm.appendChild(r4);
+    const r4 = el('div', 'hrow'); sm.appendChild(r4);
     B.ln2 = hm(r4, 'layernorm', true);
     opsym(r4, '→', true);
     B.hpre = hm(r4, 'hidden (pre)', true);
@@ -1760,7 +1757,7 @@ function buildTF(){
     TF.blocks.push(B);
   }
 
-  var s2 = stage(root, (c.nLayer + 2) + ' · output head', 'logits = lnf(x) · wteᵀ',
+  const s2 = stage(root, `${c.nLayer + 2} · output head`, 'logits = lnf(x) · wteᵀ',
     'The stream is normalised once more and compared against every token embedding — the output ' +
     'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
     'last row gives the next-token distribution shown in the output panel.');
@@ -1771,75 +1768,73 @@ function buildTF(){
   TF.probs = hm(s2.body, 'softmax probabilities');
 
   root.classList.toggle('compact', !S.detail);
-  $('#tfArch').textContent = 'd' + c.nEmbd + ' · ' + c.nLayer + 'L · ' + c.nHead + 'H · ff' + c.nFF;
+  $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
 }
 
 function renderTF(C, label){
   if (!TF || !S.model) return;
-  var c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
+  const c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
   if (n <= 0) return;
-  var i, l, h;
 
   $('#tfMeta').textContent = label;
 
   TF.tokRow.innerHTML = '';
-  for (i = 0; i < n; i++) TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
+  for (let i = 0; i < n; i++) TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
 
   /* size the maps to whatever width the panel actually has: the widest row
      holds four maps plus operators, attention rows hold one map per head */
-  var flowW = Math.max(330, ($('#tfFlow').clientWidth || 440) - 16);
-  var slotW = (flowW - 62) / 4;
-  var CW = clamp(Math.floor(slotW / d), 3, 12);
-  var CH = clamp(Math.floor(180 / n), 4, 14);
-  var AW = clamp(Math.floor((flowW - 26 * H) / (H * n)), 5, 14);
-  var FW = clamp(Math.floor(slotW / hf), 3, 10);
-  var VW = clamp(Math.floor((flowW - 80) / (2 * V)), 3, 12);
+  const flowW = Math.max(330, ($('#tfFlow').clientWidth || 440) - 16);
+  const slotW = (flowW - 62) / 4;
+  const CW = clamp(Math.floor(slotW / d), 3, 12);
+  const CH = clamp(Math.floor(180 / n), 4, 14);
+  const AW = clamp(Math.floor((flowW - 26 * H) / (H * n)), 5, 14);
+  const FW = clamp(Math.floor(slotW / hf), 3, 10);
+  const VW = clamp(Math.floor((flowW - 80) / (2 * V)), 3, 12);
 
-  var pos = function(i){ return 'pos ' + i + '  ' + tokDisp(S.tok.vocab[C.tokens[i]]); };
-  var dim = function(j){ return 'channel ' + j; };
-  var ffd = function(j){ return 'neuron ' + j; };
-  var voc = function(j){ return 'token ' + j + '  ' + tokDisp(S.tok.vocab[j]); };
+  const pos = (i) => `pos ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`;
+  const dim = (j) => `channel ${j}`;
+  const ffd = (j) => `neuron ${j}`;
+  const voc = (j) => `token ${j}  ${tokDisp(S.tok.vocab[j])}`;
 
-  function res(cv, data, cols, cw, colLab, mode, mx, name){
-    drawHeat(cv, data, n, cols, { cellW: cw, cellH: CH, rowLab: pos, colLab: colLab,
-                                  mode: mode, max: mx, name: name });
-    if (cv.__sub) cv.__sub.textContent = n + '×' + cols;
-  }
+  const res = (cv, data, cols, cw, colLab, mode, mx, name) => {
+    drawHeat(cv, data, n, cols, { cellW: cw, cellH: CH, rowLab: pos, colLab, mode, max: mx, name });
+    setSub(cv, `${n}×${cols}`);
+  };
 
   res(TF.tokEmb, C.tokEmb, d, CW, dim, null, undefined, 'token embedding');
   res(TF.posEmb, C.posEmb, d, CW, dim, null, undefined, 'position embedding');
   res(TF.x0, C.x0, d, CW, dim, null, undefined, 'residual stream x0');
 
-  for (l = 0; l < c.nLayer; l++){
-    var B = C.blocks[l], G = TF.blocks[l];
-    res(G.ln1, B.ln1.out, d, CW, dim, null, undefined, 'block ' + l + ' · ln1');
-    res(G.q, B.q, d, CW, dim, null, undefined, 'block ' + l + ' · Q');
-    res(G.k, B.k, d, CW, dim, null, undefined, 'block ' + l + ' · K');
-    res(G.v, B.v, d, CW, dim, null, undefined, 'block ' + l + ' · V');
-    for (h = 0; h < H; h++){
+  for (let l = 0; l < c.nLayer; l++){
+    const B = C.blocks[l], G = TF.blocks[l];
+    res(G.ln1, B.ln1.out, d, CW, dim, null, undefined, `block ${l} · ln1`);
+    res(G.q, B.q, d, CW, dim, null, undefined, `block ${l} · Q`);
+    res(G.k, B.k, d, CW, dim, null, undefined, `block ${l} · K`);
+    res(G.v, B.v, d, CW, dim, null, undefined, `block ${l} · V`);
+    for (let h = 0; h < H; h++){
       drawHeat(G.att[h], B.att, n, n, {
         cellW: AW, cellH: AW, stride: T, offset: h * T * T, mode: 'seq', max: 1, diag: true,
-        rowLab: function(i){ return 'query ' + i + '  ' + tokDisp(S.tok.vocab[C.tokens[i]]); },
-        colLab: function(j){ return 'key   ' + j + '  ' + tokDisp(S.tok.vocab[C.tokens[j]]); },
-        name: 'block ' + l + ' · head ' + h + ' attention'
+        rowLab: (i) => `query ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`,
+        colLab: (j) => `key   ${j}  ${tokDisp(S.tok.vocab[C.tokens[j]])}`,
+        name: `block ${l} · head ${h} attention`
       });
-      if (G.att[h].__sub) G.att[h].__sub.textContent = n + '×' + n + ' (masked)';
+      setSub(G.att[h], `${n}×${n} (masked)`);
     }
-    res(G.ao, B.ao, d, CW, dim, null, undefined, 'block ' + l + ' · blended values');
-    res(G.attnOut, B.attnOut, d, CW, dim, null, undefined, 'block ' + l + ' · attention output');
-    res(G.xres1, B.xres1, d, CW, dim, null, undefined, 'block ' + l + ' · stream after attention');
-    res(G.ln2, B.ln2.out, d, CW, dim, null, undefined, 'block ' + l + ' · ln2');
-    res(G.hpre, B.hpre, hf, FW, ffd, null, undefined, 'block ' + l + ' · mlp pre-activation');
-    res(G.hact, B.hact, hf, FW, ffd, null, undefined, 'block ' + l + ' · mlp after GELU');
-    res(G.mlpOut, B.mlpOut, d, CW, dim, null, undefined, 'block ' + l + ' · mlp output');
-    res(G.xout, B.xout, d, CW, dim, null, undefined, 'block ' + l + ' · stream after mlp');
+    res(G.ao, B.ao, d, CW, dim, null, undefined, `block ${l} · blended values`);
+    res(G.attnOut, B.attnOut, d, CW, dim, null, undefined, `block ${l} · attention output`);
+    res(G.xres1, B.xres1, d, CW, dim, null, undefined, `block ${l} · stream after attention`);
+    res(G.ln2, B.ln2.out, d, CW, dim, null, undefined, `block ${l} · ln2`);
+    res(G.hpre, B.hpre, hf, FW, ffd, null, undefined, `block ${l} · mlp pre-activation`);
+    res(G.hact, B.hact, hf, FW, ffd, null, undefined, `block ${l} · mlp after GELU`);
+    res(G.mlpOut, B.mlpOut, d, CW, dim, null, undefined, `block ${l} · mlp output`);
+    res(G.xout, B.xout, d, CW, dim, null, undefined, `block ${l} · stream after mlp`);
   }
 
   res(TF.lnf, C.lnf.out, d, CW, dim, null, undefined, 'final layernorm');
   res(TF.logits, C.logits, V, VW, voc, null, undefined, 'logits');
   drawHeat(TF.probs, C.probs, n, V, { cellW: VW, cellH: CH, rowLab: pos, colLab: voc,
     mode: 'seq', max: 1, name: 'softmax probabilities', hiRow: n - 1 });
-  if (TF.probs.__sub) TF.probs.__sub.textContent = n + '×' + V + ' · last row = prediction';
+  setSub(TF.probs, `${n}×${V} · last row = prediction`);
 }
 
 /* ====================================================================== */
@@ -1847,50 +1842,47 @@ function renderTF(C, label){
 /* ====================================================================== */
 
 function renderDist(probs, picked){
-  var box = $('#distBars');
+  const box = $('#distBars');
   box.innerHTML = '';
-  var V = S.cfg.nVocab, i;
-  var idx = [];
-  for (i = 0; i < V; i++) idx.push(i);
-  idx.sort(function(a, b){ return probs[b] - probs[a]; });
-  var K = Math.min(10, V);
+  const V = S.cfg.nVocab;
+  const idx = Array.from({ length: V }, (_, i) => i);
+  idx.sort((a, b) => probs[b] - probs[a]);
+  const K = Math.min(10, V);
   /* scale against the top probability, but never against less than 25%, so a
      flat distribution still looks flat */
-  var top = Math.max(probs[idx[0]], 0.25);
-  for (var r = 0; r < K; r++){
-    var id = idx[r], p = probs[id];
-    var row = el('div', 'bar' + (id === picked ? ' sel' : ''));
+  const top = Math.max(probs[idx[0]], 0.25);
+  for (let r = 0; r < K; r++){
+    const id = idx[r], p = probs[id];
+    const row = el('div', `bar${id === picked ? ' sel' : ''}`);
     row.appendChild(el('div', 't', (id === picked ? '▸' : ' ') + tokDisp(S.tok.vocab[id])));
-    var tr = el('div', 'track'), f = el('div', 'fill');
+    const tr = el('div', 'track'), f = el('div', 'fill');
     /* bars are scaled against the most likely token so a flat distribution is
        still readable; the printed number stays the absolute probability */
-    f.style.width = clamp((p / top) * 100, 0, 100).toFixed(1) + '%';
+    f.style.width = `${clamp((p / top) * 100, 0, 100).toFixed(1)}%`;
 
     tr.appendChild(f);
-    row.appendChild(tr);
-    row.appendChild(el('div', 'p', (p * 100).toFixed(1) + '%'));
+    row.append(tr, el('div', 'p', `${(p * 100).toFixed(1)}%`));
     box.appendChild(row);
   }
-  var ent = 0;
-  for (i = 0; i < V; i++) if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
-  $('#distMeta').textContent = 'entropy ' + fmt(ent, 2) + ' nats · ' +
-    (picked >= 0 ? 'sampled "' + tokDisp(S.tok.vocab[picked]) + '"' : 'top ' + K + ' of ' + V);
+  let ent = 0;
+  for (let i = 0; i < V; i++) if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
+  $('#distMeta').textContent = `entropy ${fmt(ent, 2)} nats · ` +
+    (picked >= 0 ? `sampled "${tokDisp(S.tok.vocab[picked])}"` : `top ${K} of ${V}`);
 }
 
 function renderOutput(){
-  var out = $('#outText');
+  const out = $('#outText');
   out.innerHTML = '';
-  var pTxt = S.tok.decode(S.genTokens.slice(0, S.promptLen));
-  var gTxt = S.tok.decode(S.genTokens.slice(S.promptLen));
-  out.appendChild(el('span', 'p', pTxt));
-  out.appendChild(el('span', 'g', gTxt));
+  const pTxt = S.tok.decode(S.genTokens.slice(0, S.promptLen));
+  const gTxt = S.tok.decode(S.genTokens.slice(S.promptLen));
+  out.append(el('span', 'p', pTxt), el('span', 'g', gTxt));
   out.scrollTop = out.scrollHeight;
-  $('#outCount').textContent = (S.genTokens.length - S.promptLen) + ' generated · ' +
-                               S.genTokens.length + ' total';
-  var chips = $('#outChips');
+  $('#outCount').textContent =
+    `${S.genTokens.length - S.promptLen} generated · ${S.genTokens.length} total`;
+  const chips = $('#outChips');
   chips.innerHTML = '';
-  var start = Math.max(0, S.genTokens.length - 36);
-  for (var i = start; i < S.genTokens.length; i++)
+  const start = Math.max(0, S.genTokens.length - 36);
+  for (let i = start; i < S.genTokens.length; i++)
     chips.appendChild(chipFor(S.genTokens[i], i >= S.promptLen ? 'gen' : ''));
 }
 
@@ -1898,31 +1890,38 @@ function renderOutput(){
 /*  sampling & generation                                                 */
 /* ====================================================================== */
 
+/* tokens the model is allowed to emit: everything that actually occurs in the
+   corpus. Rebuilt only when the tokenizer changes. */
+let allowedCache = null;
+
 function allowedIds(){
-  var a = allowedIds.cache;
-  if (a && a.tag === S.tok.vocab.length + ':' + S.tok.merges.length) return a.list;
-  var list = [], i;
-  for (i = 0; i < S.tok.vocab.length; i++) if (S.tok.counts[i] > 0) list.push(i);
-  if (!list.length) for (i = 1; i < S.tok.vocab.length; i++) list.push(i);
-  allowedIds.cache = { tag: S.tok.vocab.length + ':' + S.tok.merges.length, list: list };
+  const tag = `${S.tok.vocab.length}:${S.tok.merges.length}`;
+  if (allowedCache && allowedCache.tag === tag) return allowedCache.list;
+  const list = [];
+  for (let i = 0; i < S.tok.vocab.length; i++) if (S.tok.counts[i] > 0) list.push(i);
+  if (!list.length) for (let i = 1; i < S.tok.vocab.length; i++) list.push(i);
+  allowedCache = { tag, list };
   return list;
 }
-allowedIds.cache = null;
 
 function sampleFrom(probs, temp, k){
-  var ids = allowedIds().slice();
-  ids.sort(function(a, b){ return probs[b] - probs[a]; });
+  const ids = [...allowedIds()].sort((a, b) => probs[b] - probs[a]);
   if (temp <= 0.02) return ids[0];
-  var K = Math.min(k, ids.length), i, sum = 0;
-  var w = new Float64Array(K);
-  for (i = 0; i < K; i++){ w[i] = Math.pow(Math.max(probs[ids[i]], 1e-12), 1 / temp); sum += w[i]; }
-  var r = rand() * sum, acc = 0;
-  for (i = 0; i < K; i++){ acc += w[i]; if (r <= acc) return ids[i]; }
+  const K = Math.min(k, ids.length);
+  const w = new Float64Array(K);
+  let sum = 0;
+  for (let i = 0; i < K; i++){
+    w[i] = Math.max(probs[ids[i]], 1e-12) ** (1 / temp);
+    sum += w[i];
+  }
+  const r = rand() * sum;
+  let acc = 0;
+  for (let i = 0; i < K; i++){ acc += w[i]; if (r <= acc) return ids[i]; }
   return ids[K - 1];
 }
 
 function resetGen(){
-  var ids = S.tok.encode($('#promptText').value);
+  let ids = S.tok.encode($('#promptText').value);
   if (!ids.length && S.data && S.data.length) ids = [S.data[0]];
   S.genTokens = ids.slice();
   S.promptLen = ids.length;
@@ -1930,22 +1929,23 @@ function resetGen(){
 }
 
 function genOne(){
-  var m = S.model, c = S.cfg;
+  const m = S.model, c = S.cfg;
   if (!S.genTokens.length) return false;
-  var ctx = S.genTokens.slice(-c.nCtx), n = ctx.length;
+  const ctx = S.genTokens.slice(-c.nCtx), n = ctx.length;
   m.forward(ctx, n, m.cacheViz);
-  var probs = m.cacheViz.probs.subarray((n - 1) * c.nVocab, n * c.nVocab);
-  var id = sampleFrom(probs, S.temp, S.topk);
+  const probs = m.cacheViz.probs.subarray((n - 1) * c.nVocab, n * c.nVocab);
+  const id = sampleFrom(probs, S.temp, S.topk);
   S.lastDist = Float32Array.from(probs);
   S.lastPick = id;
   S.genTokens.push(id);
-  renderTF(m.cacheViz, 'generating · token ' + (S.genTokens.length - S.promptLen));
+  renderTF(m.cacheViz, `generating · token ${S.genTokens.length - S.promptLen}`);
   renderDist(S.lastDist, id);
   renderOutput();
   return true;
 }
 
-var genTimer = null;
+let genTimer = null;
+
 function startGen(){
   if (S.generating){ stopGen(); return; }
   if (!S.genTokens.length) resetGen();
@@ -1954,12 +1954,14 @@ function startGen(){
   $('#btnGen').textContent = '■ stop';
   tickGen();
 }
+
 function tickGen(){
   if (!S.generating) return;
   if (S.genLeft <= 0 || !genOne()){ stopGen(); return; }
   S.genLeft--;
   genTimer = setTimeout(tickGen, 60);
 }
+
 function stopGen(){
   S.generating = false;
   clearTimeout(genTimer);
@@ -1967,26 +1969,26 @@ function stopGen(){
 }
 
 function runPromptForward(){
-  var m = S.model, c = S.cfg;
+  const m = S.model, c = S.cfg;
   if (!m) return;
-  var ids = S.tok.encode($('#promptText').value);
-  if (!ids.length) ids = [(S.data && S.data.length) ? S.data[0] : 1];
-  var ctx = ids.slice(-c.nCtx);
+  let ids = S.tok.encode($('#promptText').value);
+  if (!ids.length) ids = [S.data?.length ? S.data[0] : 1];
+  const ctx = ids.slice(-c.nCtx);
   m.forward(ctx, ctx.length, m.cacheViz);
-  var probs = m.cacheViz.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
-  renderTF(m.cacheViz, 'prompt · ' + ctx.length + ' tokens → predicting the next one');
+  const probs = m.cacheViz.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
+  renderTF(m.cacheViz, `prompt · ${ctx.length} tokens → predicting the next one`);
   renderDist(probs, -1);
 }
 
 function refreshSample(){
-  var m = S.model, c = S.cfg;
-  var ids = S.tok.encode('the ');
-  if (!ids.length) ids = [(S.data && S.data.length) ? S.data[0] : 1];
-  var out = ids.slice();
-  for (var i = 0; i < 100; i++){
-    var ctx = out.slice(-c.nCtx);
+  const m = S.model, c = S.cfg;
+  let ids = S.tok.encode('the ');
+  if (!ids.length) ids = [S.data?.length ? S.data[0] : 1];
+  const out = ids.slice();
+  for (let i = 0; i < 100; i++){
+    const ctx = out.slice(-c.nCtx);
     m.forward(ctx, ctx.length, m.cacheAux);
-    var pr = m.cacheAux.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
+    const pr = m.cacheAux.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
     out.push(sampleFrom(pr, 0.7, 8));
   }
   $('#sampleOut').textContent = S.tok.decode(out);
@@ -1997,20 +1999,21 @@ function refreshSample(){
 /* ====================================================================== */
 
 function lrAt(step){
-  var base = S.lr, warm = 80;
+  const base = S.lr, warm = 80;
   if (step < warm) return base * (step + 1) / warm;
-  var p = Math.min(1, (step - warm) / 4000);
+  const p = Math.min(1, (step - warm) / 4000);
   return base * (0.08 + 0.92 * 0.5 * (1 + Math.cos(Math.PI * p)));
 }
 
 function trainStep(){
-  var m = S.model, c = S.cfg, n = c.nCtx, B = S.batch, data = S.data;
-  var span = Math.max(1, data.length - n - 1);
+  const m = S.model, n = S.cfg.nCtx, B = S.batch, data = S.data;
+  const span = Math.max(1, data.length - n - 1);
   m.zeroGrad();
-  var loss = 0, scale = 1 / (n * B), b, i;
-  for (b = 0; b < B; b++){
-    var st = randInt(span);
-    for (i = 0; i < n; i++){
+  const scale = 1 / (n * B);
+  let loss = 0;
+  for (let b = 0; b < B; b++){
+    const st = randInt(span);
+    for (let i = 0; i < n; i++){
       S.inBuf[i] = data[(st + i) % data.length];
       S.tgtBuf[i] = data[(st + i + 1) % data.length];
     }
@@ -2026,29 +2029,27 @@ function trainStep(){
 /* run one small batch backward so the gradient view has something to show
    before training has ever been started */
 function primeGrads(){
-  var m = S.model, c = S.cfg, n = c.nCtx, B = Math.min(4, S.batch), data = S.data;
-  var span = Math.max(1, data.length - n - 1), scale = 1 / (n * B), b, i;
+  const m = S.model, n = S.cfg.nCtx, B = Math.min(4, S.batch), data = S.data;
+  const span = Math.max(1, data.length - n - 1), scale = 1 / (n * B);
   m.zeroGrad();
-  for (b = 0; b < B; b++){
-    var st = randInt(span);
-    for (i = 0; i < n; i++){
+  for (let b = 0; b < B; b++){
+    const st = randInt(span);
+    for (let i = 0; i < n; i++){
       S.inBuf[i] = data[(st + i) % data.length];
       S.tgtBuf[i] = data[(st + i + 1) % data.length];
     }
     m.forward(S.inBuf, n, m.cacheTrain);
     m.backward(S.tgtBuf, n, m.cacheTrain, scale);
   }
-  var sq = 0;
-  for (i = 0; i < m.params.length; i++){
-    var g = m.params[i].grad;
-    for (b = 0; b < m.params[i].n; b++) sq += g[b] * g[b];
+  let sq = 0;
+  for (const p of m.params){
+    for (let j = 0; j < p.n; j++) sq += p.grad[j] * p.grad[j];
   }
   m.gradNorm = Math.sqrt(sq);
 }
 
 function randomLoss(){
-  var nz = allowedIds().length;
-  return Math.log(Math.max(2, nz));
+  return Math.log(Math.max(2, allowedIds().length));
 }
 
 function updateStats(loss){
@@ -2063,22 +2064,23 @@ function updateStats(loss){
 
 function trainFrame(){
   if (!S.training) return;
-  var t0 = performance.now(), k = 0, acc = 0;
+  const t0 = performance.now();
+  let k = 0, acc = 0;
   /* always take at least one step, and never hog the thread for a whole batch
      of them, whatever the clock does */
   do { acc += trainStep(); k++; } while (k < 512 && performance.now() - t0 < 22);
-  var dt = (performance.now() - t0) / 1000;
+  const dt = (performance.now() - t0) / 1000;
   S.sps = Math.round(k / Math.max(dt, 1e-6));
-  var loss = acc / k;
+  const loss = acc / k;
 
   S.raw.push(loss);
   S.emaV = (S.emaV === null) ? loss : S.emaV * 0.88 + loss * 0.12;
   S.ema.push(S.emaV);
   if (S.raw.length > 900){
-    S.raw = S.raw.filter(function(_, i){ return i % 2 === 0; });
-    S.ema = S.ema.filter(function(_, i){ return i % 2 === 0; });
+    const everyOther = (_, i) => i % 2 === 0;
+    S.raw = S.raw.filter(everyOther);
+    S.ema = S.ema.filter(everyOther);
   }
-
   updateStats(loss);
   drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
 
@@ -2097,8 +2099,9 @@ function trainFrame(){
 
 function toggleTrain(){
   S.training = !S.training;
-  $('#btnTrain').textContent = S.training ? '❚❚ pause' : '▶ train';
-  $('#btnTrain').classList.toggle('primary', !S.training);
+  const btn = $('#btnTrain');
+  btn.textContent = S.training ? '❚❚ pause' : '▶ train';
+  btn.classList.toggle('primary', !S.training);
   if (S.training) setTimeout(trainFrame, 0);
 }
 
@@ -2107,17 +2110,18 @@ function toggleTrain(){
 /* ====================================================================== */
 
 function readCfg(){
+  const num = (sel, dflt, lo, hi) => clamp(parseInt($(sel).value, 10) || dflt, lo, hi);
   return {
-    nEmbd: clamp(parseInt($('#cfgD').value, 10) || 22, 4, 64),
-    nLayer: clamp(parseInt($('#cfgL').value, 10) || 2, 1, 4),
-    nHead: clamp(parseInt($('#cfgH').value, 10) || 2, 1, 8),
-    nFF: clamp(parseInt($('#cfgF').value, 10) || 50, 4, 160),
-    nCtx: clamp(parseInt($('#cfgT').value, 10) || 20, 4, 48),
-    nVocab: clamp(parseInt($('#cfgV').value, 10) || 42, 8, 96)
+    nEmbd: num('#cfgD', 22, 4, 64),
+    nLayer: num('#cfgL', 2, 1, 4),
+    nHead: num('#cfgH', 2, 1, 8),
+    nFF: num('#cfgF', 50, 4, 160),
+    nCtx: num('#cfgT', 20, 4, 48),
+    nVocab: num('#cfgV', 42, 8, 96)
   };
 }
 
-function cfgValid(c){ return c.nEmbd % c.nHead === 0; }
+const cfgValid = (c) => c.nEmbd % c.nHead === 0;
 
 function writeCfg(c){
   $('#cfgD').value = c.nEmbd; $('#cfgL').value = c.nLayer; $('#cfgH').value = c.nHead;
@@ -2126,40 +2130,41 @@ function writeCfg(c){
 }
 
 function updateCfgCount(){
-  var c = readCfg(), box = $('#cfgCount');
+  const c = readCfg(), box = $('#cfgCount');
   if (!cfgValid(c)){
-    box.textContent = 'd_model ' + c.nEmbd + ' is not divisible by ' + c.nHead + ' heads';
+    box.textContent = `d_model ${c.nEmbd} is not divisible by ${c.nHead} heads`;
     box.style.color = 'var(--bad)';
     return;
   }
+  const n = GPT.paramCount(c);
   box.style.color = '';
-  box.textContent = commas(paramCount(c)) + ' parameters' + (paramCount(c) === 10000 ? '  ✦' : '');
+  box.textContent = `${commas(n)} parameters${n === 10000 ? '  ✦' : ''}`;
 }
 
 function updateHeader(){
-  var c = S.cfg;
+  const c = S.cfg;
   $('#pParams').textContent = commas(S.model.nParams);
-  $('#pArch').textContent = 'd' + c.nEmbd + '·' + c.nLayer + 'L·' + c.nHead + 'H·ff' + c.nFF;
+  $('#pArch').textContent = `d${c.nEmbd}·${c.nLayer}L·${c.nHead}H·ff${c.nFF}`;
   $('#pVocab').textContent = c.nVocab;
   $('#pCtx').textContent = c.nCtx;
-  $('#tfArch').textContent = 'd' + c.nEmbd + ' · ' + c.nLayer + 'L · ' + c.nHead + 'H · ff' + c.nFF;
+  $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
 }
 
 function rebuildAll(keepText){
   stopGen();
-  var wasTraining = S.training;
+  const wasTraining = S.training;
   S.training = false;
   $('#btnTrain').textContent = '▶ train';
   $('#btnTrain').classList.add('primary');
 
-  var text = $('#trainText').value.toLowerCase();
+  let text = $('#trainText').value.toLowerCase();
   if (!text.trim().length){ text = DEFAULT_CORPUS; $('#trainText').value = DEFAULT_CORPUS; }
   S.corpus = text;
 
   S.tok.build(text, S.cfg.nVocab);
-  allowedIds.cache = null;
+  allowedCache = null;
 
-  var ids = Array.prototype.slice.call(S.tok.trainIds);
+  let ids = [...S.tok.trainIds];
   if (!ids.length) ids = [1];
   while (ids.length < S.cfg.nCtx + 2) ids = ids.concat(ids);
   S.data = Int32Array.from(ids);
@@ -2169,10 +2174,10 @@ function rebuildAll(keepText){
   S.tgtBuf = new Int32Array(S.cfg.nCtx);
   S.step = 0; S.tokensSeen = 0; S.raw = []; S.ema = []; S.emaV = null;
   S.lastSample = -1; S.frame = 0; S.sps = 0;
-  paramBuf.cache = null; drawParamMap.grid = null;
+  paramBufCache = null; paramGrid = null;
   if (!S.model.P[S.wbSel]) S.wbSel = 'wte';
 
-  $('#trainMeta').textContent = text.length + ' chars → ' + S.tok.trainIds.length + ' tokens';
+  $('#trainMeta').textContent = `${text.length} chars → ${S.tok.trainIds.length} tokens`;
   $('#sampleOut').textContent = '(train the model to see samples)';
 
   buildTF();
@@ -2213,9 +2218,9 @@ function resetWeights(){
    over the tensor keeps the signal well above float32 rounding noise, which
    a single-element check does not.                                        */
 function gradCheck(){
-  var m = S.model, c = S.cfg, n = Math.min(8, c.nCtx), i;
-  var inp = new Int32Array(n), tgt = new Int32Array(n);
-  for (i = 0; i < n; i++){
+  const m = S.model, n = Math.min(8, S.cfg.nCtx);
+  const inp = new Int32Array(n), tgt = new Int32Array(n);
+  for (let i = 0; i < n; i++){
     inp[i] = S.data[i % S.data.length];
     tgt[i] = S.data[(i + 1) % S.data.length];
   }
@@ -2223,33 +2228,34 @@ function gradCheck(){
   m.forward(inp, n, m.cacheTrain);
   m.backward(tgt, n, m.cacheTrain, 1 / n);
 
-  var worst = 0, worstName = '', lines = [];
-  for (var pi = 0; pi < m.params.length; pi++){
-    var p = m.params[pi];
-    var v = new Float64Array(p.n), nrm = 0;
-    for (i = 0; i < p.n; i++){ v[i] = rand() * 2 - 1; nrm += v[i] * v[i]; }
+  let worst = 0, worstName = '';
+  const lines = [];
+  for (const p of m.params){
+    const v = new Float64Array(p.n);
+    let nrm = 0;
+    for (let i = 0; i < p.n; i++){ v[i] = rand() * 2 - 1; nrm += v[i] * v[i]; }
     nrm = Math.sqrt(nrm) || 1;
-    var ana = 0;
-    for (i = 0; i < p.n; i++){ v[i] /= nrm; ana += p.grad[i] * v[i]; }
+    let ana = 0;
+    for (let i = 0; i < p.n; i++){ v[i] /= nrm; ana += p.grad[i] * v[i]; }
 
-    var orig = Float32Array.from(p.data), eps = 1e-2;
-    for (i = 0; i < p.n; i++) p.data[i] = orig[i] + eps * v[i];
-    var lp = m.lossOn(inp, tgt, n, m.cacheAux);
-    for (i = 0; i < p.n; i++) p.data[i] = orig[i] - eps * v[i];
-    var lm = m.lossOn(inp, tgt, n, m.cacheAux);
+    const orig = Float32Array.from(p.data), eps = 1e-2;
+    for (let i = 0; i < p.n; i++) p.data[i] = orig[i] + eps * v[i];
+    const lp = m.lossOn(inp, tgt, n, m.cacheAux);
+    for (let i = 0; i < p.n; i++) p.data[i] = orig[i] - eps * v[i];
+    const lm = m.lossOn(inp, tgt, n, m.cacheAux);
     p.data.set(orig);
 
-    var num = (lp - lm) / (2 * eps);
+    const num = (lp - lm) / (2 * eps);
     /* floor the denominator so near-zero derivatives are judged on absolute
        error rather than on ratios of numerical noise */
-    var rel = Math.abs(num - ana) / Math.max(Math.abs(num) + Math.abs(ana), 1e-3);
-    lines.push(p.name.padEnd(14) + ' analytic ' + ana.toExponential(4) +
-               '  numeric ' + num.toExponential(4) + '  err ' + rel.toExponential(2));
+    const rel = Math.abs(num - ana) / Math.max(Math.abs(num) + Math.abs(ana), 1e-3);
+    lines.push(`${p.name.padEnd(14)} analytic ${ana.toExponential(4)}` +
+               `  numeric ${num.toExponential(4)}  err ${rel.toExponential(2)}`);
     if (rel > worst){ worst = rel; worstName = p.name; }
   }
   m.zeroGrad();
   console.log(lines.join('\n'));
-  console.log('worst error ' + worst.toExponential(3) + ' at ' + worstName +
+  console.log(`worst error ${worst.toExponential(3)} at ${worstName}` +
               (worst < 5e-3 ? '  — backward pass OK' : '  — CHECK FAILED'));
   return worst;
 }
@@ -2258,75 +2264,98 @@ function gradCheck(){
 /*  wiring                                                                */
 /* ====================================================================== */
 
-var promptTimer = null;
+let promptTimer = null;
+let resizeTimer = null;
 
 function wire(){
-  $('#btnTrain').onclick = toggleTrain;
-  $('#btnReset').onclick = resetWeights;
-  $('#btnApply').onclick = function(){ rebuildAll(true); toast('tokenizer + model rebuilt'); };
-  $('#btnRebuild').onclick = function(){
-    var c = readCfg();
+  $('#btnTrain').addEventListener('click', toggleTrain);
+  $('#btnReset').addEventListener('click', resetWeights);
+  $('#btnApply').addEventListener('click', () => {
+    rebuildAll(true);
+    toast('tokenizer + model rebuilt');
+  });
+  $('#btnRebuild').addEventListener('click', () => {
+    const c = readCfg();
     if (!cfgValid(c)){
-      toast('d_model ' + c.nEmbd + ' must be a multiple of ' + c.nHead + ' heads');
+      toast(`d_model ${c.nEmbd} must be a multiple of ${c.nHead} heads`);
       return;
     }
     S.cfg = c; writeCfg(c); rebuildAll(true);
-    toast(commas(paramCount(c)) + ' parameters');
-  };
-  ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT', '#cfgV'].forEach(function(sel){
-    $(sel).oninput = updateCfgCount;
+    toast(`${commas(GPT.paramCount(c))} parameters`);
+  });
+  for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT', '#cfgV'])
+    $(sel).addEventListener('input', updateCfgCount);
+
+  const inLr = $('#inLr'), inBatch = $('#inBatch');
+  inLr.addEventListener('input', () => {
+    S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
+  });
+  inBatch.addEventListener('input', () => {
+    S.batch = clamp(parseInt(inBatch.value, 10) || 16, 1, 64);
   });
 
-  $('#inLr').oninput = function(){ S.lr = clamp(parseFloat(this.value) || 0.02, 0.0001, 0.5); };
-  $('#inBatch').oninput = function(){ S.batch = clamp(parseInt(this.value, 10) || 16, 1, 64); };
-  $('#chkLive').onchange = function(){ S.live = this.checked; };
-  $('#chkDetail').onchange = function(){
-    S.detail = this.checked;
+  const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
+  chkLive.addEventListener('change', () => { S.live = chkLive.checked; });
+  chkDetail.addEventListener('change', () => {
+    S.detail = chkDetail.checked;
     $('#tfFlow').classList.toggle('compact', !S.detail);
-  };
+  });
 
-  $('#promptText').oninput = function(){
+  $('#promptText').addEventListener('input', () => {
     clearTimeout(promptTimer);
-    promptTimer = setTimeout(function(){
+    promptTimer = setTimeout(() => {
       stopGen();
       renderEncoded();
       resetGen();
       runPromptForward();
     }, 200);
-  };
+  });
 
-  function slider(sel, out, key, fixed){
-    var f = $(sel);
-    f.oninput = function(){
-      S[key] = parseFloat(this.value);
+  const slider = (sel, out, key, fixed) => {
+    const f = $(sel);
+    const sync = () => {
+      S[key] = parseFloat(f.value);
       $(out).textContent = fixed ? S[key].toFixed(fixed) : S[key];
     };
-    f.oninput();
-  }
+    f.addEventListener('input', sync);
+    sync();
+  };
   slider('#inTemp', '#vTemp', 'temp', 2);
   slider('#inTopk', '#vTopk', 'topk', 0);
   slider('#inMax', '#vMax', 'maxNew', 0);
 
-  $('#btnGen').onclick = startGen;
-  $('#btnStep').onclick = function(){ stopGen(); genOne(); };
-  $('#btnClear').onclick = function(){ stopGen(); resetGen(); runPromptForward(); };
+  $('#btnGen').addEventListener('click', startGen);
+  $('#btnStep').addEventListener('click', () => { stopGen(); genOne(); });
+  $('#btnClear').addEventListener('click', () => { stopGen(); resetGen(); runPromptForward(); });
 
-  $$('#wbMode button').forEach(function(b){
-    b.onclick = function(){
-      $$('#wbMode button').forEach(function(x){ x.classList.remove('on'); });
+  const modeButtons = $$('#wbMode button');
+  for (const b of modeButtons){
+    b.addEventListener('click', () => {
+      for (const x of modeButtons) x.classList.remove('on');
       b.classList.add('on');
-      S.wbMode = b.getAttribute('data-m');
+      S.wbMode = b.dataset.m;
       if (S.wbMode === 'grad' && !S.training && S.model.gradNorm === 0) primeGrads();
       renderWeights();
-    };
+    });
+  }
+
+  /* the parameter map is redrawn on every training frame, so its click
+     handler is registered once here and reads the geometry back out of the
+     heatmap metadata the last redraw left behind */
+  $('#paramMap').addEventListener('click', (ev) => {
+    const cv = ev.currentTarget, H = heatMeta.get(cv);
+    if (!H) return;
+    const r = cv.getBoundingClientRect();
+    const idx = Math.floor((ev.clientY - r.top) / H.cellH) * H.cols
+              + Math.floor((ev.clientX - r.left) / H.cell);
+    const hit = paramAt(idx);
+    if (hit) selectTensor(hit.p.name);
   });
 
-  var rt = null;
-  window.addEventListener('resize', function(){
-    clearTimeout(rt);
-    rt = setTimeout(function(){
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
       drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
-      drawHist($('#histChart'), S.model.P[S.wbSel].data, S.model.P[S.wbSel].n, '');
       drawTensor();
       drawFreq($('#freqChart'), S.tok);
     }, 180);
@@ -2345,7 +2374,7 @@ function boot(){
   drawRampLegend($('#legDiv'));
   rebuildAll(false);
   selectTensor('wte');
-  window.slm = { S: S, gradCheck: gradCheck, GPT: GPT, paramCount: paramCount };
+  window.slm = { S, gradCheck, GPT, paramCount: GPT.paramCount };
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
