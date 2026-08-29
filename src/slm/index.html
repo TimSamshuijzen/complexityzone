@@ -373,10 +373,7 @@ canvas.fluid{width:100%}
     <div class="pbody">
       <div class="sub">corpus</div>
       <textarea class="lightTheme" id="trainText" rows="5" spellcheck="false"></textarea>
-      <div class="row">
-        <button id="btnApply" class="btn sm">apply text &amp; rebuild</button>
-        <span class="meta" id="trainMeta">—</span>
-      </div>
+      <span class="meta" id="trainMeta">—</span>
       <div class="grid2">
         <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
         <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="20"></label>
@@ -626,7 +623,7 @@ class Tokenizer {
     this.reset();
     const size = Math.max(2, target | 0);
 
-    /* --- 1. base vocabulary: the most frequent characters --- */
+    /* --- base vocabulary: the most frequent characters --- */
     const freq = new Map();
     for (const ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
     let chars = [...freq.keys()];
@@ -640,11 +637,11 @@ class Tokenizer {
     }
     this.baseSize = this.vocab.length;
 
-    /* --- 2. encode corpus with base ids --- */
+    /* --- encode corpus with base ids --- */
     let ids = [];
     for (const ch of text) ids.push(this.charToId.get(ch) ?? UNK);
 
-    /* --- 3. repeatedly merge the most frequent adjacent pair --- */
+    /* --- repeatedly merge the most frequent adjacent pair --- */
     while (this.vocab.length < size){
       const counts = new Map();
       for (let i = 0; i + 1 < ids.length; i++){
@@ -665,7 +662,7 @@ class Tokenizer {
 
     this.trainIds = Int32Array.from(ids);
 
-    /* --- 4. how often each token actually occurs --- */
+    /* --- how often each token actually occurs --- */
     this.counts = new Int32Array(this.vocab.length);
     for (const id of ids) this.counts[id]++;
     return this.trainIds;
@@ -2414,13 +2411,18 @@ function gradCheck(){
 /*  wiring                                                                */
 /* ====================================================================== */
 
+let corpusTimer = null;
 let promptTimer = null;
 let resizeTimer = null;
 let vocabTimer = null;
 
-/* a new vocabulary size means new merges and a differently shaped embedding
-   matrix, so the tokenizer and the model are both rebuilt — once the drag has
-   settled, not on every pixel of it */
+function applyCorpus(){
+  clearTimeout(corpusTimer);
+  const text = $('#trainText').value;
+  if (!text.trim().length || text === S.corpus) return;
+  rebuildAll(true);
+}
+
 function applyVocab(){
   const v = clamp(parseInt($('#inVocab').value, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
   if (v === S.cfg.nVocab) return;
@@ -2431,10 +2433,14 @@ function applyVocab(){
 function wire(){
   $('#btnTrain').addEventListener('click', toggleTrain);
   $('#btnReset').addEventListener('click', resetWeights);
-  $('#btnApply').addEventListener('click', () => {
-    rebuildAll(true);
-    toast('tokenizer + model rebuilt');
+
+  const trainText = $('#trainText');
+  trainText.addEventListener('input', () => {
+    clearTimeout(corpusTimer);
+    corpusTimer = setTimeout(applyCorpus, 400);
   });
+  trainText.addEventListener('change', applyCorpus);
+
   $('#btnRebuild').addEventListener('click', () => {
     const c = readCfg();
     if (!cfgValid(c)){
@@ -2447,8 +2453,6 @@ function wire(){
   for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT'])
     $(sel).addEventListener('input', updateCfgCount);
 
-  /* a box mid-edit may hold a half-typed number, so it is only mirrored once it
-     lands inside the range; leaving the box clamps whatever is left in it */
   $('#cfgV').addEventListener('input', () => {
     const v = parseInt($('#cfgV').value, 10);
     if (v >= VOCAB_MIN && v <= VOCAB_MAX) setVocabUI(v, 'box');
