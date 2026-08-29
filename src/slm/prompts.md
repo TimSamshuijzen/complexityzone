@@ -204,7 +204,7 @@ Take your time in working this out, you are given plenty of time to think, make 
 ```
 Read `index.html`. It is a simple transformer.
 
-Look at the transformer panel. The positions in the canvas heatmaps are not always square, but more rectangular. Make sure the positions are always squares.
+Look at the transformer panel. The positions in the canvas heatmaps are not always square, but more rectangular. Make sure the positions are always squares. Also, the max size of a square is no more than 5 pixels by 5 pixels.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
