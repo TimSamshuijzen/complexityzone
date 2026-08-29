@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>slm - small language model</title>
+<link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
 <style>
 :root{
   --bg:#06090e;
@@ -359,7 +360,7 @@ canvas.fluid{width:100%}
       </div>
       <div class="grid2">
         <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
-        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="16"></label>
+        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="30"></label>
       </div>
       <div class="row">
         <button id="btnTrain" class="btn primary">▶ train</button>
@@ -385,6 +386,9 @@ canvas.fluid{width:100%}
     <div class="pbody">
       <div class="note">The model never sees letters. A BPE tokenizer is learned from the corpus:
       start from single characters, then repeatedly merge the most frequent adjacent pair.</div>
+      <div class="slider"><span class="lab">vocab size</span><input id="inVocab" type="range" min="40" max="100" step="1" value="100"><span class="val" id="vVocab">100</span></div>
+      <div class="note">Merging stops once the vocabulary reaches this size. The embedding matrix
+      holds one row per token, so moving the slider re-learns the merges and rebuilds the model.</div>
       <div class="sub">1 &middot; vocabulary <span class="dim" id="tokVocabMeta"></span></div>
       <div class="vocab-wrap"><div id="vocabList" class="chips"></div></div>
       <div class="sub">2 &middot; learned merges <span class="dim" id="tokMergeMeta"></span></div>
@@ -438,7 +442,7 @@ canvas.fluid{width:100%}
         <label class="f">heads<input id="cfgH" type="number" min="1" max="8" step="1" value="2"></label>
         <label class="f">d_ff<input id="cfgF" type="number" min="4" max="160" step="1" value="50"></label>
         <label class="f">context<input id="cfgT" type="number" min="4" max="48" step="1" value="20"></label>
-        <label class="f">vocab<input id="cfgV" type="number" min="8" max="96" step="1" value="42"></label>
+        <label class="f">vocab<input id="cfgV" type="number" min="40" max="100" step="1" value="100"></label>
       </div>
       <div class="row">
         <span class="meta" id="cfgCount">—</span>
@@ -452,9 +456,9 @@ canvas.fluid{width:100%}
     <div class="phead"><h2>input</h2><span class="n">prompt</span>
       <div class="phint">type to run a forward pass</div></div>
     <div class="pbody">
-      <textarea id="promptText" rows="2" spellcheck="false">the cat sat on</textarea>
-      <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.85"><span class="val" id="vTemp">0.85</span></div>
-      <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="42" step="1" value="10"><span class="val" id="vTopk">10</span></div>
+      <textarea id="promptText" rows="2" spellcheck="false">Once upon a time</textarea>
+      <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
+      <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
       <div class="row">
         <button id="btnGen" class="btn primary">▶ generate</button>
@@ -544,36 +548,39 @@ function toast(msg){
 
 /* ------------------------------------------------------------- the corpus */
 const DEFAULT_CORPUS = [
-  'the cat sat on the mat.',
-  'the dog sat on the log.',
-  'the cat ran to the dog.',
-  'the dog ran to the cat.',
-  'a small cat naps on a warm mat.',
-  'a big dog naps on a big log.',
-  'the cat sees a dog on the log.',
-  'the dog sees a cat on the mat.',
-  'the small cat likes the big dog.',
-  'the big dog likes the small cat.',
-  'a cat and a dog sat on a mat.',
-  'a dog and a cat ran to a log.',
-  'the cat is small and the dog is big.',
-  'the dog is big and the cat is small.',
-  'the sun is warm on the mat.',
-  'the sun is warm on the log.',
-  'a warm cat naps in the sun.',
-  'a warm dog naps in the sun.',
-  'the cat and the dog nap in the sun.',
-  'the dog and the cat sit in the sun.',
-  'the small dog sees the small cat.',
-  'the big cat sees the big dog.',
-  'a cat ran to the sun on the mat.',
-  'a dog ran to the sun on the log.',
-  'the cat likes to nap on a warm mat.',
-  'the dog likes to nap on a warm log.',
-  'the cat and the dog like the sun.',
-  'the dog and the cat like the mat.',
-  'the sun is big and the cat is small.',
-  'the sun is warm and the dog is big.'
+  'Once upon a time, in a big forest, there lived a rhinoceros named Roxy. Roxy loved to climb. She climbed trees, rocks, and hills. One day, Roxy found an icy hill. She had never seen anything like it before. It was shiny and cold, and she wanted to climb it.',
+  'Roxy tried to climb the icy hill, but it was very slippery. She tried again and again, but she kept falling down. Roxy was sad. She wanted to climb the icy hill so much. Then, she saw a little bird named Billy. Billy saw that Roxy was sad and asked, "Why are you sad, Roxy?"',
+  'Roxy told Billy about the icy hill and how she couldn\'t climb it. Billy said, "I have an idea! Let\'s find some big leaves to put under your feet. They will help you climb the icy hill." Roxy and Billy looked for big leaves and found some. Roxy put the leaves under her feet and tried to climb the icy hill again.',
+  'This time, Roxy didn\'t slip. She climbed and climbed until she reached the top of the icy hill. Roxy was so happy! She and Billy played on the icy hill all day. From that day on, Roxy and Billy were the best of friends, and they climbed and played together all the time. And Roxy learned that with a little help from a friend, she could climb anything.',
+  'Once upon a time, in a small yard, there was a small daisy. The daisy had a name. Her name was Daisy. Daisy was very small, but she was also very happy.',
+  'One day, Daisy saw a dog. The dog was big and had a name too. His name was Max. Max liked to play in the yard. Daisy liked to watch Max play. Max and Daisy became friends.',
+  'Every day, Max would come to the yard to play. Daisy would watch and smile. They were very happy together. And even though Daisy was small, she knew that she had a big friend in Max.',
+  'Once upon a time, there was a thoughtful girl named Sue. Sue loved to help her mom around the house. One day, her mom asked her to wipe the table after they ate their lunch. Sue was happy to help.',
+  'As Sue was wiping the table, she saw a pretty candle on the window sill. The candle was her mom\'s favorite. Sue wanted to do something nice for her mom, so she said, "Mom, can I light the candle for you?" Her mom said, "Yes, but be very careful."',
+  'Sue carefully lit the candle and put it on the table. Her mom was so happy to see the pretty candle. They both sat and watched the candle burn. Sue\'s mom said, "Thank you, Sue, for being so thoughtful and careful." Sue felt proud that she could help her mom.',
+  'The moral of the story is to always be thoughtful and careful when helping others.',
+  'Once upon a time, there was a kind farmer. He had a big cow. The cow was sad. The farmer did not know why.',
+  'One day, a little boy came to the farm. He saw the sad cow. The boy kneeled down to talk to the cow. "Why are you sad, cow?" he asked. The cow said, "I am lonely. I want a friend."',
+  'The kind farmer heard the cow. He wanted to help. So, he got another cow to be friends with the sad cow. The sad cow was happy now. They played together every day. And the kind farmer, the little boy, and the two cows all lived happily ever after.',
+  'Once upon a time, there was a little girl named Lucy. She had a pet cat named Tom. They loved to play together in the big green park near their house. One sunny day, they went to the park to play.',
+  'While playing, Tom saw a big sour lemon on the ground. He wanted to play with it, but when he touched it, it started to roll away. Tom ran after the lemon, trying to catch it. But as he ran, Tom got lost in the park. Lucy looked around, but she could not find Tom. She was very sad.',
+  'Lucy did not give up. She searched the park for her friend. At last, she found him near a big tree. Tom was trying to catch the lemon, but it vanished into a hole in the ground. Tom was happy to see Lucy again. They hugged and went back home together. They had a fun escape in the park, but they decided to leave the sour lemon behind.',
+  'Once upon a time, there was a little brown dog named Spot. He loved to play with his ball in the park. One sunny day, Spot saw a big goal on the other side of the park. He wanted to get his ball into the goal.',
+  'Spot ran fast with the ball in his mouth. He tried to kick the ball into the goal, but he was too small. Spot started to struggle. He tried again and again, but the ball would not go in.',
+  'Then, Spot had an idea. He asked his friend, a big brown horse named Buddy, for help. Buddy kicked the ball with his strong legs. The ball flew into the goal! Spot was so happy. He and Buddy played together all day long.',
+  'Once upon a time, there was a little boy named Tom. He loved to play with his red ball. One sunny day, Tom went outside to play with his ball in the land near his home.',
+  'Tom kicked the ball high in the sky. The ball went far, far away. Tom was sad because he could not find his ball. He walked and walked, looking for it. The land was big and sometimes dangerous. Tom knew he had to be careful.',
+  'At last, Tom found his ball near a big tree. He was very happy. Tom knew he should not kick the ball too hard next time. He went back home, holding his ball tightly. Tom played safely in his yard, away from the dangerous land.',
+  'Once upon a time, there was a big dog named Max. Max had a red collar that he wore every day. He loved to play and run in the park with his friends.',
+  'One day, Max saw a cat on a tree. He wanted to be friends with the cat. So, Max tried to stretch up to reach the cat. But he was not tall enough. He tried again and again, but he just couldn\'t reach the cat.',
+  'Max felt sad, but then he had an idea. He found a big box and put it under the tree. Max climbed on the box and stretched one more time. This time, he reached the cat! The cat and Max became good friends, and they played together every day.',
+  'Once upon a time, there was a girl named Mia. Mia loved her jewelry. She had a big box full of pretty things. She liked to wear them all day. But at night, she had to sleep.',
+  'One day, Mia met a talking cat named Tom. Tom was a tough cat, but he was nice. Tom said, "Hi, Mia! I like your jewelry. Can I wear some too?" Mia said, "Yes, Tom. You can wear my jewelry, but we have to give it back before we sleep."',
+  'So, Mia and Tom played together. They wore the jewelry and had fun. They pretended to be kings and queens. They laughed and danced. But soon, the sun went down, and it was time for bed.',
+  'Mia said, "Tom, we must give back the jewelry now. It\'s time to sleep." Tom gave back the jewelry and said, "Thank you, Mia. I had fun today." They put the jewelry back in the box and went to sleep. Mia and Tom were happy, and they had sweet dreams.',
+  'Once upon a time, there was a little boy named Tim. Tim had a big, orange ball. He loved his ball very much. One day, Tim met a girl named Sue. Sue had a pretty doll. Tim liked Sue\'s doll, and Sue liked Tim\'s orange ball.',
+  'Tim and Sue thought about a trade. They would trade the ball for the doll. Tim was not sure. He loved his orange ball. Sue said, "I promise to take care of your ball. You can play with it when you want." Tim said, "I promise to take care of your doll too."',
+  'They did the trade. Tim played with the doll, and Sue played with the orange ball. But then, Sue\'s big dog came. The dog saw the orange ball and thought it was a toy. The dog bit the ball and it popped. Tim was very sad, and Sue was sorry. The trade was not good, and the orange ball was gone forever.'
 ].join('\n') + '\n';
 
 /* ---------------------------------------------------------- tokenizer (BPE)
@@ -776,7 +783,11 @@ function geluBack(dx, dy, x, n){
 /*  the model                                                             */
 /* ====================================================================== */
 
-const DEFAULT_CFG = { nVocab: 42, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
+const DEFAULT_CFG = { nVocab: 100, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
+
+/* the vocabulary size is adjustable at run time; every control that edits it
+   or is bounded by it reads its limits from here */
+const VOCAB_MIN = 40, VOCAB_MAX = 100;
 
 const lnCache = (T, d) => ({ out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) });
 
@@ -1431,7 +1442,7 @@ const S = {
 
   training: false, step: 0, tokensSeen: 0, sps: 0,
   raw: [], ema: [], emaV: null,
-  lr: 0.02, batch: 16, wd: 0.001,
+  lr: 0.02, batch: 30, wd: 0.001,
 
   temp: 0.85, topk: 10, maxNew: 140,
   genTokens: [], promptLen: 0, generating: false, genLeft: 0,
@@ -2061,8 +2072,13 @@ function updateStats(loss){
   $('#sSeen').textContent = commas(S.tokensSeen);
 }
 
-function trainFrame(){
-  if (!S.training) return;
+/* a rebuild pauses training and starts it again, so a frame still sitting in
+   the timer queue from the run before it has to recognise itself as stale
+   instead of looping on alongside the new one */
+let trainRun = 0;
+
+function trainFrame(run){
+  if (!S.training || run !== trainRun) return;
   const t0 = performance.now();
   let k = 0, acc = 0;
   /* always take at least one step, and never hog the thread for a whole batch
@@ -2093,15 +2109,16 @@ function trainFrame(){
   S.frame++;
   /* a timeout keeps the run alive in a background tab, where requestAnimationFrame
      would be suspended; the yield also keeps the page responsive */
-  setTimeout(trainFrame, 0);
+  setTimeout(trainFrame, 0, run);
 }
 
 function toggleTrain(){
   S.training = !S.training;
+  const run = ++trainRun;
   const btn = $('#btnTrain');
   btn.textContent = S.training ? '❚❚ pause' : '▶ train';
   btn.classList.toggle('primary', !S.training);
-  if (S.training) setTimeout(trainFrame, 0);
+  if (S.training) setTimeout(trainFrame, 0, run);
 }
 
 /* ====================================================================== */
@@ -2116,7 +2133,7 @@ function readCfg(){
     nHead: num('#cfgH', 2, 1, 8),
     nFF: num('#cfgF', 50, 4, 160),
     nCtx: num('#cfgT', 20, 4, 48),
-    nVocab: num('#cfgV', 42, 8, 96)
+    nVocab: num('#cfgV', DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX)
   };
 }
 
@@ -2124,8 +2141,34 @@ const cfgValid = (c) => c.nEmbd % c.nHead === 0;
 
 function writeCfg(c){
   $('#cfgD').value = c.nEmbd; $('#cfgL').value = c.nLayer; $('#cfgH').value = c.nHead;
-  $('#cfgF').value = c.nFF;   $('#cfgT').value = c.nCtx;   $('#cfgV').value = c.nVocab;
+  $('#cfgF').value = c.nFF;   $('#cfgT').value = c.nCtx;
+  setVocabUI(c.nVocab);
+}
+
+/* top-k picks from the vocabulary, so it can never usefully reach past the end
+   of it: its range follows the vocabulary size and a k left above the new size
+   is pulled down with it */
+function setTopkRange(v){
+  const f = $('#inTopk');
+  f.max = v;
+  const k = clamp(parseInt(f.value, 10) || 1, 1, v);
+  f.value = k;
+  S.topk = k;
+  $('#vTopk').textContent = k;
+}
+
+/* the vocabulary size is edited from two places — the slider in the
+   tokenization panel and the number box in the architecture block — and it
+   bounds top-k, so every write funnels through here. src names the control the
+   user is holding, which is left untouched so the mirror never fights it. */
+function setVocabUI(v, src){
+  v = clamp(parseInt(v, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
+  if (src !== 'slider') $('#inVocab').value = v;
+  if (src !== 'box') $('#cfgV').value = v;
+  $('#vVocab').textContent = v;
+  setTopkRange(v);
   updateCfgCount();
+  return v;
 }
 
 function updateCfgCount(){
@@ -2151,6 +2194,7 @@ function updateHeader(){
 
 function rebuildAll(keepText){
   stopGen();
+  clearTimeout(vocabTimer);
   const wasTraining = S.training;
   S.training = false;
   $('#btnTrain').textContent = '▶ train';
@@ -2265,6 +2309,17 @@ function gradCheck(){
 
 let promptTimer = null;
 let resizeTimer = null;
+let vocabTimer = null;
+
+/* a new vocabulary size means new merges and a differently shaped embedding
+   matrix, so the tokenizer and the model are both rebuilt — once the drag has
+   settled, not on every pixel of it */
+function applyVocab(){
+  const v = clamp(parseInt($('#inVocab').value, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
+  if (v === S.cfg.nVocab) return;
+  S.cfg = { ...S.cfg, nVocab: v };
+  rebuildAll(true);
+}
 
 function wire(){
   $('#btnTrain').addEventListener('click', toggleTrain);
@@ -2282,15 +2337,30 @@ function wire(){
     S.cfg = c; writeCfg(c); rebuildAll(true);
     toast(`${commas(GPT.paramCount(c))} parameters`);
   });
-  for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT', '#cfgV'])
+  for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT'])
     $(sel).addEventListener('input', updateCfgCount);
+
+  /* a box mid-edit may hold a half-typed number, so it is only mirrored once it
+     lands inside the range; leaving the box clamps whatever is left in it */
+  $('#cfgV').addEventListener('input', () => {
+    const v = parseInt($('#cfgV').value, 10);
+    if (v >= VOCAB_MIN && v <= VOCAB_MAX) setVocabUI(v, 'box');
+    else updateCfgCount();
+  });
+  $('#cfgV').addEventListener('change', () => setVocabUI($('#cfgV').value));
+
+  $('#inVocab').addEventListener('input', () => {
+    setVocabUI($('#inVocab').value, 'slider');
+    clearTimeout(vocabTimer);
+    vocabTimer = setTimeout(applyVocab, 220);
+  });
 
   const inLr = $('#inLr'), inBatch = $('#inBatch');
   inLr.addEventListener('input', () => {
     S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
   });
   inBatch.addEventListener('input', () => {
-    S.batch = clamp(parseInt(inBatch.value, 10) || 16, 1, 64);
+    S.batch = clamp(parseInt(inBatch.value, 10) || 30, 1, 64);
   });
 
   const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
