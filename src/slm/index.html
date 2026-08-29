@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>slm - small language model</title>
-<link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
 <style>
 :root{
   --bg:#06090e;
@@ -333,7 +332,7 @@ canvas.fluid{width:100%}
 <header class="top">
   <div class="brand">
     <div class="logo">slm</div>
-    <div class="tag">small language model &middot; a <b>10,000&#8209;parameter</b> GPT that tokenizes, trains and generates</div>
+    <div class="tag"><b>small language model</b> &nbsp;&nbsp;&nbsp;&nbsp; a 10,000-parameter GPT that tokenizes, trains and generates</div>
   </div>
   <div class="pills">
     <div class="pill"><span class="k">params</span><span class="v" id="pParams">—</span></div>
@@ -350,10 +349,12 @@ canvas.fluid{width:100%}
 
   <!-- ============ TRAINING ============ -->
   <section class="panel a-train">
-    <div class="phead"><h2>training text</h2><span class="n">corpus</span>
-      <div class="phint">gradient descent on next-token prediction</div></div>
+    <div class="phead">
+      <h2>training</h2><span class="n">corpus</span>
+      <div class="phint">gradient descent</div>
+    </div>
     <div class="pbody">
-      <textarea id="trainText" rows="3" spellcheck="false"></textarea>
+      <textarea id="trainText" rows="10" spellcheck="false"></textarea>
       <div class="row">
         <button id="btnApply" class="btn sm">apply text &amp; rebuild</button>
         <span class="meta" id="trainMeta">—</span>
@@ -381,8 +382,10 @@ canvas.fluid{width:100%}
 
   <!-- ============ TOKENIZATION ============ -->
   <section class="panel a-tok">
-    <div class="phead"><h2>tokenization</h2><span class="n">byte-pair encoding</span>
-      <div class="phint">text &rarr; integers</div></div>
+    <div class="phead">
+      <h2>tokenization</h2><span class="n">byte-pair encoding</span>
+      <div class="phint">text &rarr; integers</div>
+    </div>
     <div class="pbody">
       <div class="note">The model never sees letters. A BPE tokenizer is learned from the corpus:
       start from single characters, then repeatedly merge the most frequent adjacent pair.</div>
@@ -402,8 +405,10 @@ canvas.fluid{width:100%}
 
   <!-- ============ TRANSFORMER ============ -->
   <section class="panel a-tf">
-    <div class="phead"><h2>transformer</h2><span class="n" id="tfArch">—</span>
-      <div class="phint">every intermediate tensor of one live forward pass</div></div>
+    <div class="phead">
+      <h2>transformer</h2><span class="n" id="tfArch">—</span>
+      <div class="phint">every intermediate tensor of one live forward pass</div>
+    </div>
     <div class="pbody">
       <div class="row">
         <span class="meta" id="tfMeta">—</span>
@@ -419,8 +424,10 @@ canvas.fluid{width:100%}
 
   <!-- ============ WEIGHTS ============ -->
   <section class="panel a-w">
-    <div class="phead"><h2>weights &amp; biases</h2><span class="n" id="wCount">—</span>
-      <div class="phint">one pixel per parameter &middot; hover to identify</div></div>
+    <div class="phead">
+      <h2>weights &amp; biases</h2><span class="n" id="wCount">—</span>
+      <div class="phint">pixel/parameter</div>
+    </div>
     <div class="pbody">
       <div class="row">
         <div class="seg" id="wbMode">
@@ -453,8 +460,10 @@ canvas.fluid{width:100%}
 
   <!-- ============ INPUT ============ -->
   <section class="panel a-in">
-    <div class="phead"><h2>input</h2><span class="n">prompt</span>
-      <div class="phint">type to run a forward pass</div></div>
+    <div class="phead">
+      <h2>input</h2><span class="n">prompt</span>
+      <div class="phint">type to run a forward pass</div>
+    </div>
     <div class="pbody">
       <textarea id="promptText" rows="2" spellcheck="false">Once upon a time</textarea>
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
@@ -476,8 +485,10 @@ canvas.fluid{width:100%}
 
   <!-- ============ OUTPUT ============ -->
   <section class="panel a-out">
-    <div class="phead"><h2>output</h2><span class="n" id="outCount">0 tokens</span>
-      <div class="phint">sampled one token at a time</div></div>
+    <div class="phead">
+      <h2>output</h2><span class="n" id="outCount">0 tokens</span>
+      <div class="phint">sampled one token at a time</div>
+    </div>
     <div class="pbody">
       <div class="outtext" id="outText"></div>
       <div class="sub">next-token distribution <span class="dim" id="distMeta"></span></div>
@@ -2201,7 +2212,10 @@ function rebuildAll(keepText){
   $('#btnTrain').classList.add('primary');
 
   let text = $('#trainText').value;
-  if (!text.trim().length){ text = DEFAULT_CORPUS; $('#trainText').value = DEFAULT_CORPUS; }
+  if (!text.trim().length){ 
+    text = DEFAULT_CORPUS; 
+    $('#trainText').value = DEFAULT_CORPUS; 
+  }
   S.corpus = text;
 
   S.tok.build(text, S.cfg.nVocab);
