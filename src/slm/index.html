@@ -177,6 +177,14 @@ body{
   background:linear-gradient(180deg,#0891b2,#0e7490);border-color:var(--accent);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 3px 16px -5px rgba(34,211,238,.95);
 }
+.btn.primary.on{
+  background:linear-gradient(180deg,#67e8f9,#22d3ee);border-color:#a5f3fc;color:#053642;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 22px -4px rgba(34,211,238,.95);
+}
+.btn.primary.on:hover{
+  background:linear-gradient(180deg,#a5f3fc,#3ddcf5);border-color:#cffafe;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 26px -4px rgba(34,211,238,1);
+}
 .btn[disabled]{opacity:.4;cursor:not-allowed}
 .btn.sm{padding:2px 7px;font-size:10.5px}
 textarea{
@@ -2066,12 +2074,20 @@ function genOne(){
 
 let genTimer = null;
 
+/* the button both starts and stops the run, so its label says what the next
+   click will do while .on keeps it lit for as long as the run is live */
+function setGenBtn(on){
+  const b = $('#btnGen');
+  b.textContent = on ? '■ stop' : '▶ generate';
+  b.classList.toggle('on', on);
+}
+
 function startGen(){
   if (S.generating){ stopGen(); return; }
   if (!S.genTokens.length) resetGen();
   S.generating = true;
   S.genLeft = S.maxNew;
-  $('#btnGen').textContent = '■ stop';
+  setGenBtn(true);
   tickGen();
 }
 
@@ -2085,7 +2101,7 @@ function tickGen(){
 function stopGen(){
   S.generating = false;
   clearTimeout(genTimer);
-  $('#btnGen').textContent = '▶ generate';
+  setGenBtn(false);
 }
 
 function runPromptForward(){
@@ -2222,11 +2238,16 @@ function trainFrame(run){
   setTimeout(trainFrame, 0, run);
 }
 
+function setTrainBtn(on){
+  const b = $('#btnTrain');
+  b.textContent = on ? '❚❚ pause' : '▶ train';
+  b.classList.toggle('on', on);
+}
+
 function toggleTrain(){
   S.training = !S.training;
   const run = ++trainRun;
-  const btn = $('#btnTrain');
-  btn.textContent = S.training ? '❚❚ pause' : '▶ train';
+  setTrainBtn(S.training);
   if (S.training) setTimeout(trainFrame, 0, run);
 }
 
@@ -2306,7 +2327,7 @@ function rebuildAll(keepText){
   clearTimeout(vocabTimer);
   const wasTraining = S.training;
   S.training = false;
-  $('#btnTrain').textContent = '▶ train';
+  setTrainBtn(false);
 
   let text = $('#trainText').value;
   if (!text.trim().length){ 
