@@ -94,3 +94,15 @@ Look at the training panel and tokenization panel. When viewed on desktop screen
 
 Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
+
+## Session 5 - make architecture panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+Look at the architecture section in the weights & biases panel. The architecture section should be a separate panel. Create the architecture panel. The architecture is beneath the weights & biases panel (when viewed on desktop).
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
