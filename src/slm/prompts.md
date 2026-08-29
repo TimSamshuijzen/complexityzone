@@ -114,6 +114,7 @@ Take your time in working this out, you are given plenty of time to think, make 
 ```
 Read `index.html`. It is a simple transformer. 
 
+In the input panel, look at the row with the "generate" button, "+1 token" button, and "reset" button. These components need to be moved to the header (phead) div of the input panel (below the h2, span, and phint).
 
 Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```

@@ -176,6 +176,10 @@ textarea{
   border-radius:5px;padding:7px 8px;font-family:var(--mono);font-size:11.5px;line-height:1.5;
   resize:vertical;outline:none;
 }
+textarea.lightTheme{
+  background:#ffffff;
+  color:#000000;
+}
 textarea:focus{border-color:#2f6b7c;box-shadow:0 0 0 2px rgba(34,211,238,.09)}
 input[type=number]{
   width:100%;background:#080c12;color:var(--text);border:1px solid var(--line2);
@@ -368,7 +372,7 @@ canvas.fluid{width:100%}
       </div>
     </div>
     <div class="pbody">
-      <textarea id="trainText" rows="3" spellcheck="false"></textarea>
+      <textarea class="lightTheme" id="trainText" rows="5" spellcheck="false"></textarea>
       <div class="row">
         <button id="btnApply" class="btn sm">apply text &amp; rebuild</button>
         <span class="meta" id="trainMeta">—</span>
@@ -479,7 +483,7 @@ canvas.fluid{width:100%}
       <div class="phint">type to run a forward pass</div>
     </div>
     <div class="pbody">
-      <textarea id="promptText" rows="2" spellcheck="false">Once upon a time</textarea>
+      <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false">Once upon a time</textarea>
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
@@ -488,12 +492,10 @@ canvas.fluid{width:100%}
         <button id="btnStep" class="btn">+1 token</button>
         <button id="btnClear" class="btn">reset</button>
       </div>
-      <div class="note">Every keystroke runs a fresh forward pass, so the transformer panel
-      always shows what the model is doing with the text above.<br><br>
-      <b style="color:var(--dim)">temperature</b> reshapes the distribution before sampling —
-      0 always takes the most likely token, higher values flatten the odds.
-      <b style="color:var(--dim)">top-k</b> throws away everything outside the k best
-      candidates.</div>
+      <div class="note">
+        <b style="color:var(--dim)">temperature</b> reshapes the distribution before sampling. 0 always takes the most likely token, higher values flatten the odds.
+        <b style="color:var(--dim)">top-k</b> throws away everything outside the k best candidates.
+      </div>
     </div>
   </section>
 
@@ -501,7 +503,6 @@ canvas.fluid{width:100%}
   <section class="panel a-out">
     <div class="phead">
       <h2>output</h2><span class="n" id="outCount">0 tokens</span>
-      <div class="phint">sampled one token at a time</div>
     </div>
     <div class="pbody">
       <div class="outtext" id="outText"></div>
@@ -510,7 +511,6 @@ canvas.fluid{width:100%}
       <div id="outChips" class="chips"></div>
     </div>
   </section>
-
 </main>
 
 <div id="tip"></div>
