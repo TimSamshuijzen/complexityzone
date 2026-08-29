@@ -74,49 +74,48 @@ body{
   grid-template-areas:
     "train tf weights"
     "train tf arch"
-    "train tf io"
-    "tok   tf io";
+    "train tf io";
   align-items:start;
 }
-.a-train{grid-area:train}.a-tok{grid-area:tok}.a-tf{grid-area:tf}
+.a-train{grid-area:train}.a-tf{grid-area:tf}
 .a-w{grid-area:weights}.a-arch{grid-area:arch}
 .a-io{grid-area:io}
 @media (min-width:1321px){
   .dash{overflow:hidden;align-items:stretch;
-        grid-template-rows:minmax(0,1.49fr) max-content minmax(0,1fr) minmax(0,1.07fr)}
+        grid-template-rows:minmax(0,1.49fr) max-content minmax(0,2.07fr)}
   .panel{min-height:0}
   .pbody{flex:1 1 auto;max-height:none !important}
-  .a-train .cv-wrap{flex:3 1 0;min-height:98px}
+  /* training & tokenization runs the full height of the dashboard: the loss
+     curve and the training sample split whatever slack the column has left,
+     and the body scrolls once the two sections together outgrow it */
+  .a-train .cv-wrap.fill{flex:3 1 0;min-height:98px}
   .a-train #sampleOut{flex:1 1 0;min-height:58px}
 }
 @media (min-width:1560px){
   .dash{
     grid-template-columns:minmax(300px,330px) minmax(450px,1fr)
                           minmax(328px,352px) minmax(296px,336px);
-    grid-template-rows:minmax(0,2.95fr) minmax(0,1.77fr) minmax(0,1fr) max-content;
+    grid-template-rows:minmax(0,1fr) max-content;
     grid-template-areas:
       "train tf weights io"
-      "train tf weights io"
-      "tok   tf weights io"
-      "tok   tf arch    io";
+      "train tf arch    io";
   }
 }
 @media (max-width:1320px){
   .dash{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);
-    grid-template-rows:repeat(5,max-content);
-    grid-template-areas:"train tf" "tok tf" "weights tf" "arch tf" "io tf";}
+    grid-template-rows:repeat(4,max-content);
+    grid-template-areas:"train tf" "weights tf" "arch tf" "io tf";}
 }
 @media (min-width:901px) and (max-width:1320px){
   .a-tf{align-self:start;position:sticky;top:0}
   .a-tf .pbody{max-height:calc(100vh - 172px)}
-  .a-tok .pbody{max-height:330px}
 }
 @media (max-width:900px){
   html,body{height:auto;overflow:auto}
   body{min-height:100%}
   .dash{grid-template-columns:minmax(0,1fr);overflow:visible;
-    grid-template-rows:repeat(6,max-content);
-    grid-template-areas:"train" "tok" "tf" "weights" "arch" "io";}
+    grid-template-rows:repeat(5,max-content);
+    grid-template-areas:"train" "tf" "weights" "arch" "io";}
   .pbody{max-height:none !important}
   .panel{overflow:hidden}
 }
@@ -240,6 +239,7 @@ label.f{display:flex;flex-direction:column;gap:2px;font-size:9.5px;text-transfor
 .chip.hi{border-color:var(--accent);background:#0e2b33}
 .chip.gen{border-color:#5a4410;background:#1d1708;color:#fde68a}
 .vocab-wrap{max-height:96px;overflow:auto;padding-right:3px}
+.enc-wrap{max-height:70px;overflow:auto;padding-right:3px}
 .merges{
   max-height:104px;overflow:auto;display:flex;flex-direction:column;gap:2px;
   font-family:var(--mono);font-size:10.5px;
@@ -360,10 +360,10 @@ canvas.fluid{width:100%}
 
 <main class="dash">
 
-  <!-- ============ TRAINING ============ -->
+  <!-- ============ TRAINING & TOKENIZATION ============ -->
   <section class="panel a-train">
     <div class="phead">
-      <h2>training</h2>
+      <h2>training &amp; tokenization</h2>
       <div class="row train-controls">
         <button id="btnTrain" class="btn primary">▶ train</button>
         <button id="btnReset" class="btn">reset weights</button>
@@ -381,7 +381,7 @@ canvas.fluid{width:100%}
         <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
         <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="20"></label>
       </div>
-      <div class="cv-wrap"><canvas id="lossChart" class="fluid"></canvas></div>
+      <div class="cv-wrap fill"><canvas id="lossChart" class="fluid"></canvas></div>
       <div class="stats">
         <div><span class="k">loss</span><span class="v" id="sLoss">—</span></div>
         <div><span class="k">perplexity</span><span class="v" id="sPpl">—</span></div>
@@ -390,23 +390,16 @@ canvas.fluid{width:100%}
       </div>
       <div class="sub">sample generated while training</div>
       <div class="outtext mono" id="sampleOut"></div>
-    </div>
-  </section>
 
-  <!-- ============ TOKENIZATION ============ -->
-  <section class="panel a-tok">
-    <div class="phead">
-      <h2>tokenization</h2>
-    </div>
-    <div class="pbody">
+      <div class="sub">tokenization</div>
       <div class="slider"><span class="lab">vocab size</span><input id="inVocab" type="range" min="40" max="100" step="1" value="100"><span class="val" id="vVocab">100</span></div>
-      <div class="sub">1 &middot; vocabulary <span class="dim" id="tokVocabMeta"></span></div>
+      <div class="sub">vocabulary <span class="dim" id="tokVocabMeta"></span></div>
       <div class="vocab-wrap"><div id="vocabList" class="chips"></div></div>
-      <div class="sub">2 &middot; learned merges <span class="dim" id="tokMergeMeta"></span></div>
+      <div class="sub">learned merges <span class="dim" id="tokMergeMeta"></span></div>
       <div class="merges" id="mergeList"></div>
-      <div class="sub">3 &middot; prompt, encoded <span class="dim" id="tokEncMeta"></span></div>
-      <div id="encPreview" class="chips"></div>
-      <div class="sub">4 &middot; token frequency in corpus</div>
+      <div class="sub">prompt, encoded <span class="dim" id="tokEncMeta"></span></div>
+      <div class="enc-wrap"><div id="encPreview" class="chips"></div></div>
+      <div class="sub">token frequency in corpus</div>
       <div class="cv-wrap"><canvas id="freqChart" class="fluid"></canvas></div>
     </div>
   </section>
@@ -1569,7 +1562,7 @@ const TENSOR_HUES = { emb: '#22d3ee', w: '#a78bfa', wproj: '#f472b6', b: '#4ade8
                       lng: '#fbbf24', lnb: '#fb923c' };
 
 /* ====================================================================== */
-/*  tokenization panel                                                    */
+/*  tokenization section                                                  */
 /* ====================================================================== */
 
 function chipFor(id, extraCls){
@@ -2270,7 +2263,7 @@ function setTopkRange(v){
 }
 
 /* the vocabulary size is edited from two places — the slider in the
-   tokenization panel and the number box in the architecture block — and it
+   tokenization section and the number box in the architecture panel — and it
    bounds top-k, so every write funnels through here. src names the control the
    user is holding, which is left untouched so the mirror never fights it. */
 function setVocabUI(v, src){
