@@ -89,7 +89,7 @@ body{
      curve and the training sample split whatever slack the column has left,
      and the body scrolls once the two sections together outgrow it */
   .a-train .cv-wrap.fill{flex:3 1 0;min-height:98px}
-  .a-train #sampleOut{flex:1 1 0;min-height:58px}
+  .a-train #sampleOut{flex:1 1 0;min-height:80px}
 }
 @media (min-width:1560px){
   .dash{
@@ -326,14 +326,14 @@ canvas.fluid{width:100%}
 /* ---------- output ---------- */
 .outtext{
   font-family:var(--mono);font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-word;
-  background:#080c12;border:1px solid var(--line2);border-radius:5px;padding:8px;overflow:auto;
+  background:#cccccc;border:1px solid var(--line2);border-radius:5px;padding:8px;overflow:auto;
 }
 .outtext .p{color:var(--dim2)}
 .outtext .g{color:var(--accent2)}
-#sampleOut{height:58px;font-size:11px}
-#outText{height:136px;background:#cccccc}
-#outText .p{color:#000000}
-#outText .g{color:#410d00}
+#sampleOut{height:58px;font-size:11px; color: #05378d;}
+#outText{height:136px;background:#cccccc;}
+#outText .p{color:#000000;}
+#outText .g{color:#05378d;}
 
 /* ---------- tooltip / toast ---------- */
 #tip{
@@ -362,7 +362,7 @@ canvas.fluid{width:100%}
 <header class="top">
   <div class="brand">
     <div class="logo">slm</div>
-    <div class="tag"><b>small language model</b> &nbsp;&nbsp;&nbsp;&nbsp; 10,000-parameter GPT</div>
+    <div class="tag"><b>small language model</b> &nbsp;&nbsp;&nbsp;&nbsp; 11,000-parameter GPT</div>
   </div>
   <div class="pills">
     <div class="pill"><span class="k">params</span><span class="v" id="pParams">—</span></div>
@@ -388,12 +388,12 @@ canvas.fluid{width:100%}
       </div>
     </div>
     <div class="pbody">
-      <div class="sub">corpus</div>
+      <div class="sub">corpus - training data</div>
       <textarea class="lightTheme" id="trainText" rows="5" spellcheck="false"></textarea>
       <span class="meta" id="trainMeta">—</span>
       <div class="grid2">
         <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
-        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="20"></label>
+        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="30"></label>
       </div>
       <div class="cv-wrap fill"><canvas id="lossChart" class="fluid"></canvas></div>
       <div class="stats">
@@ -472,7 +472,7 @@ canvas.fluid{width:100%}
         <label class="f">layers<input id="cfgL" type="number" min="1" max="4" step="1" value="2"></label>
         <label class="f">heads<input id="cfgH" type="number" min="1" max="8" step="1" value="2"></label>
         <label class="f">d_ff<input id="cfgF" type="number" min="4" max="160" step="1" value="50"></label>
-        <label class="f">context<input id="cfgT" type="number" min="4" max="48" step="1" value="20"></label>
+        <label class="f">context<input id="cfgT" type="number" min="4" max="48" step="1" value="30"></label>
         <label class="f">vocab<input id="cfgV" type="number" min="40" max="100" step="1" value="100"></label>
       </div>
       <div class="row">
@@ -804,7 +804,7 @@ function geluBack(dx, dy, x, n){
 /*  the model                                                             */
 /* ====================================================================== */
 
-const DEFAULT_CFG = { nVocab: 100, nCtx: 20, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
+const DEFAULT_CFG = { nVocab: 100, nCtx: 30, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
 
 /* the vocabulary size is adjustable at run time; every control that edits it
    or is bounded by it reads its limits from here */
@@ -1552,7 +1552,7 @@ const S = {
 
   training: false, step: 0, tokensSeen: 0, sps: 0,
   raw: [], ema: [], emaV: null,
-  lr: 0.02, batch: 20, wd: 0.001,
+  lr: 0.02, batch: 30, wd: 0.001,
 
   temp: 0.85, topk: 10, maxNew: 140,
   genTokens: [], promptLen: 0, generating: false, genLeft: 0,
@@ -2263,7 +2263,7 @@ function readCfg(){
     nLayer: num('#cfgL', 2, 1, 4),
     nHead: num('#cfgH', 2, 1, 8),
     nFF: num('#cfgF', 50, 4, 160),
-    nCtx: num('#cfgT', 20, 4, 48),
+    nCtx: num('#cfgT', 30, 4, 48),
     nVocab: num('#cfgV', DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX)
   };
 }
@@ -2354,7 +2354,7 @@ function rebuildAll(keepText){
   if (!S.model.P[S.wbSel]) S.wbSel = 'wte';
 
   $('#trainMeta').textContent = `${text.length} chars → ${S.tok.trainIds.length} tokens`;
-  $('#sampleOut').textContent = '(train the model to see samples)';
+  $('#sampleOut').textContent = '';
 
   buildTF();
   renderTokenizer();
@@ -2375,7 +2375,7 @@ function resetWeights(){
   stopGen();
   S.model.initWeights((Math.random() * 4294967295) >>> 0);
   S.step = 0; S.tokensSeen = 0; S.raw = []; S.ema = []; S.emaV = null; S.lastSample = -1;
-  $('#sampleOut').textContent = '(train the model to see samples)';
+  $('#sampleOut').textContent = '';
   renderWeights();
   runPromptForward();
   resetGen();
@@ -2500,7 +2500,7 @@ function wire(){
     S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
   });
   inBatch.addEventListener('input', () => {
-    S.batch = clamp(parseInt(inBatch.value, 10) || 20, 1, 64);
+    S.batch = clamp(parseInt(inBatch.value, 10) || 30, 1, 64);
   });
 
   const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
