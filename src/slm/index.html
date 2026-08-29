@@ -360,7 +360,7 @@ canvas.fluid{width:100%}
       </div>
       <div class="grid2">
         <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
-        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="30"></label>
+        <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="20"></label>
       </div>
       <div class="row">
         <button id="btnTrain" class="btn primary">▶ train</button>
@@ -1442,7 +1442,7 @@ const S = {
 
   training: false, step: 0, tokensSeen: 0, sps: 0,
   raw: [], ema: [], emaV: null,
-  lr: 0.02, batch: 30, wd: 0.001,
+  lr: 0.02, batch: 20, wd: 0.001,
 
   temp: 0.85, topk: 10, maxNew: 140,
   genTokens: [], promptLen: 0, generating: false, genLeft: 0,
@@ -2360,7 +2360,7 @@ function wire(){
     S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
   });
   inBatch.addEventListener('input', () => {
-    S.batch = clamp(parseInt(inBatch.value, 10) || 30, 1, 64);
+    S.batch = clamp(parseInt(inBatch.value, 10) || 20, 1, 64);
   });
 
   const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
