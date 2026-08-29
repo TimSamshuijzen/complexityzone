@@ -71,9 +71,11 @@ body{
 .dash{
   flex:1 1 auto;min-height:0;overflow:auto;display:grid;gap:9px;padding:9px;
   grid-template-columns:minmax(300px,335px) minmax(440px,1fr) minmax(320px,388px);
+  /* training spans two rows: it is the panel worth watching while the model
+     learns, so it stays the taller of the two in this column */
   grid-template-areas:
     "train tf weights"
-    "tok   tf input"
+    "train tf input"
     "tok   tf output";
   align-items:start;
 }
@@ -86,6 +88,11 @@ body{
         grid-template-rows:minmax(0,1.4fr) minmax(0,0.82fr) minmax(0,1fr)}
   .panel{min-height:0}
   .pbody{flex:1 1 auto;max-height:none !important}
+  /* training is the tall panel now, so its loss curve and its sample box split
+     the room the rest of the panel does not need — flex-basis 0 keeps that
+     split from chasing the canvas size the script writes back into it */
+  .a-train .cv-wrap{flex:3 1 0;min-height:98px}
+  .a-train #sampleOut{flex:1 1 0;max-height:none}
 }
 /* very wide: give weights & biases its own full-height column */
 @media (min-width:1560px){
@@ -94,7 +101,7 @@ body{
                           minmax(328px,352px) minmax(296px,336px);
     grid-template-areas:
       "train tf weights input"
-      "tok   tf weights output"
+      "train tf weights output"
       "tok   tf weights output";
   }
 }
@@ -111,6 +118,9 @@ body{
 @media (min-width:901px) and (max-width:1320px){
   .a-tf{align-self:start;position:sticky;top:0}
   .a-tf .pbody{max-height:calc(100vh - 172px)}
+  /* panels take their natural height in this column, which would leave the
+     tokenizer towering over training; cap it so the order stays the same */
+  .a-tok .pbody{max-height:330px}
 }
 @media (max-width:900px){
   /* one column, and the page itself scrolls instead of the dashboard */
@@ -311,6 +321,7 @@ canvas.fluid{width:100%}
 }
 .outtext .p{color:var(--dim2)}
 .outtext .g{color:var(--accent2)}
+#sampleOut{font-size:11px;min-height:58px;max-height:58px}
 
 /* ---------- tooltip / toast ---------- */
 #tip{
@@ -382,7 +393,7 @@ canvas.fluid{width:100%}
         <div><span class="k">tokens</span><span class="v" id="sSeen">0</span></div>
       </div>
       <div class="sub">sample generated while training</div>
-      <div class="outtext mono" id="sampleOut" style="min-height:44px;max-height:58px;font-size:11px"></div>
+      <div class="outtext mono" id="sampleOut"></div>
     </div>
   </section>
 
@@ -393,11 +404,7 @@ canvas.fluid{width:100%}
       <div class="phint">text &rarr; integers</div>
     </div>
     <div class="pbody">
-      <div class="note">The model never sees letters. A BPE tokenizer is learned from the corpus:
-      start from single characters, then repeatedly merge the most frequent adjacent pair.</div>
       <div class="slider"><span class="lab">vocab size</span><input id="inVocab" type="range" min="40" max="100" step="1" value="100"><span class="val" id="vVocab">100</span></div>
-      <div class="note">Merging stops once the vocabulary reaches this size. The embedding matrix
-      holds one row per token, so moving the slider re-learns the merges and rebuilds the model.</div>
       <div class="sub">1 &middot; vocabulary <span class="dim" id="tokVocabMeta"></span></div>
       <div class="vocab-wrap"><div id="vocabList" class="chips"></div></div>
       <div class="sub">2 &middot; learned merges <span class="dim" id="tokMergeMeta"></span></div>
@@ -1285,19 +1292,53 @@ function drawRampLegend(cv){
 }
 
 /* ---------------------------------------------------------- line chart  */
+/* the loss curve is the training panel's anchor, and on a dashboard-sized
+   screen that panel is the tall one, so the chart fills the share of the panel
+   the stylesheet hands its wrapper instead of leaving a gap under it */
+const DASH_FIXED = window.matchMedia('(min-width:1321px)');
+
+function lossHeight(cv){
+  const base = 86;
+  if (!DASH_FIXED.matches) return base;          /* elsewhere the panel is as
+                                                    tall as its contents */
+  const wrap = cv.parentElement, cs = getComputedStyle(wrap);
+  return Math.max(base, Math.round(wrap.clientHeight
+       - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
+}
+
 function drawLoss(cv, raw, ema, ref){
-  const h = 86;
+  const h = lossHeight(cv);
   const { cx, w } = prepFluid(cv, h);
   const padL = 30, padB = 13, padT = 6, padR = 4;
   const iw = w - padL - padR, ih = h - padT - padB;
+  const NG = clamp(Math.round(ih / 26), 3, 8);   /* a taller chart earns more gridlines */
 
   cx.fillStyle = '#080c12';
   cx.fillRect(0, 0, w, h);
 
+  const grid = () => {
+    cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
+    cx.beginPath();
+    for (let i = 0; i <= NG; i++){
+      const yy = Math.round(padT + (ih * i) / NG) + 0.5;
+      cx.moveTo(padL, yy); cx.lineTo(w - padR, yy);
+    }
+    cx.stroke();
+  };
+  const caption = () => {
+    cx.fillStyle = '#57657a';
+    cx.font = '9px ui-monospace,monospace';
+    cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
+  };
+
+  /* an empty chart this tall still has to read as a chart, not as a hole */
   if (!raw.length){
+    grid(); caption();
     cx.fillStyle = '#57657a';
     cx.font = '10px ui-monospace,monospace';
-    cx.fillText('press train to start', padL + 6, h / 2);
+    cx.textAlign = 'center';
+    cx.fillText('press train to start', padL + iw / 2, padT + ih / 2 + 3);
+    cx.textAlign = 'left';
     return;
   }
   let lo = Infinity, hi = -Infinity;
@@ -1314,19 +1355,13 @@ function drawLoss(cv, raw, ema, ref){
   const Y = (v) => padT + ih - ((v - lo) / (hi - lo)) * ih;
 
   /* axes */
-  cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
-  cx.beginPath();
-  for (let i = 0; i <= 3; i++){
-    const yy = Math.round(padT + (ih * i) / 3) + 0.5;
-    cx.moveTo(padL, yy); cx.lineTo(w - padR, yy);
-  }
-  cx.stroke();
+  grid();
   cx.fillStyle = '#57657a';
   cx.font = '9px ui-monospace,monospace';
   cx.textAlign = 'right';
-  for (let i = 0; i <= 3; i++){
-    const vv = hi - ((hi - lo) * i) / 3;
-    cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / 3 + 3);
+  for (let i = 0; i <= NG; i++){
+    const vv = hi - ((hi - lo) * i) / NG;
+    cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / NG + 3);
   }
   cx.textAlign = 'left';
 
@@ -1352,8 +1387,7 @@ function drawLoss(cv, raw, ema, ref){
   line(raw, 'rgba(34,211,238,.28)', 1);   /* raw */
   line(ema, '#22d3ee', 1.5);              /* smoothed */
 
-  cx.fillStyle = '#57657a';
-  cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
+  caption();
 }
 
 /* ---------------------------------------------------------- histogram   */
