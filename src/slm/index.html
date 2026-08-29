@@ -494,7 +494,7 @@ canvas.fluid{width:100%}
     <div class="pbody">
       <div class="sub">input</div>
       <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false">Once upon a time</textarea>
-      <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
+      <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.0"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
       <div class="sub">output <span class="dim" id="outCount">0 tokens</span></div>
@@ -1818,7 +1818,7 @@ function buildTF(){
   TF = { blocks: [] };
 
   const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
-    'The model only ever sees this window of token ids. The highlighted token is the last one; ' +
+    'The highlighted token is the last one; ' +
     'the prediction for what comes next is read off that position.');
   TF.tokRow = el('div', 'chips');
   s0.body.appendChild(TF.tokRow);
