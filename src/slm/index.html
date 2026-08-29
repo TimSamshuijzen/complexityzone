@@ -145,10 +145,13 @@ body{
   border:1px solid var(--line2);border-radius:3px;padding:0 4px;
 }
 .phint{color:var(--dim2);font-size:10.5px;margin-left:auto}
-.train-controls{
+.train-controls,.gen-controls{
   flex:1 0 100%;align-items:center;gap:6px;
   margin-top:1px;padding-top:7px;border-top:1px solid var(--line);
 }
+/* the label flips to "■ stop" while generating; holding the width keeps
+   the two buttons beside it from jumping */
+#btnGen{min-width:80px}
 .pbody{padding:10px 11px;overflow:auto;display:flex;flex-direction:column;gap:9px;min-height:0}
 .pbody > *{flex:0 0 auto}
 .tfflow > *{flex:0 0 auto}
@@ -481,17 +484,17 @@ canvas.fluid{width:100%}
     <div class="phead">
       <h2>input</h2><span class="n">prompt</span>
       <div class="phint">type to run a forward pass</div>
+      <div class="row gen-controls">
+        <button id="btnGen" class="btn primary">▶ generate</button>
+        <button id="btnStep" class="btn">+1 token</button>
+        <button id="btnClear" class="btn">reset</button>
+      </div>
     </div>
     <div class="pbody">
       <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false">Once upon a time</textarea>
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.10"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
-      <div class="row">
-        <button id="btnGen" class="btn primary">▶ generate</button>
-        <button id="btnStep" class="btn">+1 token</button>
-        <button id="btnClear" class="btn">reset</button>
-      </div>
       <div class="note">
         <b style="color:var(--dim)">temperature</b> reshapes the distribution before sampling. 0 always takes the most likely token, higher values flatten the odds.
         <b style="color:var(--dim)">top-k</b> throws away everything outside the k best candidates.
