@@ -1,11 +1,11 @@
 
-# Opus 5
+# Claude Code - Opus 5
 
 Auto mode
 
-Each session is a fresh context window. Manual code changes were made in between sessions.
+Each session is a fresh context window. Manual code changes and fixes were made in between sessions.
 
-## Session 1 - create first version of app
+## Session 1 - create first version of slm
 
 **Prompt 1**
 
@@ -52,7 +52,11 @@ No underline should be shown when hovering over "complexity.zone". Remove defaul
 **Prompt 1**
 
 ```
-Read `index.html`. It is a simple transformer. The classes are written in old prototypal style. Please rewrite as modern classes. Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it all works well and looks good.
+Read `index.html`. It is a simple transformer.
+
+The classes are written in old prototypal style. Please rewrite as modern classes.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it all works well and looks good.
 ```
 
 ## Session 3 - variable vocabulary size
@@ -61,7 +65,10 @@ Read `index.html`. It is a simple transformer. The classes are written in old pr
 
 ```
 Read `index.html`. It is a simple transformer. 
-The vocabulary size is fixed at 42. In the Tokenization panel, add a slider for vocabulary size, ranging from 40 to 100. Make sure the ranges in input cfgV and inTopk adapt when the vocabulary size is changed. Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it all works well and looks good.
+
+The vocabulary size is fixed at 42. In the Tokenization panel, add a slider for vocabulary size, ranging from 40 to 100. Make sure the ranges in input cfgV and inTopk adapt when the vocabulary size is changed.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it all works well and looks good.
 ```
 
 ## Session 4 - make train-controls always visible
@@ -69,6 +76,22 @@ The vocabulary size is fixed at 42. In the Tokenization panel, add a slider for 
 **Prompt 1**
 
 ```
+Read `index.html`. It is a simple transformer.
+
+In the training panel, look at the row with the "train" button, "reset weights" button, and "live visuals" checkbox. These components need to be moved to the header (phead) div of the training panel (below the h2, span, and phint), such that these train-controls are always visible, independent from scrolling in pbody.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
+
+## Session 5 - make training panel higher 
+
+**Prompt 1**
+
+```
 Read `index.html`. It is a simple transformer. 
-In the training panel, look at the row with the "train" button, "reset weights" button, and "live visuals" checkbox. These components need to be moved to the header (phead) div of the training panel (below the h2, span, and phint), such that these train-controls are always visible, independent from scrolling in pbody. Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+
+Look at the training panel and tokenization panel. When viewed, training panel's height is less than height of the tokenization panel.
+Please make training panel's height larger than height of the tokenization panel.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```

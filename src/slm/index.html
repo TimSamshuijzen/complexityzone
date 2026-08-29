@@ -147,6 +147,12 @@ body{
   border:1px solid var(--line2);border-radius:3px;padding:0 4px;
 }
 .phint{color:var(--dim2);font-size:10.5px;margin-left:auto}
+/* the run controls live in the training header, on a line of their own, so they
+   stay in view while the panel body scrolls */
+.train-controls{
+  flex:1 0 100%;align-items:center;gap:6px;
+  margin-top:1px;padding-top:7px;border-top:1px solid var(--line);
+}
 .pbody{padding:10px 11px;overflow:auto;display:flex;flex-direction:column;gap:9px;min-height:0}
 /* children keep their natural height and the panel scrolls, instead of the
    flex container squashing everything to fit */
@@ -352,9 +358,14 @@ canvas.fluid{width:100%}
     <div class="phead">
       <h2>training</h2><span class="n">corpus</span>
       <div class="phint">gradient descent</div>
+      <div class="row train-controls">
+        <button id="btnTrain" class="btn primary">▶ train</button>
+        <button id="btnReset" class="btn">reset weights</button>
+        <label class="chk"><input type="checkbox" id="chkLive" checked> live visuals</label>
+      </div>
     </div>
     <div class="pbody">
-      <textarea id="trainText" rows="10" spellcheck="false"></textarea>
+      <textarea id="trainText" rows="3" spellcheck="false"></textarea>
       <div class="row">
         <button id="btnApply" class="btn sm">apply text &amp; rebuild</button>
         <span class="meta" id="trainMeta">—</span>
@@ -362,11 +373,6 @@ canvas.fluid{width:100%}
       <div class="grid2">
         <label class="f">learning rate<input id="inLr" type="number" step="0.002" min="0.0005" max="0.3" value="0.02"></label>
         <label class="f">batch size<input id="inBatch" type="number" step="1" min="1" max="64" value="20"></label>
-      </div>
-      <div class="row">
-        <button id="btnTrain" class="btn primary">▶ train</button>
-        <button id="btnReset" class="btn">reset weights</button>
-        <label class="chk"><input type="checkbox" id="chkLive" checked> live visuals</label>
       </div>
       <div class="cv-wrap"><canvas id="lossChart" class="fluid"></canvas></div>
       <div class="stats">
@@ -558,6 +564,7 @@ function toast(msg){
 }
 
 /* ------------------------------------------------------------- the corpus */
+// Corpus is a selection from TinyStories https://huggingface.co/datasets/roneneldan/TinyStories
 const DEFAULT_CORPUS = [
   'Once upon a time, in a big forest, there lived a rhinoceros named Roxy. Roxy loved to climb. She climbed trees, rocks, and hills. One day, Roxy found an icy hill. She had never seen anything like it before. It was shiny and cold, and she wanted to climb it.',
   'Roxy tried to climb the icy hill, but it was very slippery. She tried again and again, but she kept falling down. Roxy was sad. She wanted to climb the icy hill so much. Then, she saw a little bird named Billy. Billy saw that Roxy was sad and asked, "Why are you sad, Roxy?"',
@@ -2128,7 +2135,6 @@ function toggleTrain(){
   const run = ++trainRun;
   const btn = $('#btnTrain');
   btn.textContent = S.training ? '❚❚ pause' : '▶ train';
-  btn.classList.toggle('primary', !S.training);
   if (S.training) setTimeout(trainFrame, 0, run);
 }
 
@@ -2209,7 +2215,6 @@ function rebuildAll(keepText){
   const wasTraining = S.training;
   S.training = false;
   $('#btnTrain').textContent = '▶ train';
-  $('#btnTrain').classList.add('primary');
 
   let text = $('#trainText').value;
   if (!text.trim().length){ 
