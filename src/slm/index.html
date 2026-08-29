@@ -612,8 +612,8 @@ class Tokenizer {
   }
 
   reset(){
-    this.vocab = ['�'];           // decoded string for each id
-    this.merges = [];             // {a,b,id,count}
+    this.vocab = ['�']; // decoded string for each id
+    this.merges = []; // {a,b,id,count}
     this.charToId = new Map();
     this.baseSize = 1;
     this.unused = 0;
@@ -664,7 +664,7 @@ class Tokenizer {
       }
       let bestKey = -1, bestC = 1;
       for (const [key, c] of counts) if (c > bestC){ bestC = c; bestKey = key; }
-      if (bestKey < 0) break;                       // nothing repeats any more
+      if (bestKey < 0) break; // nothing repeats any more
       const a = Math.floor(bestKey / 4096), b = bestKey % 4096;
       const nid = this.vocab.length;
       this.vocab.push(this.vocab[a] + this.vocab[b]);
@@ -780,7 +780,7 @@ function lnBack(dInp, pg, pb, dOut, C, N, D){
   }
 }
 
-const GELU_C = 0.7978845608028654;   /* sqrt(2/pi) */
+const GELU_C = 0.7978845608028654; /* sqrt(2/pi) */
 
 function gelu(y, x, n){
   for (let i = 0; i < n; i++){
@@ -813,9 +813,9 @@ class GPT {
   /* how many parameters a config needs, without building it */
   static paramCount(c){
     const d = c.nEmbd;
-    const per = 4 * d * d          /* Wq Wk Wv Wo   */
-              + 4 * d              /* two layernorms */
-              + 2 * d * c.nFF + c.nFF + d;  /* mlp */
+    const per = 4 * d * d /* Wq Wk Wv Wo   */
+              + 4 * d     /* two layernorms */
+              + 2 * d * c.nFF + c.nFF + d; /* mlp */
     return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
   }
 
@@ -884,7 +884,7 @@ class GPT {
         for (let j = 0; j < p.n; j++) p.data[j] = randn() * 0.08;
       } else {
         let s = 1 / Math.sqrt(p.shape[0]);
-        if (p.role === 'wproj') s /= Math.sqrt(2 * c.nLayer);  /* GPT-2 residual scaling */
+        if (p.role === 'wproj') s /= Math.sqrt(2 * c.nLayer); /* GPT-2 residual scaling */
         for (let j = 0; j < p.n; j++) p.data[j] = randn() * s;
       }
       p.grad.fill(0); p.m.fill(0); p.v.fill(0);
@@ -965,7 +965,7 @@ class GPT {
           }
           const inv = 1 / sum;
           for (let j = 0; j <= i; j++) B.att[row + j] *= inv;
-          for (let j = i + 1; j < T; j++) B.att[row + j] = 0;   /* masked future */
+          for (let j = i + 1; j < T; j++) B.att[row + j] = 0; /* masked future */
           const ao = i * d + hd;
           for (let z = 0; z < dh; z++) B.ao[ao + z] = 0;
           for (let j = 0; j <= i; j++){
