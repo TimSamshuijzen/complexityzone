@@ -182,7 +182,7 @@ Look at the training & tokenization panel. Remove the #btnApply button and event
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
 
-## Session 13 - 
+## Session 13 - make primary buttons brighter
 
 **Prompt 1**
 
@@ -197,14 +197,14 @@ Make these buttons slightly larger, slightly more prominent and vibrant.
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
 
-## Session 14 - 
+## Session 14 - make heatmaps with squares, not rectangles
 
 **Prompt 1**
 
 ```
 Read `index.html`. It is a simple transformer.
 
-Look at the transformer panel. The positions in the canvas heatmaps are not always square, but more rectangular. Make sure the positions are always squares. Also, the max size of a square is no more than 5 pixels by 5 pixels.
+Look at the transformer panel. The positions in the canvas heatmaps are not always square, but more rectangular. Make sure the positions are always squares. The max size of a square should be no more than 5 pixels by 5 pixels.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```

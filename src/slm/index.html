@@ -1262,13 +1262,6 @@ function drawHeat(cv, data, rows, cols, opt = {}){
     cx.lineWidth = 1;
     cx.strokeRect(0.5, opt.hiRow * ch + 0.5, w - 1, ch - 1);
   }
-  if (opt.diag && cw >= 6){
-    cx.strokeStyle = 'rgba(255,255,255,.10)';
-    cx.beginPath();
-    for (let i = 0; i <= rows; i++){ cx.moveTo(0, i * ch); cx.lineTo(w, i * ch); }
-    for (let j = 0; j <= cols; j++){ cx.moveTo(j * cw, 0); cx.lineTo(j * cw, h); }
-    cx.stroke();
-  }
 
   heatMeta.set(cv, { data, rows, cols, stride, base,
                      cell: cw, cellH: ch, max: mx, name: opt.name || '',
@@ -1810,12 +1803,17 @@ function opsym(parent, sym, det){
 }
 
 let TF = null;
+/* the pass currently on screen, kept so the flow can be drawn again at a new
+   map size — the maps are sized from the panel's measured width, and the
+   browser only knows that width once it has laid the page out */
+let tfView = null;
 
 function buildTF(){
   const root = $('#tfFlow');
   root.innerHTML = '';
   const c = S.cfg;
   TF = { blocks: [] };
+  tfView = null;
 
   const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
     'The highlighted token is the last one; ' +
@@ -1901,65 +1899,67 @@ function renderTF(C, label){
   if (!TF || !S.model) return;
   const c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
   if (n <= 0) return;
+  tfView = { C, label };
 
   $('#tfMeta').textContent = label;
 
   TF.tokRow.innerHTML = '';
   for (let i = 0; i < n; i++) TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
 
-  /* size the maps to whatever width the panel actually has: the widest row
-     holds four maps plus operators, attention rows hold one map per head */
-  const flowW = Math.max(330, ($('#tfFlow').clientWidth || 440) - 16);
-  const slotW = (flowW - 62) / 4;
-  const CW = clamp(Math.floor(slotW / d), 3, 12);
-  const CH = clamp(Math.floor(180 / n), 4, 14);
-  const AW = clamp(Math.floor((flowW - 26 * H) / (H * n)), 5, 14);
-  const FW = clamp(Math.floor(slotW / hf), 3, 10);
-  const VW = clamp(Math.floor((flowW - 80) / (2 * V)), 3, 12);
+  /* one square cell for every map in the flow, so a value covers the same
+     area wherever it appears and maps standing side by side line up. Five
+     pixels is the ceiling; the cell only drops below it when the widest tensor
+     of this architecture would otherwise not fit the panel. */
+  const flowW = Math.max(300, ($('#tfFlow').clientWidth || 440) - 30);
+  const cell = clamp(Math.floor(flowW / Math.max(d, hf, V, n)), 2, 5);
 
   const pos = (i) => `pos ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`;
   const dim = (j) => `channel ${j}`;
   const ffd = (j) => `neuron ${j}`;
   const voc = (j) => `token ${j}  ${tokDisp(S.tok.vocab[j])}`;
 
-  const res = (cv, data, cols, cw, colLab, mode, mx, name) => {
-    drawHeat(cv, data, n, cols, { cellW: cw, cellH: CH, rowLab: pos, colLab, mode, max: mx, name });
+  const res = (cv, data, cols, colLab, name) => {
+    drawHeat(cv, data, n, cols, { cell, rowLab: pos, colLab, name });
     setSub(cv, `${n}×${cols}`);
   };
 
-  res(TF.tokEmb, C.tokEmb, d, CW, dim, null, undefined, 'token embedding');
-  res(TF.posEmb, C.posEmb, d, CW, dim, null, undefined, 'position embedding');
-  res(TF.x0, C.x0, d, CW, dim, null, undefined, 'residual stream x0');
+  res(TF.tokEmb, C.tokEmb, d, dim, 'token embedding');
+  res(TF.posEmb, C.posEmb, d, dim, 'position embedding');
+  res(TF.x0, C.x0, d, dim, 'residual stream x0');
 
   for (let l = 0; l < c.nLayer; l++){
     const B = C.blocks[l], G = TF.blocks[l];
-    res(G.ln1, B.ln1.out, d, CW, dim, null, undefined, `block ${l} · ln1`);
-    res(G.q, B.q, d, CW, dim, null, undefined, `block ${l} · Q`);
-    res(G.k, B.k, d, CW, dim, null, undefined, `block ${l} · K`);
-    res(G.v, B.v, d, CW, dim, null, undefined, `block ${l} · V`);
+    res(G.ln1, B.ln1.out, d, dim, `block ${l} · ln1`);
+    res(G.q, B.q, d, dim, `block ${l} · Q`);
+    res(G.k, B.k, d, dim, `block ${l} · K`);
+    res(G.v, B.v, d, dim, `block ${l} · V`);
     for (let h = 0; h < H; h++){
       drawHeat(G.att[h], B.att, n, n, {
-        cellW: AW, cellH: AW, stride: T, offset: h * T * T, mode: 'seq', max: 1, diag: true,
+        cell, stride: T, offset: h * T * T, mode: 'seq', max: 1,
         rowLab: (i) => `query ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`,
         colLab: (j) => `key   ${j}  ${tokDisp(S.tok.vocab[C.tokens[j]])}`,
         name: `block ${l} · head ${h} attention`
       });
       setSub(G.att[h], `${n}×${n} (masked)`);
     }
-    res(G.ao, B.ao, d, CW, dim, null, undefined, `block ${l} · blended values`);
-    res(G.attnOut, B.attnOut, d, CW, dim, null, undefined, `block ${l} · attention output`);
-    res(G.xres1, B.xres1, d, CW, dim, null, undefined, `block ${l} · stream after attention`);
-    res(G.ln2, B.ln2.out, d, CW, dim, null, undefined, `block ${l} · ln2`);
-    res(G.hpre, B.hpre, hf, FW, ffd, null, undefined, `block ${l} · mlp pre-activation`);
-    res(G.hact, B.hact, hf, FW, ffd, null, undefined, `block ${l} · mlp after GELU`);
-    res(G.mlpOut, B.mlpOut, d, CW, dim, null, undefined, `block ${l} · mlp output`);
-    res(G.xout, B.xout, d, CW, dim, null, undefined, `block ${l} · stream after mlp`);
+    res(G.ao, B.ao, d, dim, `block ${l} · blended values`);
+    res(G.attnOut, B.attnOut, d, dim, `block ${l} · attention output`);
+    res(G.xres1, B.xres1, d, dim, `block ${l} · stream after attention`);
+    res(G.ln2, B.ln2.out, d, dim, `block ${l} · ln2`);
+    res(G.hpre, B.hpre, hf, ffd, `block ${l} · mlp pre-activation`);
+    res(G.hact, B.hact, hf, ffd, `block ${l} · mlp after GELU`);
+    res(G.mlpOut, B.mlpOut, d, dim, `block ${l} · mlp output`);
+    res(G.xout, B.xout, d, dim, `block ${l} · stream after mlp`);
   }
-  res(TF.lnf, C.lnf.out, d, CW, dim, null, undefined, 'final layernorm');
-  res(TF.logits, C.logits, V, VW, voc, null, undefined, 'logits');
-  drawHeat(TF.probs, C.probs, n, V, { cellW: VW, cellH: CH, rowLab: pos, colLab: voc,
+  res(TF.lnf, C.lnf.out, d, dim, 'final layernorm');
+  res(TF.logits, C.logits, V, voc, 'logits');
+  drawHeat(TF.probs, C.probs, n, V, { cell, rowLab: pos, colLab: voc,
     mode: 'seq', max: 1, name: 'softmax probabilities', hiRow: n - 1 });
   setSub(TF.probs, `${n}×${V} · last row = prediction`);
+}
+
+function redrawTF(){
+  if (tfView) renderTF(tfView.C, tfView.label);
 }
 
 /* ====================================================================== */
@@ -2566,6 +2566,7 @@ function wire(){
       drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
       drawTensor();
       drawFreq($('#freqChart'), S.tok);
+      redrawTF();
       if (S.lastDist) drawProbs($('#probChart'), S.lastDist, S.lastPick);
     }, 180);
   });
@@ -2582,6 +2583,7 @@ function boot(){
   wire();
   drawRampLegend($('#legDiv'));
   rebuildAll(false);
+  requestAnimationFrame(redrawTF);   /* that first pass drew before layout */
   selectTensor('wte');
   window.slm = { S, gradCheck, GPT, paramCount: GPT.paramCount };
 }
