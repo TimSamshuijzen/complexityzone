@@ -2157,7 +2157,7 @@ function rebuildAll(keepText){
   $('#btnTrain').textContent = '▶ train';
   $('#btnTrain').classList.add('primary');
 
-  let text = $('#trainText').value; //.toLowerCase();
+  let text = $('#trainText').value;
   if (!text.trim().length){ text = DEFAULT_CORPUS; $('#trainText').value = DEFAULT_CORPUS; }
   S.corpus = text;
 
