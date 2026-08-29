@@ -114,7 +114,20 @@ Take your time in working this out, you are given plenty of time to think, make 
 ```
 Read `index.html`. It is a simple transformer. 
 
-In the input panel, look at the row with the "generate" button, "+1 token" button, and "reset" button. These components need to be moved to the header (phead) div of the input panel (below the h2, span, and phint), such that position of thse generate-controls are independent from scrolling in pbody.
+In the input panel, look at the row with the "generate" button, "+1 token" button, and "reset" button. These components need to be moved to the header (phead) div of the input panel (below the h2, span, and phint), such that position of these generate-controls are independent from scrolling in pbody.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
+
+
+## Session 8 - merge input panel and output panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+Look at the input panel and output panel. The input panel and output panel should be merged into single panel "input & output".
 
 Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
