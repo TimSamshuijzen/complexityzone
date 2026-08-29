@@ -95,7 +95,7 @@ Look at the training panel and tokenization panel. When viewed on desktop screen
 Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
 
-## Session 5 - make architecture panel
+## Session 6 - make architecture panel
 
 **Prompt 1**
 
