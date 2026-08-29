@@ -363,7 +363,7 @@ canvas.fluid{width:100%}
   <!-- ============ TRAINING ============ -->
   <section class="panel a-train">
     <div class="phead">
-      <h2>training</h2><span class="n">corpus</span>
+      <h2>training</h2>
       <div class="row train-controls">
         <button id="btnTrain" class="btn primary">▶ train</button>
         <button id="btnReset" class="btn">reset weights</button>
@@ -371,6 +371,7 @@ canvas.fluid{width:100%}
       </div>
     </div>
     <div class="pbody">
+      <div class="sub">corpus</div>
       <textarea class="lightTheme" id="trainText" rows="5" spellcheck="false"></textarea>
       <div class="row">
         <button id="btnApply" class="btn sm">apply text &amp; rebuild</button>
@@ -395,8 +396,7 @@ canvas.fluid{width:100%}
   <!-- ============ TOKENIZATION ============ -->
   <section class="panel a-tok">
     <div class="phead">
-      <h2>tokenization</h2><span class="n">byte-pair encoding</span>
-      <div class="phint">text &rarr; integers</div>
+      <h2>tokenization</h2>
     </div>
     <div class="pbody">
       <div class="slider"><span class="lab">vocab size</span><input id="inVocab" type="range" min="40" max="100" step="1" value="100"><span class="val" id="vVocab">100</span></div>
@@ -493,8 +493,9 @@ canvas.fluid{width:100%}
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
       <div class="sub">output <span class="dim" id="outCount">0 tokens</span></div>
       <div class="outtext" id="outText"></div>
-      <div class="sub">next-token distribution <span class="dim" id="distMeta"></span></div>
+      <div class="sub">next-token <span class="dim" id="distMeta"></span></div>
       <div class="bars" id="distBars"></div>
+      <div class="cv-wrap"><canvas id="probChart" class="fluid"></canvas></div>
       <div id="outChips" class="chips"></div>
     </div>
   </section>
@@ -1433,6 +1434,76 @@ function drawFreq(cv, tok){
   cx.textAlign = 'left';
 }
 
+/* the twin of drawFreq for the model's output: one bar per vocabulary id, so
+   the whole distribution shows and not just the ten rows above it. Once the
+   model is confident its probabilities span many decades, and a linear axis
+   would flatten everything but the winner onto the floor, so the bars run on a
+   log axis six decades deep with one faint gridline per decade. */
+const PROB_DECADES = 6;
+const PROB_FLOOR = 10 ** -PROB_DECADES;
+
+function drawProbs(cv, probs, picked){
+  const h = 62;
+  const { cx, w } = prepFluid(cv, h);
+  const padB = 12, padT = 4, ih = h - padT - padB;
+  const V = S.cfg.nVocab;
+  /* fraction of the plot a probability fills: 0 at the floor, 1 at certainty */
+  const bar = (p) => clamp(1 + Math.log10(Math.max(p, Number.MIN_VALUE)) / PROB_DECADES, 0, 1);
+
+  cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
+  cx.font = '9px ui-monospace,monospace';
+
+  cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
+  cx.beginPath();
+  for (let i = 0; i <= PROB_DECADES; i++){
+    const y = Math.round(padT + (ih * i) / PROB_DECADES) + 0.5;
+    cx.moveTo(0, y); cx.lineTo(w, y);
+  }
+  cx.stroke();
+
+  const bw = w / V;
+  let mx = 0;
+  for (let i = 0; i < V; i++){
+    const p = probs[i];
+    if (p > mx) mx = p;
+    const bh = bar(p) * ih;
+    if (bh < 0.5) continue;
+    /* ids that never occur in the corpus are barred from sampling, so they are
+       dimmed however much probability the model puts on them */
+    cx.fillStyle = i === picked ? '#fbbf24' : S.tok.counts[i] ? '#22d3ee' : '#57657a';
+    const x = Math.round(i * bw);
+    cx.fillRect(x, padT + ih - bh, Math.max(1, Math.round((i + 1) * bw) - x - 1), bh);
+  }
+
+  /* where every bar would sit if the model had learned nothing at all */
+  const uy = padT + ih - bar(1 / V) * ih;
+  cx.strokeStyle = 'rgba(248,113,113,.45)';
+  cx.setLineDash([3, 3]);
+  cx.beginPath(); cx.moveTo(0, uy); cx.lineTo(w, uy); cx.stroke();
+  cx.setLineDash([]);
+  cx.fillStyle = 'rgba(248,113,113,.7)';
+  cx.fillText('uniform', 3, uy - 3);
+
+  cx.strokeStyle = '#1b2431';
+  cx.beginPath(); cx.moveTo(0, h - padB + 0.5); cx.lineTo(w, h - padB + 0.5); cx.stroke();
+  cx.fillStyle = '#57657a';
+  cx.fillText('id 0', 3, h - 2);
+  cx.textAlign = 'center';
+  cx.fillText(`log p · 1 → ${PROB_FLOOR.toExponential()}`, w / 2, h - 2);
+  cx.textAlign = 'right';
+  cx.fillText(`id ${V - 1} · max ${(mx * 100).toFixed(1)}%`, w - 3, h - 2);
+  cx.textAlign = 'left';
+
+  heatMeta.set(cv, {
+    data: probs, rows: 1, cols: V, stride: V, base: 0, cell: bw, cellH: h,
+    describe: (_i, j, p) => {
+      const pct = p < 1e-4 ? `${(p * 100).toExponential(2)}%` : `${(p * 100).toFixed(2)}%`;
+      const note = S.tok.counts[j] ? '' : '\nnot in the corpus — never sampled';
+      return `token ${j}  ${tokDisp(S.tok.vocab[j])}\np = ${pct}${note}`;
+    }
+  });
+}
+
 /* ---------------------------------------------------------- tooltip     */
 let tipEl = null;
 
@@ -1910,6 +1981,12 @@ function renderDist(probs, picked){
     row.append(tr, el('div', 'p', `${(p * 100).toFixed(1)}%`));
     box.appendChild(row);
   }
+  /* the chart keeps its own copy: a resize redraws it long after the forward
+     pass that produced these numbers has been overwritten */
+  S.lastDist = Float32Array.from(probs);
+  S.lastPick = picked;
+  drawProbs($('#probChart'), S.lastDist, picked);
+
   let ent = 0;
   for (let i = 0; i < V; i++){ 
     if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
@@ -1983,11 +2060,9 @@ function genOne(){
   m.forward(ctx, n, m.cacheViz);
   const probs = m.cacheViz.probs.subarray((n - 1) * c.nVocab, n * c.nVocab);
   const id = sampleFrom(probs, S.temp, S.topk);
-  S.lastDist = Float32Array.from(probs);
-  S.lastPick = id;
   S.genTokens.push(id);
   renderTF(m.cacheViz, `generating · token ${S.genTokens.length - S.promptLen}`);
-  renderDist(S.lastDist, id);
+  renderDist(probs, id);
   renderOutput();
   return true;
 }
@@ -2466,6 +2541,7 @@ function wire(){
       drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
       drawTensor();
       drawFreq($('#freqChart'), S.tok);
+      if (S.lastDist) drawProbs($('#probChart'), S.lastDist, S.lastPick);
     }, 180);
   });
 }
