@@ -158,3 +158,14 @@ Look at the input & output panel. In between #distBars and #outChips, make a can
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
 
+## Session 11 - merge training panel and tokenization panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+Look at the training panel and tokenization panel. Merge the training panel and tokenization panel into single panel "training & tokenization". Place a sub "tokenization" beneath #sampleOut, and put components of tokenization beneath there.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
