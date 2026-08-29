@@ -143,7 +143,7 @@ Read `index.html`. It is a simple transformer.
 Look at the #outText div. This output div should have an exact height of 136px. It should not fill the height of the panel.
 Please make it have height 136px, and make the code clean.
 
-Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
 
 ## Session 10 - merge input panel and output panel
@@ -167,5 +167,17 @@ Read `index.html`. It is a simple transformer.
 
 Look at the training panel and tokenization panel. Merge the training panel and tokenization panel into single panel "training & tokenization". Place a sub "tokenization" beneath #sampleOut, and put components of tokenization beneath there.
 
-Take your time in working this out, you are given plenty of time to think, make use of it. The code is to be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
+
+## Session 12 - merge training panel and tokenization panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+Look at the training & tokenization panel. Remove the #btnApply button and event lister. The rebuildAll function should be called during text input or change in text.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
