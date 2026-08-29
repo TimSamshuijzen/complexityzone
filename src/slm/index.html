@@ -71,64 +71,52 @@ body{
 .dash{
   flex:1 1 auto;min-height:0;overflow:auto;display:grid;gap:9px;padding:9px;
   grid-template-columns:minmax(300px,335px) minmax(440px,1fr) minmax(320px,388px);
-  /* training spans two rows: it is the panel worth watching while the model
-     learns, so it stays the taller of the two in this column */
   grid-template-areas:
     "train tf weights"
+    "train tf arch"
     "train tf input"
     "tok   tf output";
   align-items:start;
 }
 .a-train{grid-area:train}.a-tok{grid-area:tok}.a-tf{grid-area:tf}
-.a-w{grid-area:weights}.a-in{grid-area:input}.a-out{grid-area:output}
-/* on a wide screen the dashboard fills the viewport exactly and every panel
-   scrolls inside itself, the way a dashboard should behave */
+.a-w{grid-area:weights}.a-arch{grid-area:arch}
+.a-in{grid-area:input}.a-out{grid-area:output}
 @media (min-width:1321px){
   .dash{overflow:hidden;align-items:stretch;
-        grid-template-rows:minmax(0,1.4fr) minmax(0,0.82fr) minmax(0,1fr)}
+        grid-template-rows:minmax(0,1.49fr) max-content minmax(0,1fr) minmax(0,1.07fr)}
   .panel{min-height:0}
   .pbody{flex:1 1 auto;max-height:none !important}
-  /* training is the tall panel now, so its loss curve and its sample box split
-     the room the rest of the panel does not need — flex-basis 0 keeps that
-     split from chasing the canvas size the script writes back into it */
   .a-train .cv-wrap{flex:3 1 0;min-height:98px}
   .a-train #sampleOut{flex:1 1 0;max-height:none}
 }
-/* very wide: give weights & biases its own full-height column */
 @media (min-width:1560px){
   .dash{
     grid-template-columns:minmax(300px,330px) minmax(450px,1fr)
                           minmax(328px,352px) minmax(296px,336px);
+    grid-template-rows:minmax(0,2.95fr) minmax(0,1.77fr) minmax(0,1fr) max-content;
     grid-template-areas:
       "train tf weights input"
       "train tf weights output"
-      "tok   tf weights output";
+      "tok   tf weights output"
+      "tok   tf arch    output";
   }
 }
 @media (max-width:1320px){
-  /* minmax(0,…) keeps a wide heatmap from stretching its whole column */
-  /* rows must be max-content: .panel is overflow:hidden, which makes a grid
-     item contribute nothing to an auto row, collapsing the whole column */
   .dash{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);
-    grid-template-rows:repeat(5,max-content);
-    grid-template-areas:"train tf" "tok tf" "weights tf" "input tf" "output tf";}
+    grid-template-rows:repeat(6,max-content);
+    grid-template-areas:"train tf" "tok tf" "weights tf" "arch tf" "input tf" "output tf";}
 }
-/* two columns: the transformer column is capped to the viewport and sticks
-   while the shorter panels beside it scroll past */
 @media (min-width:901px) and (max-width:1320px){
   .a-tf{align-self:start;position:sticky;top:0}
   .a-tf .pbody{max-height:calc(100vh - 172px)}
-  /* panels take their natural height in this column, which would leave the
-     tokenizer towering over training; cap it so the order stays the same */
   .a-tok .pbody{max-height:330px}
 }
 @media (max-width:900px){
-  /* one column, and the page itself scrolls instead of the dashboard */
   html,body{height:auto;overflow:auto}
   body{min-height:100%}
   .dash{grid-template-columns:minmax(0,1fr);overflow:visible;
-    grid-template-rows:repeat(6,max-content);
-    grid-template-areas:"train" "tok" "tf" "weights" "input" "output";}
+    grid-template-rows:repeat(7,max-content);
+    grid-template-areas:"train" "tok" "tf" "weights" "arch" "input" "output";}
   .pbody{max-height:none !important}
   .panel{overflow:hidden}
 }
@@ -157,15 +145,11 @@ body{
   border:1px solid var(--line2);border-radius:3px;padding:0 4px;
 }
 .phint{color:var(--dim2);font-size:10.5px;margin-left:auto}
-/* the run controls live in the training header, on a line of their own, so they
-   stay in view while the panel body scrolls */
 .train-controls{
   flex:1 0 100%;align-items:center;gap:6px;
   margin-top:1px;padding-top:7px;border-top:1px solid var(--line);
 }
 .pbody{padding:10px 11px;overflow:auto;display:flex;flex-direction:column;gap:9px;min-height:0}
-/* children keep their natural height and the panel scrolls, instead of the
-   flex container squashing everything to fit */
 .pbody > *{flex:0 0 auto}
 .tfflow > *{flex:0 0 auto}
 .hrow > *{flex:0 0 auto}
@@ -201,7 +185,15 @@ input[type=range]{width:100%;accent-color:var(--accent);height:16px}
 label.f{display:flex;flex-direction:column;gap:2px;font-size:9.5px;text-transform:uppercase;
   letter-spacing:.07em;color:var(--dim2);min-width:0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+/* the six numbers that fix the shape of the model, one strip across the
+   architecture panel; the boxes are narrow enough that the spinners would sit
+   on top of the value, so they are dropped and the arrow keys do that job */
+.archgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+.archgrid label.f{font-size:9px;letter-spacing:.03em}
+.archgrid input[type=number]{-moz-appearance:textfield}
+.archgrid input[type=number]::-webkit-outer-spin-button,
+.archgrid input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+@media (max-width:420px){.archgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .slider{display:grid;grid-template-columns:78px 1fr 42px;align-items:center;gap:7px}
 .slider .lab{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
 .slider .val{font-family:var(--mono);font-size:11px;color:var(--accent2);text-align:right}
@@ -455,8 +447,17 @@ canvas.fluid{width:100%}
       <div class="sub">selected tensor <span class="dim" id="selMeta"></span></div>
       <div class="cv-wrap" style="display:flex;justify-content:center"><canvas id="tensorMap"></canvas></div>
       <div class="cv-wrap"><canvas id="histChart" class="fluid"></canvas></div>
-      <div class="sub">architecture</div>
-      <div class="grid3">
+    </div>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section class="panel a-arch">
+    <div class="phead">
+      <h2>architecture</h2><span class="n">hyper-parameters</span>
+      <div class="phint">rebuild to apply</div>
+    </div>
+    <div class="pbody">
+      <div class="archgrid">
         <label class="f">d_model<input id="cfgD" type="number" min="4" max="64" step="2" value="22"></label>
         <label class="f">layers<input id="cfgL" type="number" min="1" max="4" step="1" value="2"></label>
         <label class="f">heads<input id="cfgH" type="number" min="1" max="8" step="1" value="2"></label>

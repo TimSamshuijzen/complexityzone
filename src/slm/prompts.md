@@ -106,3 +106,14 @@ Look at the architecture section in the weights & biases panel. The architecture
 
 Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
+
+## Session 7 - make architecture panel
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer. 
+
+
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
