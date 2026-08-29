@@ -90,8 +90,7 @@ Take your time in working this out, you are given plenty of time to think, make 
 ```
 Read `index.html`. It is a simple transformer. 
 
-Look at the training panel and tokenization panel. When viewed, training panel's height is less than height of the tokenization panel.
-Please make training panel's height larger than height of the tokenization panel.
+Look at the training panel and tokenization panel. When viewed on desktop screen, the training panel's height is less than tokenization panel's height. The training panel should be more prominent than the tokenization panel. Make the training panel's height larger than the tokenization panel's height. Reduce the height of the tokenization panel.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
