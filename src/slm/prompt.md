@@ -42,5 +42,14 @@ No underline should be shown when hovering over "complexity.zone". Remove defaul
 **Prompt 1**
 
 Read `index.html`. It is a simple transformer. The classes are written in old prototypal style. Please rewrite as modern classes.
-
 Take your time in working this out, you are given plenty of time to think, make use of it. If you have any questions along the way, let me know, I am there to answer any questions you have. When implementing, keep on implementing and testing and validating, until it all works well and looks good.
+
+
+# Session 3
+
+**Prompt 1**
+
+Read `index.html`. It is a simple transformer. 
+The vocabulary size is fixed at 42. In the Tokenization panel, add a slider for vocabulary size, ranging from 40 to 100.
+Make sure the ranges in input cfgV and inTopk adapt when the vocabulary size is changed.
+Take your time in working this out, you are given plenty of time to think, make use of it. When implementing, keep on implementing and testing and validating, until it all works well and looks good.
