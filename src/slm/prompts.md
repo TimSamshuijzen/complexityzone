@@ -196,3 +196,15 @@ Make these buttons slightly larger, slightly more prominent and vibrant.
 
 Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
 ```
+
+## Session 14 - 
+
+**Prompt 1**
+
+```
+Read `index.html`. It is a simple transformer.
+
+Look at the transformer panel. The positions in the canvas heatmaps are not always square, but more rectangular. Make sure the positions are always squares.
+
+Take your time in working this out, you are given plenty of time to think, make use of it. The code should be clean and consistent. When implementing, keep on implementing and testing and validating, until it works well and looks good.
+```
