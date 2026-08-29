@@ -363,7 +363,7 @@ canvas.fluid{width:100%}
 <header class="top">
   <div class="brand">
     <div class="logo">slm</div>
-    <div class="tag"><b>small language model</b> &nbsp;&nbsp;&nbsp;&nbsp; 11,000-parameter GPT</div>
+    <div class="tag"><b>small language model</b></div>
   </div>
   <div class="pills">
     <div class="pill"><span class="k">params</span><span class="v" id="pParams">—</span></div>
@@ -381,7 +381,7 @@ canvas.fluid{width:100%}
   <!-- ============ TRAINING & TOKENIZATION ============ -->
   <section class="panel a-train">
     <div class="phead">
-      <h2>training &amp; tokenization</h2>
+      <h2>training</h2><span class="n">corpus &amp; tokenization</span>
       <div class="row train-controls">
         <button id="btnTrain" class="btn primary">▶ train</button>
         <button id="btnReset" class="btn">reset weights</button>
@@ -442,7 +442,6 @@ canvas.fluid{width:100%}
   <section class="panel a-w">
     <div class="phead">
       <h2>weights &amp; biases</h2><span class="n" id="wCount">—</span>
-      <div class="phint">pixel/parameter</div>
     </div>
     <div class="pbody">
       <div class="row">
@@ -486,7 +485,7 @@ canvas.fluid{width:100%}
   <!-- ============ INPUT & OUTPUT ============ -->
   <section class="panel a-io">
     <div class="phead">
-      <h2>input &amp; output</h2><span class="n">prompt &rarr; generation</span>
+      <h2>generate</h2><span class="n">input &rarr; output</span>
       <div class="row gen-controls">
         <button id="btnGen" class="btn primary">▶ generate</button>
         <button id="btnStep" class="btn">+1 token</button>
@@ -494,7 +493,7 @@ canvas.fluid{width:100%}
       </div>
     </div>
     <div class="pbody">
-      <div class="sub">input</div>
+      <div class="sub">input prompt</div>
       <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false">Once upon a time</textarea>
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.0"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
