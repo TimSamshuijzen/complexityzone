@@ -2242,12 +2242,12 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const c = S.cfg;
     TF = { blocks: [] };
     tfView = null;
-    const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
+    const s0 = stage(root, 'context', `up to ${c.nCtx} tokens`,
       'The highlighted token is the last one; ' +
       'the prediction for what comes next is read off that position.');
     TF.tokRow = el('div', 'chips');
     s0.body.appendChild(TF.tokRow);
-    const s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
+    const s1 = stage(root, 'embeddings', 'wte[token] + wpe[position]',
       'Each id indexes a row of the token-embedding table; a learned position vector is added on top. ' +
       `The result is the residual stream: one row per position, ${c.nEmbd} channels wide.`);
     TF.tokEmb = hm(s1.body, 'token emb');
@@ -2257,7 +2257,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     TF.x0 = hm(s1.body, 'x&#8320; stream');
     for (let l = 0; l < c.nLayer; l++) {
       const B = { att: [] };
-      const sb = stage(root, `${l + 2} · block ${l}`,
+      const sb = stage(root, `block ${l}`,
         `${c.nHead} heads · head dim ${c.nEmbd / c.nHead} · d_ff ${c.nFF}`, null, 'blk', true);
       const wrap = el('div', 'tfflow');
       sb.el.appendChild(wrap);
@@ -2308,7 +2308,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       B.xout = hm(r4, 'x <span class="op">+ mlp</span>');
       TF.blocks.push(B);
     }
-    const s2 = stage(root, `${c.nLayer + 2} · output head`, 'logits = lnf(x) · wteᵀ',
+    const s2 = stage(root, `output head`, 'logits = lnf(x) · wteᵀ',
       'The stream is normalised once more and compared against every token embedding — the output ' +
       'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
       'last row gives the next-token distribution shown in the output panel.');
