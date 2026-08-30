@@ -164,7 +164,7 @@ body{
 .btn{
   font-family:var(--sans);font-size:11.5px;color:var(--text);background:var(--panel3);
   border:1px solid var(--line2);border-radius:5px;padding:4px 10px;cursor:pointer;
-  transition:background .12s,border-color .12s,color .12s,box-shadow .12s;
+  transition:background-color .12s,border-color .12s,color .12s,box-shadow .12s;
   white-space:nowrap;
 }
 .btn:hover{background:#1c2534;border-color:#3a4a60}
@@ -208,7 +208,7 @@ label.f{display:flex;flex-direction:column;gap:2px;font-size:9.5px;text-transfor
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .archgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
 .archgrid label.f{font-size:9px;letter-spacing:.03em}
-.archgrid input[type=number]{-moz-appearance:textfield}
+.archgrid input[type=number]{appearance:textfield}
 .archgrid input[type=number]::-webkit-outer-spin-button,
 .archgrid input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 @media (max-width:420px){.archgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -494,7 +494,7 @@ canvas.fluid{width:100%}
     </div>
     <div class="pbody">
       <div class="sub">input prompt</div>
-      <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false">Once upon a time</textarea>
+      <textarea class="lightTheme" id="promptText" rows="3" spellcheck="false"></textarea>
       <div class="slider"><span class="lab">temperature</span><input id="inTemp" type="range" min="0" max="2" step="0.05" value="0.0"><span class="val" id="vTemp">0.85</span></div>
       <div class="slider"><span class="lab">top-k</span><input id="inTopk" type="range" min="1" max="100" step="1" value="10"><span class="val" id="vTopk">10</span></div>
       <div class="slider"><span class="lab">max tokens</span><input id="inMax" type="range" min="1" max="400" step="1" value="140"><span class="val" id="vMax">140</span></div>
@@ -511,2152 +511,2723 @@ canvas.fluid{width:100%}
 <div id="tip"></div>
 <div id="toast"></div>
 <script>
-/* ==========================================================================
-   slm — small language model
-   A complete generative pre-trained transformer in ~10,000 parameters.
-   No libraries. Tokenizer, forward pass, hand-derived backprop, AdamW,
-   sampling and every visualisation below are written from scratch.
-   ========================================================================== */
-'use strict';
+  /* ==========================================================================
+     slm — small language model
+     A generative pre-trained transformer in ~10,000 parameters.
+     ========================================================================== */
+  'use strict';
 
-/* ------------------------------------------------------------------ utils */
-const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+  /* ----- utils ----- */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-function el(tag, cls, txt){
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (txt !== undefined) e.textContent = txt;
-  return e;
-}
-
-const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
-const F32 = (n) => new Float32Array(n);
-const fmt = (v, n = 3) => (v === undefined || v === null || !Number.isFinite(v) ? '—' : v.toFixed(n));
-const commas = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-/* deterministic RNG so every reload gives the same starting model */
-function mulberry32(seed){
-  let a = seed;
-  return () => {
-    a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-let RNG = mulberry32(20240517);
-const rand = () => RNG();
-const randInt = (n) => (RNG() * n) | 0;
-
-function randn(){
-  let u = 0, v = 0;
-  while (u === 0) u = RNG();
-  while (v === 0) v = RNG();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
-}
-
-let toastTimer = null;
-function toast(msg){
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('on');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
-}
-
-/* ------------------------------------------------------------- the corpus */
-// Corpus is a selection from TinyStories https://huggingface.co/datasets/roneneldan/TinyStories
-const DEFAULT_CORPUS = [
-  'Once upon a time, in a big forest, there lived a rhinoceros named Roxy. Roxy loved to climb. She climbed trees, rocks, and hills. One day, Roxy found an icy hill. She had never seen anything like it before. It was shiny and cold, and she wanted to climb it.',
-  'Roxy tried to climb the icy hill, but it was very slippery. She tried again and again, but she kept falling down. Roxy was sad. She wanted to climb the icy hill so much. Then, she saw a little bird named Billy. Billy saw that Roxy was sad and asked, "Why are you sad, Roxy?"',
-  'Roxy told Billy about the icy hill and how she couldn\'t climb it. Billy said, "I have an idea! Let\'s find some big leaves to put under your feet. They will help you climb the icy hill." Roxy and Billy looked for big leaves and found some. Roxy put the leaves under her feet and tried to climb the icy hill again.',
-  'This time, Roxy didn\'t slip. She climbed and climbed until she reached the top of the icy hill. Roxy was so happy! She and Billy played on the icy hill all day. From that day on, Roxy and Billy were the best of friends, and they climbed and played together all the time. And Roxy learned that with a little help from a friend, she could climb anything.',
-  'Once upon a time, in a small yard, there was a small daisy. The daisy had a name. Her name was Daisy. Daisy was very small, but she was also very happy.',
-  'One day, Daisy saw a dog. The dog was big and had a name too. His name was Max. Max liked to play in the yard. Daisy liked to watch Max play. Max and Daisy became friends.',
-  'Every day, Max would come to the yard to play. Daisy would watch and smile. They were very happy together. And even though Daisy was small, she knew that she had a big friend in Max.',
-  'Once upon a time, there was a thoughtful girl named Sue. Sue loved to help her mom around the house. One day, her mom asked her to wipe the table after they ate their lunch. Sue was happy to help.',
-  'As Sue was wiping the table, she saw a pretty candle on the window sill. The candle was her mom\'s favorite. Sue wanted to do something nice for her mom, so she said, "Mom, can I light the candle for you?" Her mom said, "Yes, but be very careful."',
-  'Sue carefully lit the candle and put it on the table. Her mom was so happy to see the pretty candle. They both sat and watched the candle burn. Sue\'s mom said, "Thank you, Sue, for being so thoughtful and careful." Sue felt proud that she could help her mom.',
-  'The moral of the story is to always be thoughtful and careful when helping others.',
-  'Once upon a time, there was a kind farmer. He had a big cow. The cow was sad. The farmer did not know why.',
-  'One day, a little boy came to the farm. He saw the sad cow. The boy kneeled down to talk to the cow. "Why are you sad, cow?" he asked. The cow said, "I am lonely. I want a friend."',
-  'The kind farmer heard the cow. He wanted to help. So, he got another cow to be friends with the sad cow. The sad cow was happy now. They played together every day. And the kind farmer, the little boy, and the two cows all lived happily ever after.',
-  'Once upon a time, there was a little girl named Lucy. She had a pet cat named Tom. They loved to play together in the big green park near their house. One sunny day, they went to the park to play.',
-  'While playing, Tom saw a big sour lemon on the ground. He wanted to play with it, but when he touched it, it started to roll away. Tom ran after the lemon, trying to catch it. But as he ran, Tom got lost in the park. Lucy looked around, but she could not find Tom. She was very sad.',
-  'Lucy did not give up. She searched the park for her friend. At last, she found him near a big tree. Tom was trying to catch the lemon, but it vanished into a hole in the ground. Tom was happy to see Lucy again. They hugged and went back home together. They had a fun escape in the park, but they decided to leave the sour lemon behind.',
-  'Once upon a time, there was a little brown dog named Spot. He loved to play with his ball in the park. One sunny day, Spot saw a big goal on the other side of the park. He wanted to get his ball into the goal.',
-  'Spot ran fast with the ball in his mouth. He tried to kick the ball into the goal, but he was too small. Spot started to struggle. He tried again and again, but the ball would not go in.',
-  'Then, Spot had an idea. He asked his friend, a big brown horse named Buddy, for help. Buddy kicked the ball with his strong legs. The ball flew into the goal! Spot was so happy. He and Buddy played together all day long.',
-  'Once upon a time, there was a little boy named Tom. He loved to play with his red ball. One sunny day, Tom went outside to play with his ball in the land near his home.',
-  'Tom kicked the ball high in the sky. The ball went far, far away. Tom was sad because he could not find his ball. He walked and walked, looking for it. The land was big and sometimes dangerous. Tom knew he had to be careful.',
-  'At last, Tom found his ball near a big tree. He was very happy. Tom knew he should not kick the ball too hard next time. He went back home, holding his ball tightly. Tom played safely in his yard, away from the dangerous land.',
-  'Once upon a time, there was a big dog named Max. Max had a red collar that he wore every day. He loved to play and run in the park with his friends.',
-  'One day, Max saw a cat on a tree. He wanted to be friends with the cat. So, Max tried to stretch up to reach the cat. But he was not tall enough. He tried again and again, but he just couldn\'t reach the cat.',
-  'Max felt sad, but then he had an idea. He found a big box and put it under the tree. Max climbed on the box and stretched one more time. This time, he reached the cat! The cat and Max became good friends, and they played together every day.',
-  'Once upon a time, there was a girl named Mia. Mia loved her jewelry. She had a big box full of pretty things. She liked to wear them all day. But at night, she had to sleep.',
-  'One day, Mia met a talking cat named Tom. Tom was a tough cat, but he was nice. Tom said, "Hi, Mia! I like your jewelry. Can I wear some too?" Mia said, "Yes, Tom. You can wear my jewelry, but we have to give it back before we sleep."',
-  'So, Mia and Tom played together. They wore the jewelry and had fun. They pretended to be kings and queens. They laughed and danced. But soon, the sun went down, and it was time for bed.',
-  'Mia said, "Tom, we must give back the jewelry now. It\'s time to sleep." Tom gave back the jewelry and said, "Thank you, Mia. I had fun today." They put the jewelry back in the box and went to sleep. Mia and Tom were happy, and they had sweet dreams.',
-  'Once upon a time, there was a little boy named Tim. Tim had a big, orange ball. He loved his ball very much. One day, Tim met a girl named Sue. Sue had a pretty doll. Tim liked Sue\'s doll, and Sue liked Tim\'s orange ball.',
-  'Tim and Sue thought about a trade. They would trade the ball for the doll. Tim was not sure. He loved his orange ball. Sue said, "I promise to take care of your ball. You can play with it when you want." Tim said, "I promise to take care of your doll too."',
-  'They did the trade. Tim played with the doll, and Sue played with the orange ball. But then, Sue\'s big dog came. The dog saw the orange ball and thought it was a toy. The dog bit the ball and it popped. Tim was very sad, and Sue was sorry. The trade was not good, and the orange ball was gone forever.'
-].join('\n') + '\n';
-
-/* ---------------------------------------------------------- tokenizer (BPE)
-   id 0 is always the unknown token. Base ids are the most frequent characters
-   of the corpus. Everything above that is a learned merge of two ids.        */
-const UNK = 0;
-
-class Tokenizer {
-  constructor(){
-    this.reset();
+  function el(tag, cls, txt) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt !== undefined) e.textContent = txt;
+    return e;
   }
 
-  reset(){
-    this.vocab = ['�']; // decoded string for each id
-    this.merges = []; // {a,b,id,count}
-    this.charToId = new Map();
-    this.baseSize = 1;
-    this.unused = 0;
-    this.trainIds = new Int32Array(0);
-    this.counts = new Int32Array(1);
+  const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+  const F32 = (n) => new Float32Array(n);
+  const fmt = (v, n = 3) => (v === undefined || v === null || !Number.isFinite(v) ? '—' : v.toFixed(n));
+  const commas = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  /* deterministic RNG so every reload gives the same starting model */
+  function mulberry32(seed) {
+    let a = seed;
+    return () => {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
   }
 
-  /* rewrite every adjacent (a,b) pair as the single id nid, left to right */
-  static #applyMerge(ids, a, b, nid){
-    const out = [];
-    const n = ids.length;
-    let i = 0;
-    while (i < n){
-      if (i + 1 < n && ids[i] === a && ids[i + 1] === b){ out.push(nid); i += 2; }
-      else out.push(ids[i++]);
+  let RNG = mulberry32(20240517);
+  const rand = () => RNG();
+  const randInt = (n) => (RNG() * n) | 0;
+
+  function randn() {
+    let u = 0, v = 0;
+    while (u === 0) u = RNG();
+    while (v === 0) v = RNG();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
+  }
+
+
+  // sample data from https://sample.json-format.com/
+  const SAMPLE_CORPUS_1 = `[
+  {
+    "Date": "2024-07-26 14:00:00",
+    "Time": "14:00:00",
+    "Booking_ID": "CNR7153255142",
+    "Booking_Status": "Canceled by Driver",
+    "Customer_ID": "CID713523",
+    "Vehicle_Type": "Prime Sedan",
+    "Pickup_Location": "Tumkur Road",
+    "Drop_Location": "RT Nagar"
+  },
+  {
+    "Date": "2024-07-25 22:20:00",
+    "Time": "22:20:00",
+    "Booking_ID": "CNR2940424040",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID225428",
+    "Vehicle_Type": "Bike",
+    "Pickup_Location": "Magadi Road",
+    "Drop_Location": "Varthur"
+  },
+  {
+    "Date": "2024-07-30 19:59:00",
+    "Time": "19:59:00",
+    "Booking_ID": "CNR2982357879",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID270156",
+    "Vehicle_Type": "Prime SUV",
+    "Pickup_Location": "Sahakar Nagar",
+    "Drop_Location": "Varthur"
+  },
+  {
+    "Date": "2024-07-22 3:15:00",
+    "Time": "03:15:00",
+    "Booking_ID": "CNR2395710036",
+    "Booking_Status": "Canceled by Customer",
+    "Customer_ID": "CID581320",
+    "Vehicle_Type": "eBike",
+    "Pickup_Location": "HSR Layout",
+    "Drop_Location": "Vijayanagar"
+  },
+  {
+    "Date": "2024-07-02 9:02:00",
+    "Time": "09:02:00",
+    "Booking_ID": "CNR1797421769",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID939555",
+    "Vehicle_Type": "Mini",
+    "Pickup_Location": "Rajajinagar",
+    "Drop_Location": "Chamarajpet"
+  },
+  {
+    "Date": "2024-07-13 4:42:00",
+    "Time": "04:42:00",
+    "Booking_ID": "CNR8787177882",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID802429",
+    "Vehicle_Type": "Mini",
+    "Pickup_Location": "Kadugodi",
+    "Drop_Location": "Vijayanagar"
+  },
+  {
+    "Date": "2024-07-23 9:51:00",
+    "Time": "09:51:00",
+    "Booking_ID": "CNR3612067560",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID476071",
+    "Vehicle_Type": "Bike",
+    "Pickup_Location": "Tumkur Road",
+    "Drop_Location": "Whitefield"
+  },
+  {
+    "Date": "2024-07-11 11:12:00",
+    "Time": "11:12:00",
+    "Booking_ID": "CNR5374902489",
+    "Booking_Status": "Canceled by Driver",
+    "Customer_ID": "CID735691",
+    "Vehicle_Type": "Prime Plus",
+    "Pickup_Location": "Bannerghatta Road",
+    "Drop_Location": "Sarjapur Road"
+  },
+  {
+    "Date": "2024-07-01 19:19:00",
+    "Time": "19:19:00",
+    "Booking_ID": "CNR5030602354",
+    "Booking_Status": "Driver Not Found",
+    "Customer_ID": "CID999840",
+    "Vehicle_Type": "Mini",
+    "Pickup_Location": "Chamarajpet",
+    "Drop_Location": "Peenya"
+  },
+  {
+    "Date": "2024-07-18 1:31:00",
+    "Time": "01:31:00",
+    "Booking_ID": "CNR6328453219",
+    "Booking_Status": "Canceled by Driver",
+    "Customer_ID": "CID907133",
+    "Vehicle_Type": "Auto",
+    "Pickup_Location": "RT Nagar",
+    "Drop_Location": "Varthur"
+  },
+  {
+    "Date": "2024-07-29 23:33:00",
+    "Time": "23:33:00",
+    "Booking_ID": "CNR4787583516",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID923404",
+    "Vehicle_Type": "Prime Plus",
+    "Pickup_Location": "Hosur Road",
+    "Drop_Location": "Jayanagar"
+  },
+  {
+    "Date": "2024-07-26 4:03:00",
+    "Time": "04:03:00",
+    "Booking_ID": "CNR7943634301",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID647026",
+    "Vehicle_Type": "Prime Plus",
+    "Pickup_Location": "Kammanahalli",
+    "Drop_Location": "Rajajinagar"
+  },
+  {
+    "Date": "2024-07-27 13:18:00",
+    "Time": "13:18:00",
+    "Booking_ID": "CNR4524472111",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID540929",
+    "Vehicle_Type": "Auto",
+    "Pickup_Location": "Cox Town",
+    "Drop_Location": "Yelahanka"
+  },
+  {
+    "Date": "2024-07-17 18:55:00",
+    "Time": "18:55:00",
+    "Booking_ID": "CNR3914552212",
+    "Booking_Status": "Canceled by Driver",
+    "Customer_ID": "CID557845",
+    "Vehicle_Type": "Auto",
+    "Pickup_Location": "Hosur Road",
+    "Drop_Location": "Banashankari"
+  },
+  {
+    "Date": "2024-07-16 9:54:00",
+    "Time": "09:54:00",
+    "Booking_ID": "CNR8181602032",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID167642",
+    "Vehicle_Type": "Bike",
+    "Pickup_Location": "Indiranagar",
+    "Drop_Location": "MG Road"
+  },
+  {
+    "Date": "2024-07-02 10:25:00",
+    "Time": "10:25:00",
+    "Booking_ID": "CNR8090918544",
+    "Booking_Status": "Success",
+    "Customer_ID": "CID640151",
+    "Vehicle_Type": "Bike",
+    "Pickup_Location": "Magadi Road",
+    "Drop_Location": "HSR Layout"
+  },
+  {
+    "Date": "2024-07-02 23:50:00",
+    "Time": "23:50:00",
+    "Booking_ID": "CNR3211335290",
+    "Booking_Status": "Driver Not Found",
+    "Customer_ID": "CID630354",
+    "Vehicle_Type": "Mini",
+    "Pickup_Location": "Ramamurthy Nagar",
+    "Drop_Location": "BTM Layout"
+  }
+]
+`;
+
+  // sample text from TinyStories https://huggingface.co/datasets/roneneldan/TinyStories
+  const SAMPLE_CORPUS_2 = `Once upon a time, in a big forest, there lived a rhinoceros named Roxy. Roxy loved to climb. She climbed trees, rocks, and hills. One day, Roxy found an icy hill. She had never seen anything like it before. It was shiny and cold, and she wanted to climb it.
+Roxy tried to climb the icy hill, but it was very slippery. She tried again and again, but she kept falling down. Roxy was sad. She wanted to climb the icy hill so much. Then, she saw a little bird named Billy. Billy saw that Roxy was sad and asked, "Why are you sad, Roxy?"
+Roxy told Billy about the icy hill and how she couldn't climb it. Billy said, "I have an idea! Let's find some big leaves to put under your feet. They will help you climb the icy hill." Roxy and Billy looked for big leaves and found some. Roxy put the leaves under her feet and tried to climb the icy hill again.
+This time, Roxy didn't slip. She climbed and climbed until she reached the top of the icy hill. Roxy was so happy! She and Billy played on the icy hill all day. From that day on, Roxy and Billy were the best of friends, and they climbed and played together all the time. And Roxy learned that with a little help from a friend, she could climb anything.
+<|endoftext|>
+Once upon a time, in a small yard, there was a small daisy. The daisy had a name. Her name was Daisy. Daisy was very small, but she was also very happy.
+One day, Daisy saw a dog. The dog was big and had a name too. His name was Max. Max liked to play in the yard. Daisy liked to watch Max play. Max and Daisy became friends.
+Every day, Max would come to the yard to play. Daisy would watch and smile. They were very happy together. And even though Daisy was small, she knew that she had a big friend in Max.
+<|endoftext|>
+Once upon a time, there was a thoughtful girl named Sue. Sue loved to help her mom around the house. One day, her mom asked her to wipe the table after they ate their lunch. Sue was happy to help.
+As Sue was wiping the table, she saw a pretty candle on the window sill. The candle was her mom's favorite. Sue wanted to do something nice for her mom, so she said, "Mom, can I light the candle for you?" Her mom said, "Yes, but be very careful."
+Sue carefully lit the candle and put it on the table. Her mom was so happy to see the pretty candle. They both sat and watched the candle burn. Sue's mom said, "Thank you, Sue, for being so thoughtful and careful." Sue felt proud that she could help her mom.
+The moral of the story is to always be thoughtful and careful when helping others.
+<|endoftext|>
+Once upon a time, there was a kind farmer. He had a big cow. The cow was sad. The farmer did not know why.
+One day, a little boy came to the farm. He saw the sad cow. The boy kneeled down to talk to the cow. "Why are you sad, cow?" he asked. The cow said, "I am lonely. I want a friend."
+The kind farmer heard the cow. He wanted to help. So, he got another cow to be friends with the sad cow. The sad cow was happy now. They played together every day. And the kind farmer, the little boy, and the two cows all lived happily ever after.
+<|endoftext|>
+Once upon a time, there was a little girl named Lucy. She had a pet cat named Tom. They loved to play together in the big green park near their house. One sunny day, they went to the park to play.
+While playing, Tom saw a big sour lemon on the ground. He wanted to play with it, but when he touched it, it started to roll away. Tom ran after the lemon, trying to catch it. But as he ran, Tom got lost in the park. Lucy looked around, but she could not find Tom. She was very sad.
+Lucy did not give up. She searched the park for her friend. At last, she found him near a big tree. Tom was trying to catch the lemon, but it vanished into a hole in the ground. Tom was happy to see Lucy again. They hugged and went back home together. They had a fun escape in the park, but they decided to leave the sour lemon behind.
+<|endoftext|>
+Once upon a time, there was a little brown dog named Spot. He loved to play with his ball in the park. One sunny day, Spot saw a big goal on the other side of the park. He wanted to get his ball into the goal.
+Spot ran fast with the ball in his mouth. He tried to kick the ball into the goal, but he was too small. Spot started to struggle. He tried again and again, but the ball would not go in.
+Then, Spot had an idea. He asked his friend, a big brown horse named Buddy, for help. Buddy kicked the ball with his strong legs. The ball flew into the goal! Spot was so happy. He and Buddy played together all day long.
+<|endoftext|>
+Once upon a time, there was a little boy named Tom. He loved to play with his red ball. One sunny day, Tom went outside to play with his ball in the land near his home.
+Tom kicked the ball high in the sky. The ball went far, far away. Tom was sad because he could not find his ball. He walked and walked, looking for it. The land was big and sometimes dangerous. Tom knew he had to be careful.
+At last, Tom found his ball near a big tree. He was very happy. Tom knew he should not kick the ball too hard next time. He went back home, holding his ball tightly. Tom played safely in his yard, away from the dangerous land.
+<|endoftext|>
+Once upon a time, there was a big dog named Max. Max had a red collar that he wore every day. He loved to play and run in the park with his friends.
+One day, Max saw a cat on a tree. He wanted to be friends with the cat. So, Max tried to stretch up to reach the cat. But he was not tall enough. He tried again and again, but he just couldn't reach the cat.
+Max felt sad, but then he had an idea. He found a big box and put it under the tree. Max climbed on the box and stretched one more time. This time, he reached the cat! The cat and Max became good friends, and they played together every day.
+<|endoftext|>
+Once upon a time, there was a girl named Mia. Mia loved her jewelry. She had a big box full of pretty things. She liked to wear them all day. But at night, she had to sleep.
+One day, Mia met a talking cat named Tom. Tom was a tough cat, but he was nice. Tom said, "Hi, Mia! I like your jewelry. Can I wear some too?" Mia said, "Yes, Tom. You can wear my jewelry, but we have to give it back before we sleep."
+So, Mia and Tom played together. They wore the jewelry and had fun. They pretended to be kings and queens. They laughed and danced. But soon, the sun went down, and it was time for bed.
+Mia said, "Tom, we must give back the jewelry now. It's time to sleep." Tom gave back the jewelry and said, "Thank you, Mia. I had fun today." They put the jewelry back in the box and went to sleep. Mia and Tom were happy, and they had sweet dreams.
+<|endoftext|>
+Once upon a time, there was a little boy named Tim. Tim had a big, orange ball. He loved his ball very much. One day, Tim met a girl named Sue. Sue had a pretty doll. Tim liked Sue's doll, and Sue liked Tim's orange ball.
+Tim and Sue thought about a trade. They would trade the ball for the doll. Tim was not sure. He loved his orange ball. Sue said, "I promise to take care of your ball. You can play with it when you want." Tim said, "I promise to take care of your doll too."
+They did the trade. Tim played with the doll, and Sue played with the orange ball. But then, Sue's big dog came. The dog saw the orange ball and thought it was a toy. The dog bit the ball and it popped. Tim was very sad, and Sue was sorry. The trade was not good, and the orange ball was gone forever.
+<|endoftext|>
+Once upon a time, there was a little boy named Tom. Tom had a special belt that he loved to wear. One day, he could not find his belt and felt very sad.
+Tom's mom saw him and asked, "Why are you sad, Tom?" Tom replied, "I can't find my belt, and I miss it." His mom wanted to comfort him, so she said, "Let's look for it together."
+They looked and looked, and finally, they found the belt under Tom's bed. Tom was so happy, and his mom gave him a big hug. From that day on, Tom always remembered to keep his belt in a safe place.
+<|endoftext|>
+Once upon a time, in a big park, there was a fun slide. Kids loved to play on the slide all day. One day, a small boy named Tim came to the park to play. Tim was a generous boy who loved to share his toys with his friends.
+As Tim played on the slide, he saw a wreck near the park. The wreck was made of wood and old things. Tim thought it would be fun to make something new from the wreck. So, he asked his friends to help him.
+Together, Tim and his friends moved the wreck. They made a new slide from the wood. Now, the park had two slides for kids to play on. Tim and his friends were so happy. They played on the new slide all day long.
+<|endoftext|>
+Once upon a time, in a small house, there lived a kind and honest girl named Lily. She loved to bake cakes for her friends and family. One day, she made a big, yummy cake for her best friend's birthday.
+Lily carefully put the cake in the oven to bake. She waited and waited until it was ready. When the cake was done, she had to remove it from the oven. She used big, thick gloves to take the hot cake out. Then, she let the cake cool down.
+After the cake cooled, Lily decorated it with sweet frosting and colorful sprinkles. She was excited to give the cake to her best friend. At the birthday party, everyone loved the cake and thanked Lily for her hard work. Lily felt happy and proud to be an honest friend who shared her yummy cake.
+<|endoftext|>
+Once upon a time, there was a pirate named Tom. Tom was an honest pirate who always told the truth. One day, Tom found a treasure map. He decided to look for the treasure with his friend, Sam.
+Tom and Sam sailed on their boat. They followed the map and found an island. On the island, they saw a big, scary pirate named Max. Max wanted the treasure too. Tom said, "Max, we found the treasure first. Please let us have it."
+Max did not want to give up. But Tom and Sam were brave. They told Max, "If you surrender and stop fighting, we can share the treasure with you." Max thought about it and agreed. They all worked together to find the treasure.
+In the end, Tom, Sam, and Max found the treasure and shared it. They learned that being honest and working together is better than fighting. And they all became good friends.
+<|endoftext|>
+One day, a young boy named Tim found a dull, round rock. He picked it up and looked at it. He thought it was not very fun, but he took it with him to the park.
+At the park, Tim saw a girl named Sue. She had a big, red ball. "Want to play?" Sue asked. Tim said, "Yes, but all I have is this dull rock." Sue said, "Let's try to roll it."
+They tried to roll the rock, but it was not easy. They pushed it and pushed it, but it would not go far. They were sad, but they did not give up.
+Then, they had an idea. They put the rock on a hill and let it go. The rock rolled down the hill very fast. Tim and Sue laughed and clapped their hands. They found out that even a dull rock can be fun when you roll it down a hill.
+<|endoftext|>
+Once upon a time, there was a graceful cat named Kitty. She loved to play with her ball and jump around the house. Kitty was very happy and liked to make her friends laugh.
+One day, Kitty saw a tap in the garden. She was very curious about it. She wanted to see if she could make water come out. So, she jumped onto the tap and tried to squeeze it with her paws. But nothing happened.
+Kitty tried again and again to squeeze the tap, but still no water came out. Then, her friend, a wise old dog named Rover, came to help her. Rover showed her how to turn the tap on, and water came splashing out! Kitty was so happy, and they both played in the water all day long.
+<|endoftext|>
+Once upon a time, there was a little boy named Tim. Tim loved candy more than anything else. One day, Tim saw a big candy store. He was very happy and ran to the store.
+Inside the store, Tim met a strange man. The man said, "I have magic candy, but you must not eat it all. If you do, you will freeze!" Tim took the candy and said, "I will not eat it all."
+Tim went home and ate some of the candy. It was the best candy he ever had. But Tim did not listen to the man. He ate all the candy. Suddenly, Tim felt very cold.
+Tim started to freeze. He could not move or talk. His mom found him and cried, "Oh no, my boy is frozen!" 
+And so, Tim stayed frozen forever, all because he did not listen to the strange man in the candy store.
+<|endoftext|>
+Once upon a time, there was a big, red barn. Inside the barn, there was a lot of hay. The hay was soft and yellow. It was a nice place for the animals to sleep.
+In the barn, there was a tall horse named Sam. Sam was a dependable friend to all the animals. He would stand by them and help them when they needed it. Everyone liked Sam because he was kind and strong.
+One day, a little chick got lost in the hay. The chick was scared and called for help. Sam heard the chick and went to find her. He stood by the hay and used his long legs to move it. Finally, he found the little chick and took her back to her mom. All the animals cheered for Sam, the dependable horse who stood by his friends.
+<|endoftext|>
+Once upon a time, there was a big, heavy alligator. He lived near a small pond. He was very hungry and wanted to eat something.
+One day, a little bunny came close to the pond. The alligator saw the bunny and thought, "I can eat the bunny!" The bunny saw the alligator and was scared. The alligator wanted to catch the bunny, but the bunny was too fast.
+The bunny ran away from the alligator as fast as he could. The alligator tried to catch the bunny, but he was too heavy and slow. The bunny got away and the alligator was still hungry. The alligator learned that he needed to be faster to catch the bunny.
+<|endoftext|>
+One day, a little boy named Tim went to play with his friend, Sam. They wanted to play a game with a ball. The game was to see who could get the best score.
+Tim threw the ball and Sam tried to catch it. Sam missed the ball and it went far away. Sam was angry. He said, "I don't like this game. I want to lie down and rest."
+Tim said, "Okay, let's lie down and rest. Then we can try again to get a good score." They lay down under a big tree and looked at the sky. They saw birds flying and clouds moving.
+After a while, they got up and played the game again. This time, Sam caught the ball and got a good score. Sam was happy and not angry anymore.
+"Good job, Sam!" said Tim. They played the game all day and had lots of fun. They learned that sometimes it's good to take a break and try again.
+<|endoftext|>
+Once upon a time, there was a big whale. The whale lived in the deep blue sea. He had many friends, like fish and crabs. But he had a problem. He was very smelly. His friends did not like the smell.
+One day, the whale thought, "I need to find a way to not be smelly." So, he swam and swam until he found a big rock. The rock was covered in green plants. The whale rubbed against the rock to clean himself. The green plants took away the smell.
+The whale swam back to his friends. They were all happy that he was not smelly anymore. They played together in the sea. The whale learned that it is important to be clean. And all the sea friends lived happily ever after.
+<|endoftext|>
+Once upon a time, there was a lively little boy named Tim. He loved to play and run all day. One day, Tim found a big bag of oats. He believed that if he ate the oats, he would be very strong.
+Tim ate a lot of oats every day. He felt stronger and stronger. His friends saw him and wanted to eat oats too. They believed that they would be strong like Tim.
+But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anymore. Tim's friends felt sad for him. They learned that eating too many oats was not good. From that day on, they did not believe in eating lots of oats to be strong.
+<|endoftext|>
+  `;
+
+  /* tokenizer (BPE)
+     id 0 is always the unknown token. Base ids are the most frequent characters
+     of the corpus. Everything above that is a learned merge of two ids.        */
+  const UNK = 0;
+
+  class Tokenizer {
+    constructor() {
+      this.reset();
     }
-    return out;
-  }
 
-  build(text, target){
-    this.reset();
-    const size = Math.max(2, target | 0);
-
-    /* --- base vocabulary: the most frequent characters --- */
-    const freq = new Map();
-    for (const ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
-    let chars = [...freq.keys()];
-    chars.sort((a, b) => (freq.get(b) - freq.get(a)) || (a < b ? -1 : 1));
-    const maxBase = Math.max(1, size - 1);
-    if (chars.length > maxBase) chars = chars.slice(0, maxBase);
-    chars.sort((a, b) => a.codePointAt(0) - b.codePointAt(0));
-    for (const ch of chars){
-      this.charToId.set(ch, this.vocab.length);
-      this.vocab.push(ch);
+    reset() {
+      this.vocab = ['�']; // decoded string for each id
+      this.merges = []; // {a,b,id,count}
+      this.charToId = new Map();
+      this.baseSize = 1;
+      this.unused = 0;
+      this.trainIds = new Int32Array(0);
+      this.counts = new Int32Array(1);
     }
-    this.baseSize = this.vocab.length;
 
-    /* --- encode corpus with base ids --- */
-    let ids = [];
-    for (const ch of text) ids.push(this.charToId.get(ch) ?? UNK);
-
-    /* --- repeatedly merge the most frequent adjacent pair --- */
-    while (this.vocab.length < size){
-      const counts = new Map();
-      for (let i = 0; i + 1 < ids.length; i++){
-        const key = ids[i] * 4096 + ids[i + 1];
-        counts.set(key, (counts.get(key) || 0) + 1);
+    /* rewrite every adjacent (a,b) pair as the single id nid, left to right */
+    static #applyMerge(ids, a, b, nid) {
+      const out = [];
+      const n = ids.length;
+      let i = 0;
+      while (i < n) {
+        if (i + 1 < n && ids[i] === a && ids[i + 1] === b) { 
+          out.push(nid); i += 2;
+        }
+        else out.push(ids[i++]);
       }
-      let bestKey = -1, bestC = 1;
-      for (const [key, c] of counts) if (c > bestC){ bestC = c; bestKey = key; }
-      if (bestKey < 0) break; // nothing repeats any more
-      const a = Math.floor(bestKey / 4096), b = bestKey % 4096;
-      const nid = this.vocab.length;
-      this.vocab.push(this.vocab[a] + this.vocab[b]);
-      this.merges.push({ a, b, id: nid, count: bestC });
-      ids = Tokenizer.#applyMerge(ids, a, b, nid);
+      return out;
     }
-    /* keep the embedding matrix a fixed size even for degenerate corpora */
-    while (this.vocab.length < size){ this.vocab.push(''); this.unused++; }
 
-    this.trainIds = Int32Array.from(ids);
+    build(text, target) {
+      this.reset();
+      const size = Math.max(2, target | 0);
 
-    /* --- how often each token actually occurs --- */
-    this.counts = new Int32Array(this.vocab.length);
-    for (const id of ids) this.counts[id]++;
-    return this.trainIds;
-  }
-
-  encode(text){
-    let ids = [];
-    for (const ch of text) ids.push(this.charToId.get(ch) ?? UNK);
-    for (const m of this.merges) ids = Tokenizer.#applyMerge(ids, m.a, m.b, m.id);
-    return ids;
-  }
-
-  decode(ids){
-    let s = '';
-    for (const id of ids) s += this.vocab[id] ?? '';
-    return s;
-  }
-}
-
-/* printable form of a token: spaces and newlines get visible glyphs */
-function tokDisp(s){
-  if (s === undefined || s === null) return '?';
-  if (s === '') return '∅';
-  if (s === '�') return '¿unk?';
-  return s.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⇥');
-}
-
-/* ====================================================================== */
-/*  math kernels                                                          */
-/* ====================================================================== */
-
-/* out[t,o] = sum_i inp[t,i] * W[i,o] (+ b[o]) ; W is [DI x DO] row-major */
-function mm(out, inp, W, b, N, DI, DO){
-  for (let t = 0; t < N; t++){
-    const io = t * DI, oo = t * DO;
-    if (b){ for (let o = 0; o < DO; o++) out[oo + o] = b[o]; }
-    else out.fill(0, oo, oo + DO);
-    for (let i = 0; i < DI; i++){
-      const xi = inp[io + i];
-      if (xi === 0) continue;
-      const wo = i * DO;
-      for (let o = 0; o < DO; o++) out[oo + o] += xi * W[wo + o];
-    }
-  }
-}
-
-/* accumulates dInp += dOut W^T ; dW += inp^T dOut ; db += sum dOut */
-function mmBack(dInp, dW, db, dOut, inp, W, N, DI, DO){
-  for (let t = 0; t < N; t++){
-    const io = t * DI, oo = t * DO;
-    for (let i = 0; i < DI; i++){
-      const wo = i * DO, xi = inp[io + i];
-      let s = 0;
-      for (let o = 0; o < DO; o++){
-        const g = dOut[oo + o];
-        s += g * W[wo + o];
-        dW[wo + o] += xi * g;
+      /* --- base vocabulary: the most frequent characters --- */
+      const freq = new Map();
+      for (const ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
+      let chars = [...freq.keys()];
+      chars.sort((a, b) => (freq.get(b) - freq.get(a)) || (a < b ? -1 : 1));
+      const maxBase = Math.max(1, size - 1);
+      if (chars.length > maxBase) chars = chars.slice(0, maxBase);
+      chars.sort((a, b) => a.codePointAt(0) - b.codePointAt(0));
+      for (const ch of chars) {
+        this.charToId.set(ch, this.vocab.length);
+        this.vocab.push(ch);
       }
-      dInp[io + i] += s;
-    }
-    if (db){ for (let o = 0; o < DO; o++) db[o] += dOut[oo + o]; }
-  }
-}
+      this.baseSize = this.vocab.length;
 
-/* layer norm over the last dimension, storing what backprop needs */
-function lnFwd(C, inp, g, b, N, D){
-  for (let t = 0; t < N; t++){
-    const o = t * D;
-    let m = 0, v = 0;
-    for (let i = 0; i < D; i++) m += inp[o + i];
-    m /= D;
-    for (let i = 0; i < D; i++){ const dd = inp[o + i] - m; v += dd * dd; }
-    v /= D;
-    const rs = 1 / Math.sqrt(v + 1e-5);
-    C.mu[t] = m; C.rstd[t] = rs;
-    for (let i = 0; i < D; i++){
-      const xh = (inp[o + i] - m) * rs;
-      C.xhat[o + i] = xh;
-      C.out[o + i] = xh * g[i] + b[i];
-    }
-  }
-}
-
-function lnBack(dInp, pg, pb, dOut, C, N, D){
-  const g = pg.data, dg = pg.grad, db = pb.grad;
-  for (let t = 0; t < N; t++){
-    const o = t * D;
-    let m1 = 0, m2 = 0;
-    for (let i = 0; i < D; i++){
-      const dxh = dOut[o + i] * g[i];
-      m1 += dxh; m2 += dxh * C.xhat[o + i];
-    }
-    m1 /= D; m2 /= D;
-    const rs = C.rstd[t];
-    for (let i = 0; i < D; i++){
-      const dxh = dOut[o + i] * g[i];
-      dInp[o + i] += (dxh - m1 - C.xhat[o + i] * m2) * rs;
-      dg[i] += dOut[o + i] * C.xhat[o + i];
-      db[i] += dOut[o + i];
-    }
-  }
-}
-
-const GELU_C = 0.7978845608028654; /* sqrt(2/pi) */
-
-function gelu(y, x, n){
-  for (let i = 0; i < n; i++){
-    const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
-    y[i] = 0.5 * v * (1 + t);
-  }
-}
-
-function geluBack(dx, dy, x, n){
-  for (let i = 0; i < n; i++){
-    const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
-    const dt = (1 - t * t) * GELU_C * (1 + 3 * 0.044715 * v * v);
-    dx[i] = dy[i] * (0.5 * (1 + t) + 0.5 * v * dt);
-  }
-}
-
-/* ====================================================================== */
-/*  the model                                                             */
-/* ====================================================================== */
-
-const DEFAULT_CFG = { nVocab: 100, nCtx: 30, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
-
-/* the vocabulary size is adjustable at run time; every control that edits it
-   or is bounded by it reads its limits from here */
-const VOCAB_MIN = 40, VOCAB_MAX = 100;
-
-const lnCache = (T, d) => ({ out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) });
-
-class GPT {
-  /* how many parameters a config needs, without building it */
-  static paramCount(c){
-    const d = c.nEmbd;
-    const per = 4 * d * d /* Wq Wk Wv Wo   */
-              + 4 * d     /* two layernorms */
-              + 2 * d * c.nFF + c.nFF + d; /* mlp */
-    return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
-  }
-
-  constructor(cfg){
-    const { nVocab, nCtx, nEmbd, nLayer, nHead, nFF } = cfg;
-    this.cfg = { nVocab, nCtx, nEmbd, nLayer, nHead, nFF };
-    this.params = [];
-    this.P = {};
-    this.layers = [];
-    this.t = 0;
-    this.gradNorm = 0;
-    this.#alloc();
-    this.initWeights(20240517);
-    this.cacheTrain = this.#makeCache();
-    this.cacheViz = this.#makeCache();
-    this.cacheAux = this.#makeCache();
-    this.scratch = this.#makeScratch();
-  }
-
-  #add(name, shape, role){
-    const n = shape.reduce((a, b) => a * b, 1);
-    const p = { name, shape, n, role,
-                data: F32(n), grad: F32(n), m: F32(n), v: F32(n), offset: 0 };
-    this.params.push(p);
-    this.P[name] = p;
-    return p;
-  }
-
-  /* the object literal below is evaluated in source order, so params keep the
-     declaration order the offsets and the init RNG stream depend on */
-  #alloc(){
-    const c = this.cfg;
-    this.#add('wte', [c.nVocab, c.nEmbd], 'emb');
-    this.#add('wpe', [c.nCtx, c.nEmbd], 'emb');
-    for (let l = 0; l < c.nLayer; l++){
-      this.layers.push({
-        ln1g: this.#add(`h${l}.ln1.g`, [c.nEmbd], 'lng'),
-        ln1b: this.#add(`h${l}.ln1.b`, [c.nEmbd], 'lnb'),
-        Wq:   this.#add(`h${l}.attn.Wq`, [c.nEmbd, c.nEmbd], 'w'),
-        Wk:   this.#add(`h${l}.attn.Wk`, [c.nEmbd, c.nEmbd], 'w'),
-        Wv:   this.#add(`h${l}.attn.Wv`, [c.nEmbd, c.nEmbd], 'w'),
-        Wo:   this.#add(`h${l}.attn.Wo`, [c.nEmbd, c.nEmbd], 'wproj'),
-        ln2g: this.#add(`h${l}.ln2.g`, [c.nEmbd], 'lng'),
-        ln2b: this.#add(`h${l}.ln2.b`, [c.nEmbd], 'lnb'),
-        W1:   this.#add(`h${l}.mlp.W1`, [c.nEmbd, c.nFF], 'w'),
-        b1:   this.#add(`h${l}.mlp.b1`, [c.nFF], 'b'),
-        W2:   this.#add(`h${l}.mlp.W2`, [c.nFF, c.nEmbd], 'wproj'),
-        b2:   this.#add(`h${l}.mlp.b2`, [c.nEmbd], 'b')
-      });
-    }
-    this.#add('lnf.g', [c.nEmbd], 'lng');
-    this.#add('lnf.b', [c.nEmbd], 'lnb');
-
-    let off = 0;
-    for (const p of this.params){ p.offset = off; off += p.n; }
-    this.nParams = off;
-  }
-
-  initWeights(seed){
-    RNG = mulberry32(seed >>> 0);
-    const c = this.cfg;
-    for (const p of this.params){
-      if (p.role === 'lng') p.data.fill(1);
-      else if (p.role === 'lnb' || p.role === 'b') p.data.fill(0);
-      else if (p.role === 'emb'){
-        for (let j = 0; j < p.n; j++) p.data[j] = randn() * 0.08;
-      } else {
-        let s = 1 / Math.sqrt(p.shape[0]);
-        if (p.role === 'wproj') s /= Math.sqrt(2 * c.nLayer); /* GPT-2 residual scaling */
-        for (let j = 0; j < p.n; j++) p.data[j] = randn() * s;
+      /* --- encode corpus with base ids --- */
+      let ids = [];
+      for (const ch of text) {
+        ids.push(this.charToId.get(ch) ?? UNK);
       }
-      p.grad.fill(0); p.m.fill(0); p.v.fill(0);
-    }
-    this.t = 0; this.gradNorm = 0;
-  }
 
-  #makeCache(){
-    const c = this.cfg, T = c.nCtx, d = c.nEmbd;
-    const blocks = [];
-    for (let l = 0; l < c.nLayer; l++){
-      blocks.push({
-        xin: F32(T * d), ln1: lnCache(T, d),
-        q: F32(T * d), k: F32(T * d), v: F32(T * d),
-        att: F32(c.nHead * T * T), ao: F32(T * d), attnOut: F32(T * d), xres1: F32(T * d),
-        ln2: lnCache(T, d),
-        hpre: F32(T * c.nFF), hact: F32(T * c.nFF), mlpOut: F32(T * d), xout: F32(T * d)
-      });
-    }
-    return { n: 0, tokens: new Int32Array(T), x0: F32(T * d), tokEmb: F32(T * d), posEmb: F32(T * d),
-             blocks, lnf: lnCache(T, d), logits: F32(T * c.nVocab), probs: F32(T * c.nVocab) };
-  }
-
-  #makeScratch(){
-    const c = this.cfg, T = c.nCtx, d = c.nEmbd;
-    return { dx: F32(T * d), dres: F32(T * d), din: F32(T * d), dtmp: F32(T * d), dxf: F32(T * d),
-             dq: F32(T * d), dk: F32(T * d), dv: F32(T * d), dao: F32(T * d),
-             dh1: F32(T * c.nFF), dh2: F32(T * c.nFF),
-             dlogits: F32(T * c.nVocab), datt: F32(T), dsc: F32(T) };
-  }
-
-  /* -------------------------------------------------------- forward pass */
-  forward(tokens, n, C){
-    const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
-          hf = c.nFF, V = c.nVocab, T = c.nCtx;
-    const scale = 1 / Math.sqrt(dh);
-    const wte = this.P.wte.data, wpe = this.P.wpe.data;
-
-    C.n = n;
-    for (let t = 0; t < n; t++){
-      C.tokens[t] = tokens[t];
-      const oo = t * d, to = tokens[t] * d;
-      for (let i = 0; i < d; i++){
-        C.tokEmb[oo + i] = wte[to + i];
-        C.posEmb[oo + i] = wpe[oo + i];
-        C.x0[oo + i] = wte[to + i] + wpe[oo + i];
-      }
-    }
-
-    let x = C.x0;
-    for (let l = 0; l < L; l++){
-      const B = C.blocks[l], p = this.layers[l];
-      for (let i = 0; i < n * d; i++) B.xin[i] = x[i];
-
-      lnFwd(B.ln1, B.xin, p.ln1g.data, p.ln1b.data, n, d);
-      mm(B.q, B.ln1.out, p.Wq.data, null, n, d, d);
-      mm(B.k, B.ln1.out, p.Wk.data, null, n, d, d);
-      mm(B.v, B.ln1.out, p.Wv.data, null, n, d, d);
-
-      /* causal multi-head self-attention */
-      for (let h = 0; h < H; h++){
-        const hd = h * dh, ab = h * T * T;
-        for (let i = 0; i < n; i++){
-          const row = ab + i * T, qo = i * d + hd;
-          let mx = -1e30;
-          for (let j = 0; j <= i; j++){
-            const ko = j * d + hd;
-            let s = 0;
-            for (let z = 0; z < dh; z++) s += B.q[qo + z] * B.k[ko + z];
-            s *= scale;
-            B.att[row + j] = s;
-            if (s > mx) mx = s;
-          }
-          let sum = 0;
-          for (let j = 0; j <= i; j++){
-            const e = Math.exp(B.att[row + j] - mx);
-            B.att[row + j] = e; sum += e;
-          }
-          const inv = 1 / sum;
-          for (let j = 0; j <= i; j++) B.att[row + j] *= inv;
-          for (let j = i + 1; j < T; j++) B.att[row + j] = 0; /* masked future */
-          const ao = i * d + hd;
-          for (let z = 0; z < dh; z++) B.ao[ao + z] = 0;
-          for (let j = 0; j <= i; j++){
-            const a = B.att[row + j], vo = j * d + hd;
-            for (let z = 0; z < dh; z++) B.ao[ao + z] += a * B.v[vo + z];
+      /* --- repeatedly merge the most frequent adjacent pair --- */
+      while (this.vocab.length < size) {
+        const counts = new Map();
+        for (let i = 0; i + 1 < ids.length; i++) {
+          const key = ids[i] * 4096 + ids[i + 1];
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        let bestKey = -1, bestC = 1;
+        for (const [key, c] of counts) {
+          if (c > bestC) { 
+            bestC = c; bestKey = key;
           }
         }
+        if (bestKey < 0) break; // nothing repeats any more
+        const a = Math.floor(bestKey / 4096), b = bestKey % 4096;
+        const nid = this.vocab.length;
+        this.vocab.push(this.vocab[a] + this.vocab[b]);
+        this.merges.push({ a, b, id: nid, count: bestC });
+        ids = Tokenizer.#applyMerge(ids, a, b, nid);
+      }
+      /* keep the embedding matrix a fixed size even for degenerate corpora */
+      while (this.vocab.length < size) { 
+        this.vocab.push(''); 
+        this.unused++;
       }
 
-      mm(B.attnOut, B.ao, p.Wo.data, null, n, d, d);
-      for (let i = 0; i < n * d; i++) B.xres1[i] = B.xin[i] + B.attnOut[i];
+      this.trainIds = Int32Array.from(ids);
 
-      lnFwd(B.ln2, B.xres1, p.ln2g.data, p.ln2b.data, n, d);
-      mm(B.hpre, B.ln2.out, p.W1.data, p.b1.data, n, d, hf);
-      gelu(B.hact, B.hpre, n * hf);
-      mm(B.mlpOut, B.hact, p.W2.data, p.b2.data, n, hf, d);
-      for (let i = 0; i < n * d; i++) B.xout[i] = B.xres1[i] + B.mlpOut[i];
-
-      x = B.xout;
+      /* --- how often each token actually occurs --- */
+      this.counts = new Int32Array(this.vocab.length);
+      for (const id of ids) {
+        this.counts[id]++;
+      }
+      return this.trainIds;
     }
 
-    lnFwd(C.lnf, x, this.P['lnf.g'].data, this.P['lnf.b'].data, n, d);
-
-    /* output head, weights tied to the token embedding */
-    for (let t = 0; t < n; t++){
-      const xo = t * d, lo = t * V;
-      let mx = -1e30;
-      for (let k = 0; k < V; k++){
-        const wo = k * d;
-        let sv = 0;
-        for (let i = 0; i < d; i++) sv += C.lnf.out[xo + i] * wte[wo + i];
-        C.logits[lo + k] = sv;
-        if (sv > mx) mx = sv;
+    encode(text) {
+      let ids = [];
+      for (const ch of text) {
+        ids.push(this.charToId.get(ch) ?? UNK);
       }
-      let sm = 0;
-      for (let k = 0; k < V; k++){
-        const ev = Math.exp(C.logits[lo + k] - mx);
-        C.probs[lo + k] = ev; sm += ev;
+      for (const m of this.merges) {
+        ids = Tokenizer.#applyMerge(ids, m.a, m.b, m.id);
       }
-      const iv = 1 / sm;
-      for (let k = 0; k < V; k++) C.probs[lo + k] *= iv;
+      return ids;
     }
-    return C;
+
+    decode(ids) {
+      let s = '';
+      for (const id of ids) {
+        s += this.vocab[id] ?? ''
+      };
+      return s;
+    }
   }
 
-  /* ------------------------------------------------------- backward pass */
-  backward(targets, n, C, lossScale){
-    const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
-          hf = c.nFF, V = c.nVocab, T = c.nCtx;
-    const s = this.scratch, scale = 1 / Math.sqrt(dh);
-    const wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
-    let loss = 0;
+  /* printable form of a token: spaces and newlines get visible glyphs */
+  function tokDisp(s) {
+    if (s === undefined || s === null) return '?';
+    if (s === '') return '∅';
+    if (s === '�') return '¿unk?';
+    return s.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⇥');
+  }
 
-    /* softmax cross-entropy */
-    for (let t = 0; t < n; t++){
-      const lo = t * V, tg = targets[t];
-      loss += -Math.log(Math.max(C.probs[lo + tg], 1e-12));
-      for (let k = 0; k < V; k++) s.dlogits[lo + k] = (C.probs[lo + k] - (k === tg ? 1 : 0)) * lossScale;
-    }
+  /* ====================================================================== */
+  /*  math kernels                                                          */
+  /* ====================================================================== */
 
-    /* tied head: logits = lnf.out @ wte^T */
-    const dxf = s.dxf;
-    dxf.fill(0, 0, n * d);
-    for (let t = 0; t < n; t++){
-      const lo = t * V, xo = t * d;
-      for (let k = 0; k < V; k++){
-        const g = s.dlogits[lo + k];
-        if (g === 0) continue;
-        const wo = k * d;
-        for (let i = 0; i < d; i++){
-          dxf[xo + i] += g * wte[wo + i];
-          gwte[wo + i] += g * C.lnf.out[xo + i];
+  /* out[t,o] = sum_i inp[t,i] * W[i,o] (+ b[o]) ; W is [DI x DO] row-major */
+  function mm(out, inp, W, b, N, DI, DO) {
+    for (let t = 0; t < N; t++) {
+      const io = t * DI, oo = t * DO;
+      if (b) { 
+        for (let o = 0; o < DO; o++) {
+          out[oo + o] = b[o];
+        }
+      }
+      else out.fill(0, oo, oo + DO);
+      for (let i = 0; i < DI; i++) {
+        const xi = inp[io + i];
+        if (xi === 0) continue;
+        const wo = i * DO;
+        for (let o = 0; o < DO; o++) {
+          out[oo + o] += xi * W[wo + o];
         }
       }
     }
+  }
 
-    const dx = s.dx;
-    dx.fill(0, 0, n * d);
-    lnBack(dx, this.P['lnf.g'], this.P['lnf.b'], dxf, C.lnf, n, d);
+  /* accumulates dInp += dOut W^T ; dW += inp^T dOut ; db += sum dOut */
+  function mmBack(dInp, dW, db, dOut, inp, W, N, DI, DO) {
+    for (let t = 0; t < N; t++) {
+      const io = t * DI, oo = t * DO;
+      for (let i = 0; i < DI; i++) {
+        const wo = i * DO, xi = inp[io + i];
+        let s = 0;
+        for (let o = 0; o < DO; o++) {
+          const g = dOut[oo + o];
+          s += g * W[wo + o];
+          dW[wo + o] += xi * g;
+        }
+        dInp[io + i] += s;
+      }
+      if (db) { 
+        for (let o = 0; o < DO; o++) {
+          db[o] += dOut[oo + o];
+        }
+      }
+    }
+  }
 
-    for (let l = L - 1; l >= 0; l--){
-      const B = C.blocks[l], p = this.layers[l];
+  /* layer norm over the last dimension, storing what backprop needs */
+  function lnFwd(C, inp, g, b, N, D) {
+    for (let t = 0; t < N; t++) {
+      const o = t * D;
+      let m = 0, v = 0;
+      for (let i = 0; i < D; i++) {
+        m += inp[o + i];
+      }
+      m /= D;
+      for (let i = 0; i < D; i++) { 
+        const dd = inp[o + i] - m; 
+        v += dd * dd; 
+      }
+      v /= D;
+      const rs = 1 / Math.sqrt(v + 1e-5);
+      C.mu[t] = m; C.rstd[t] = rs;
+      for (let i = 0; i < D; i++) {
+        const xh = (inp[o + i] - m) * rs;
+        C.xhat[o + i] = xh;
+        C.out[o + i] = xh * g[i] + b[i];
+      }
+    }
+  }
 
-      /* --- residual 2: xout = xres1 + mlpOut --- */
-      const dres = s.dres;
-      for (let i = 0; i < n * d; i++) dres[i] = dx[i];
+  function lnBack(dInp, pg, pb, dOut, C, N, D) {
+    const g = pg.data, dg = pg.grad, db = pb.grad;
+    for (let t = 0; t < N; t++) {
+      const o = t * D;
+      let m1 = 0, m2 = 0;
+      for (let i = 0; i < D; i++) {
+        const dxh = dOut[o + i] * g[i];
+        m1 += dxh; m2 += dxh * C.xhat[o + i];
+      }
+      m1 /= D; m2 /= D;
+      const rs = C.rstd[t];
+      for (let i = 0; i < D; i++) {
+        const dxh = dOut[o + i] * g[i];
+        dInp[o + i] += (dxh - m1 - C.xhat[o + i] * m2) * rs;
+        dg[i] += dOut[o + i] * C.xhat[o + i];
+        db[i] += dOut[o + i];
+      }
+    }
+  }
 
-      s.dh1.fill(0, 0, n * hf);
-      mmBack(s.dh1, p.W2.grad, p.b2.grad, dx, B.hact, p.W2.data, n, hf, d);
-      geluBack(s.dh2, s.dh1, B.hpre, n * hf);
-      const dtmp = s.dtmp;
-      dtmp.fill(0, 0, n * d);
-      mmBack(dtmp, p.W1.grad, p.b1.grad, s.dh2, B.ln2.out, p.W1.data, n, d, hf);
-      lnBack(dres, p.ln2g, p.ln2b, dtmp, B.ln2, n, d);
+  const GELU_C = 0.7978845608028654; /* sqrt(2/pi) */
 
-      /* --- residual 1: xres1 = xin + attnOut --- */
-      const din = s.din;
-      for (let i = 0; i < n * d; i++) din[i] = dres[i];
+  function gelu(y, x, n) {
+    for (let i = 0; i < n; i++) {
+      const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
+      y[i] = 0.5 * v * (1 + t);
+    }
+  }
 
-      s.dao.fill(0, 0, n * d);
-      mmBack(s.dao, p.Wo.grad, null, dres, B.ao, p.Wo.data, n, d, d);
+  function geluBack(dx, dy, x, n) {
+    for (let i = 0; i < n; i++) {
+      const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
+      const dt = (1 - t * t) * GELU_C * (1 + 3 * 0.044715 * v * v);
+      dx[i] = dy[i] * (0.5 * (1 + t) + 0.5 * v * dt);
+    }
+  }
 
-      s.dq.fill(0, 0, n * d); s.dk.fill(0, 0, n * d); s.dv.fill(0, 0, n * d);
-      for (let h = 0; h < H; h++){
-        const hd = h * dh, ab = h * T * T;
-        for (let i = 0; i < n; i++){
-          const row = ab + i * T, ao = i * d + hd, qo = i * d + hd;
-          for (let j = 0; j <= i; j++){
-            const a = B.att[row + j], vo = j * d + hd;
-            let da = 0;
-            for (let z = 0; z < dh; z++){
-              da += s.dao[ao + z] * B.v[vo + z];
-              s.dv[vo + z] += a * s.dao[ao + z];
+  /* ====================================================================== */
+  /*  the model                                                             */
+  /* ====================================================================== */
+
+  const DEFAULT_CFG = { nVocab: 100, nCtx: 30, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
+
+  /* the vocabulary size is adjustable at run time; every control that edits it
+     or is bounded by it reads its limits from here */
+  const VOCAB_MIN = 40, VOCAB_MAX = 100;
+
+  const lnCache = (T, d) => ({ out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) });
+
+  class GPT {
+    /* how many parameters a config needs, without building it */
+    static paramCount(c) {
+      const d = c.nEmbd;
+      const per = 4 * d * d /* Wq Wk Wv Wo   */
+        + 4 * d     /* two layernorms */
+        + 2 * d * c.nFF + c.nFF + d; /* mlp */
+      return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
+    }
+
+    constructor(cfg) {
+      const { nVocab, nCtx, nEmbd, nLayer, nHead, nFF } = cfg;
+      this.cfg = { nVocab, nCtx, nEmbd, nLayer, nHead, nFF };
+      this.params = [];
+      this.P = {};
+      this.layers = [];
+      this.t = 0;
+      this.gradNorm = 0;
+      this.#alloc();
+      this.initWeights(20240517);
+      this.cacheTrain = this.#makeCache();
+      this.cacheViz = this.#makeCache();
+      this.cacheAux = this.#makeCache();
+      this.scratch = this.#makeScratch();
+    }
+
+    #add(name, shape, role) {
+      const n = shape.reduce((a, b) => a * b, 1);
+      const p = {
+        name,
+        shape,
+        n,
+        role,
+        data: F32(n),
+        grad: F32(n),
+        m: F32(n),
+        v: F32(n),
+        offset: 0
+      };
+      this.params.push(p);
+      this.P[name] = p;
+      return p;
+    }
+
+    /* the object literal below is evaluated in source order, so params keep the
+       declaration order the offsets and the init RNG stream depend on */
+    #alloc() {
+      const c = this.cfg;
+      this.#add('wte', [c.nVocab, c.nEmbd], 'emb');
+      this.#add('wpe', [c.nCtx, c.nEmbd], 'emb');
+      for (let l = 0; l < c.nLayer; l++) {
+        this.layers.push({
+          ln1g: this.#add(`h${l}.ln1.g`, [c.nEmbd], 'lng'),
+          ln1b: this.#add(`h${l}.ln1.b`, [c.nEmbd], 'lnb'),
+          Wq: this.#add(`h${l}.attn.Wq`, [c.nEmbd, c.nEmbd], 'w'),
+          Wk: this.#add(`h${l}.attn.Wk`, [c.nEmbd, c.nEmbd], 'w'),
+          Wv: this.#add(`h${l}.attn.Wv`, [c.nEmbd, c.nEmbd], 'w'),
+          Wo: this.#add(`h${l}.attn.Wo`, [c.nEmbd, c.nEmbd], 'wproj'),
+          ln2g: this.#add(`h${l}.ln2.g`, [c.nEmbd], 'lng'),
+          ln2b: this.#add(`h${l}.ln2.b`, [c.nEmbd], 'lnb'),
+          W1: this.#add(`h${l}.mlp.W1`, [c.nEmbd, c.nFF], 'w'),
+          b1: this.#add(`h${l}.mlp.b1`, [c.nFF], 'b'),
+          W2: this.#add(`h${l}.mlp.W2`, [c.nFF, c.nEmbd], 'wproj'),
+          b2: this.#add(`h${l}.mlp.b2`, [c.nEmbd], 'b')
+        });
+      }
+      this.#add('lnf.g', [c.nEmbd], 'lng');
+      this.#add('lnf.b', [c.nEmbd], 'lnb');
+      let off = 0;
+      for (const p of this.params) { 
+        p.offset = off; off += p.n;
+      }
+      this.nParams = off;
+    }
+
+    initWeights(seed) {
+      RNG = mulberry32(seed >>> 0);
+      const c = this.cfg;
+      for (const p of this.params) {
+        if (p.role === 'lng') {
+          p.data.fill(1);
+        } else if (p.role === 'lnb' || p.role === 'b') {
+          p.data.fill(0);
+        } else if (p.role === 'emb') {
+          for (let j = 0; j < p.n; j++) {
+            p.data[j] = randn() * 0.08;
+          }
+        } else {
+          let s = 1 / Math.sqrt(p.shape[0]);
+          if (p.role === 'wproj') {
+            s /= Math.sqrt(2 * c.nLayer); /* GPT-2 residual scaling */
+          }
+          for (let j = 0; j < p.n; j++) {
+            p.data[j] = randn() * s;
+          }
+        }
+        p.grad.fill(0); p.m.fill(0); p.v.fill(0);
+      }
+      this.t = 0;
+      this.gradNorm = 0;
+    }
+
+    #makeCache() {
+      const c = this.cfg, T = c.nCtx, d = c.nEmbd;
+      const blocks = [];
+      for (let l = 0; l < c.nLayer; l++) {
+        blocks.push({
+          xin: F32(T * d),
+          ln1: lnCache(T, d),
+          q: F32(T * d),
+          k: F32(T * d),
+          v: F32(T * d),
+          att: F32(c.nHead * T * T),
+          ao: F32(T * d),
+          attnOut: F32(T * d),
+          xres1: F32(T * d),
+          ln2: lnCache(T, d),
+          hpre: F32(T * c.nFF),
+          hact: F32(T * c.nFF),
+          mlpOut: F32(T * d),
+          xout: F32(T * d)
+        });
+      }
+      return {
+        n: 0,
+        tokens: new Int32Array(T),
+        x0: F32(T * d),
+        tokEmb: F32(T * d),
+        posEmb: F32(T * d),
+        blocks: blocks, 
+        lnf: lnCache(T, d),
+        logits: F32(T * c.nVocab),
+        probs: F32(T * c.nVocab)
+      };
+    }
+
+    #makeScratch() {
+      const c = this.cfg, T = c.nCtx, d = c.nEmbd;
+      return {
+        dx: F32(T * d),
+        dres: F32(T * d),
+        din: F32(T * d),
+        dtmp: F32(T * d),
+        dxf: F32(T * d),
+        dq: F32(T * d),
+        dk: F32(T * d),
+        dv: F32(T * d),
+        dao: F32(T * d),
+        dh1: F32(T * c.nFF),
+        dh2: F32(T * c.nFF),
+        dlogits: F32(T * c.nVocab),
+        datt: F32(T),
+        dsc: F32(T)
+      };
+    }
+
+    /* ----- forward pass ----- */
+    forward(tokens, n, C) {
+      const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
+        hf = c.nFF, V = c.nVocab, T = c.nCtx;
+      const scale = 1 / Math.sqrt(dh);
+      const wte = this.P.wte.data, wpe = this.P.wpe.data;
+
+      C.n = n;
+      for (let t = 0; t < n; t++) {
+        C.tokens[t] = tokens[t];
+        const oo = t * d, to = tokens[t] * d;
+        for (let i = 0; i < d; i++) {
+          C.tokEmb[oo + i] = wte[to + i];
+          C.posEmb[oo + i] = wpe[oo + i];
+          C.x0[oo + i] = wte[to + i] + wpe[oo + i];
+        }
+      }
+
+      let x = C.x0;
+      for (let l = 0; l < L; l++) {
+        const B = C.blocks[l], p = this.layers[l];
+        for (let i = 0; i < n * d; i++) {
+          B.xin[i] = x[i];
+        }
+
+        lnFwd(B.ln1, B.xin, p.ln1g.data, p.ln1b.data, n, d);
+        mm(B.q, B.ln1.out, p.Wq.data, null, n, d, d);
+        mm(B.k, B.ln1.out, p.Wk.data, null, n, d, d);
+        mm(B.v, B.ln1.out, p.Wv.data, null, n, d, d);
+
+        /* causal multi-head self-attention */
+        for (let h = 0; h < H; h++) {
+          const hd = h * dh, ab = h * T * T;
+          for (let i = 0; i < n; i++) {
+            const row = ab + i * T, qo = i * d + hd;
+            let mx = -1e30;
+            for (let j = 0; j <= i; j++) {
+              const ko = j * d + hd;
+              let s = 0;
+              for (let z = 0; z < dh; z++) {
+                s += B.q[qo + z] * B.k[ko + z];
+              }
+              s *= scale;
+              B.att[row + j] = s;
+              if (s > mx) mx = s;
             }
-            s.datt[j] = da;
-          }
-          let dot = 0;
-          for (let j = 0; j <= i; j++) dot += B.att[row + j] * s.datt[j];
-          for (let j = 0; j <= i; j++) s.dsc[j] = B.att[row + j] * (s.datt[j] - dot) * scale;
-          for (let j = 0; j <= i; j++){
-            const gg = s.dsc[j], ko = j * d + hd;
-            for (let z = 0; z < dh; z++){
-              s.dq[qo + z] += gg * B.k[ko + z];
-              s.dk[ko + z] += gg * B.q[qo + z];
+            let sum = 0;
+            for (let j = 0; j <= i; j++) {
+              const e = Math.exp(B.att[row + j] - mx);
+              B.att[row + j] = e; sum += e;
             }
+            const inv = 1 / sum;
+            for (let j = 0; j <= i; j++) {
+              B.att[row + j] *= inv;
+            }
+            for (let j = i + 1; j < T; j++) {
+              B.att[row + j] = 0; /* masked future */
+            }
+            const ao = i * d + hd;
+            for (let z = 0; z < dh; z++) {
+              B.ao[ao + z] = 0;
+            }
+            for (let j = 0; j <= i; j++) {
+              const a = B.att[row + j], vo = j * d + hd;
+              for (let z = 0; z < dh; z++) {
+                B.ao[ao + z] += a * B.v[vo + z];
+              }
+            }
+          }
+        }
+
+        mm(B.attnOut, B.ao, p.Wo.data, null, n, d, d);
+        for (let i = 0; i < n * d; i++) {
+          B.xres1[i] = B.xin[i] + B.attnOut[i];
+        }
+
+        lnFwd(B.ln2, B.xres1, p.ln2g.data, p.ln2b.data, n, d);
+        mm(B.hpre, B.ln2.out, p.W1.data, p.b1.data, n, d, hf);
+        gelu(B.hact, B.hpre, n * hf);
+        mm(B.mlpOut, B.hact, p.W2.data, p.b2.data, n, hf, d);
+        for (let i = 0; i < n * d; i++) {
+          B.xout[i] = B.xres1[i] + B.mlpOut[i];
+        }
+
+        x = B.xout;
+      }
+
+      lnFwd(C.lnf, x, this.P['lnf.g'].data, this.P['lnf.b'].data, n, d);
+
+      /* output head, weights tied to the token embedding */
+      for (let t = 0; t < n; t++) {
+        const xo = t * d, lo = t * V;
+        let mx = -1e30;
+        for (let k = 0; k < V; k++) {
+          const wo = k * d;
+          let sv = 0;
+          for (let i = 0; i < d; i++) {
+            sv += C.lnf.out[xo + i] * wte[wo + i];
+          }
+          C.logits[lo + k] = sv;
+          if (sv > mx) mx = sv;
+        }
+        let sm = 0;
+        for (let k = 0; k < V; k++) {
+          const ev = Math.exp(C.logits[lo + k] - mx);
+          C.probs[lo + k] = ev; sm += ev;
+        }
+        const iv = 1 / sm;
+        for (let k = 0; k < V; k++) {
+          C.probs[lo + k] *= iv;
+        }
+      }
+      return C;
+    }
+
+    /* ----- backward pass ----- */
+    backward(targets, n, C, lossScale) {
+      const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
+        hf = c.nFF, V = c.nVocab, T = c.nCtx;
+      const s = this.scratch, scale = 1 / Math.sqrt(dh);
+      const wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
+      let loss = 0;
+
+      /* softmax cross-entropy */
+      for (let t = 0; t < n; t++) {
+        const lo = t * V, tg = targets[t];
+        loss += -Math.log(Math.max(C.probs[lo + tg], 1e-12));
+        for (let k = 0; k < V; k++) {
+          s.dlogits[lo + k] = (C.probs[lo + k] - (k === tg ? 1 : 0)) * lossScale;
+        }
+      }
+
+      /* tied head: logits = lnf.out @ wte^T */
+      const dxf = s.dxf;
+      dxf.fill(0, 0, n * d);
+      for (let t = 0; t < n; t++) {
+        const lo = t * V, xo = t * d;
+        for (let k = 0; k < V; k++) {
+          const g = s.dlogits[lo + k];
+          if (g === 0) continue;
+          const wo = k * d;
+          for (let i = 0; i < d; i++) {
+            dxf[xo + i] += g * wte[wo + i];
+            gwte[wo + i] += g * C.lnf.out[xo + i];
           }
         }
       }
 
-      dtmp.fill(0, 0, n * d);
-      mmBack(dtmp, p.Wq.grad, null, s.dq, B.ln1.out, p.Wq.data, n, d, d);
-      mmBack(dtmp, p.Wk.grad, null, s.dk, B.ln1.out, p.Wk.data, n, d, d);
-      mmBack(dtmp, p.Wv.grad, null, s.dv, B.ln1.out, p.Wv.data, n, d, d);
-      lnBack(din, p.ln1g, p.ln1b, dtmp, B.ln1, n, d);
+      const dx = s.dx;
+      dx.fill(0, 0, n * d);
+      lnBack(dx, this.P['lnf.g'], this.P['lnf.b'], dxf, C.lnf, n, d);
 
-      for (let i = 0; i < n * d; i++) dx[i] = din[i];
+      for (let l = L - 1; l >= 0; l--) {
+        const B = C.blocks[l], p = this.layers[l];
+
+        /* --- residual 2: xout = xres1 + mlpOut --- */
+        const dres = s.dres;
+        for (let i = 0; i < n * d; i++) {
+          dres[i] = dx[i];
+        }
+
+        s.dh1.fill(0, 0, n * hf);
+        mmBack(s.dh1, p.W2.grad, p.b2.grad, dx, B.hact, p.W2.data, n, hf, d);
+        geluBack(s.dh2, s.dh1, B.hpre, n * hf);
+        const dtmp = s.dtmp;
+        dtmp.fill(0, 0, n * d);
+        mmBack(dtmp, p.W1.grad, p.b1.grad, s.dh2, B.ln2.out, p.W1.data, n, d, hf);
+        lnBack(dres, p.ln2g, p.ln2b, dtmp, B.ln2, n, d);
+
+        /* --- residual 1: xres1 = xin + attnOut --- */
+        const din = s.din;
+        for (let i = 0; i < n * d; i++) {
+          din[i] = dres[i];
+        }
+
+        s.dao.fill(0, 0, n * d);
+        mmBack(s.dao, p.Wo.grad, null, dres, B.ao, p.Wo.data, n, d, d);
+
+        s.dq.fill(0, 0, n * d); 
+        s.dk.fill(0, 0, n * d); 
+        s.dv.fill(0, 0, n * d);
+        for (let h = 0; h < H; h++) {
+          const hd = h * dh, ab = h * T * T;
+          for (let i = 0; i < n; i++) {
+            const row = ab + i * T, ao = i * d + hd, qo = i * d + hd;
+            for (let j = 0; j <= i; j++) {
+              const a = B.att[row + j], vo = j * d + hd;
+              let da = 0;
+              for (let z = 0; z < dh; z++) {
+                da += s.dao[ao + z] * B.v[vo + z];
+                s.dv[vo + z] += a * s.dao[ao + z];
+              }
+              s.datt[j] = da;
+            }
+            let dot = 0;
+            for (let j = 0; j <= i; j++) {
+              dot += B.att[row + j] * s.datt[j];
+            }
+            for (let j = 0; j <= i; j++) {
+              s.dsc[j] = B.att[row + j] * (s.datt[j] - dot) * scale;
+            }
+            for (let j = 0; j <= i; j++) {
+              const gg = s.dsc[j], ko = j * d + hd;
+              for (let z = 0; z < dh; z++) {
+                s.dq[qo + z] += gg * B.k[ko + z];
+                s.dk[ko + z] += gg * B.q[qo + z];
+              }
+            }
+          }
+        }
+
+        dtmp.fill(0, 0, n * d);
+        mmBack(dtmp, p.Wq.grad, null, s.dq, B.ln1.out, p.Wq.data, n, d, d);
+        mmBack(dtmp, p.Wk.grad, null, s.dk, B.ln1.out, p.Wk.data, n, d, d);
+        mmBack(dtmp, p.Wv.grad, null, s.dv, B.ln1.out, p.Wv.data, n, d, d);
+        lnBack(din, p.ln1g, p.ln1b, dtmp, B.ln1, n, d);
+
+        for (let i = 0; i < n * d; i++) {
+          dx[i] = din[i];
+        }
+      }
+
+      /* --- embeddings --- */
+      for (let t = 0; t < n; t++) {
+        const eo = t * d, to = C.tokens[t] * d;
+        for (let i = 0; i < d; i++) {
+          gwte[to + i] += dx[eo + i];
+          gwpe[eo + i] += dx[eo + i];
+        }
+      }
+      return loss;
     }
 
-    /* --- embeddings --- */
-    for (let t = 0; t < n; t++){
-      const eo = t * d, to = C.tokens[t] * d;
-      for (let i = 0; i < d; i++){
-        gwte[to + i] += dx[eo + i];
-        gwpe[eo + i] += dx[eo + i];
+    zeroGrad() {
+      for (const p of this.params) p.grad.fill(0);
+    }
+
+    /* AdamW with global gradient-norm clipping */
+    step(lr, wd) {
+      this.t++;
+      const b1 = 0.9, b2 = 0.95, eps = 1e-8;
+      const bc1 = 1 - b1 ** this.t, bc2 = 1 - b2 ** this.t;
+      let sq = 0;
+      for (const p of this.params) {
+        for (let j = 0; j < p.n; j++) {
+          sq += p.grad[j] * p.grad[j];
+        }
+      }
+      const gn = Math.sqrt(sq);
+      this.gradNorm = gn;
+      const cl = gn > 1 ? 1 / gn : 1;
+      for (const p of this.params) {
+        const dec = p.shape.length === 2 ? wd * lr : 0;
+        const D = p.data, G = p.grad, M = p.m, V = p.v;
+        for (let j = 0; j < p.n; j++) {
+          const g = G[j] * cl;
+          M[j] = b1 * M[j] + (1 - b1) * g;
+          V[j] = b2 * V[j] + (1 - b2) * g * g;
+          D[j] -= lr * (M[j] / bc1) / (Math.sqrt(V[j] / bc2) + eps) + dec * D[j];
+        }
       }
     }
-    return loss;
-  }
 
-  zeroGrad(){
-    for (const p of this.params) p.grad.fill(0);
-  }
-
-  /* AdamW with global gradient-norm clipping */
-  step(lr, wd){
-    this.t++;
-    const b1 = 0.9, b2 = 0.95, eps = 1e-8;
-    const bc1 = 1 - b1 ** this.t, bc2 = 1 - b2 ** this.t;
-    let sq = 0;
-    for (const p of this.params){
-      for (let j = 0; j < p.n; j++) sq += p.grad[j] * p.grad[j];
+    /* one full loss evaluation, used by the gradient checker */
+    lossOn(inp, tgt, n, C) {
+      this.forward(inp, n, C);
+      const V = this.cfg.nVocab;
+      let loss = 0;
+      for (let t = 0; t < n; t++) {
+        loss += -Math.log(Math.max(C.probs[t * V + tgt[t]], 1e-12));
+      }
+      return loss / n;
     }
-    const gn = Math.sqrt(sq);
-    this.gradNorm = gn;
-    const cl = gn > 1 ? 1 / gn : 1;
-    for (const p of this.params){
-      const dec = p.shape.length === 2 ? wd * lr : 0;
-      const D = p.data, G = p.grad, M = p.m, V = p.v;
-      for (let j = 0; j < p.n; j++){
-        const g = G[j] * cl;
-        M[j] = b1 * M[j] + (1 - b1) * g;
-        V[j] = b2 * V[j] + (1 - b2) * g * g;
-        D[j] -= lr * (M[j] / bc1) / (Math.sqrt(V[j] / bc2) + eps) + dec * D[j];
+  }
+
+  /* ====================================================================== */
+  /*  drawing primitives                                                    */
+  /* ====================================================================== */
+
+  const offCv = document.createElement('canvas');
+  const offCx = offCv.getContext('2d');
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+
+  /* canvas → what its pixels mean, for the shared hover tooltip and click
+     handling; a WeakMap keeps the metadata off the DOM nodes themselves */
+  const heatMeta = new WeakMap();
+  /* canvas → the small caption element underneath it */
+  const subLabel = new WeakMap();
+
+  const RAMP_POS = [[0, [13, 18, 25]], [0.45, [146, 64, 14]], [1, [253, 224, 71]]];
+  const RAMP_NEG = [[0, [13, 18, 25]], [0.45, [30, 64, 175]], [1, [147, 214, 255]]];
+  const RAMP_SEQ = [[0, [8, 12, 18]], [0.3, [8, 74, 96]], [0.65, [34, 211, 238]], [1, [240, 253, 255]]];
+
+  function ramp(stops, t) {
+    t = clamp(t, 0, 1);
+    for (let i = 1; i < stops.length; i++) {
+      if (t <= stops[i][0]) {
+        const a = stops[i - 1], b = stops[i];
+        const span = b[0] - a[0] || 1, u = (t - a[0]) / span;
+        return [a[1][0] + (b[1][0] - a[1][0]) * u,
+        a[1][1] + (b[1][1] - a[1][1]) * u,
+        a[1][2] + (b[1][2] - a[1][2]) * u];
       }
     }
+    return stops[stops.length - 1][1];
   }
 
-  /* one full loss evaluation, used by the gradient checker */
-  lossOn(inp, tgt, n, C){
-    this.forward(inp, n, C);
-    const V = this.cfg.nVocab;
-    let loss = 0;
-    for (let t = 0; t < n; t++) loss += -Math.log(Math.max(C.probs[t * V + tgt[t]], 1e-12));
-    return loss / n;
+  const rgb = (c) => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+
+  function autoCell(rows, cols, maxW, maxH) {
+    const cw = Math.floor(maxW / Math.max(1, cols));
+    const chh = Math.floor(maxH / Math.max(1, rows));
+    return Math.max(2, Math.min(cw, chh, 14));
   }
-}
 
-/* ====================================================================== */
-/*  drawing primitives                                                    */
-/* ====================================================================== */
+  function prep(cv, w, h) {
+    cv.style.width = `${w}px`;
+    cv.style.height = `${h}px`;
+    cv.width = Math.max(1, Math.round(w * DPR));
+    cv.height = Math.max(1, Math.round(h * DPR));
+    const cx = cv.getContext('2d');
+    cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cx.clearRect(0, 0, w, h);
+    return cx;
+  }
 
-const offCv = document.createElement('canvas');
-const offCx = offCv.getContext('2d');
-const DPR = Math.min(2, window.devicePixelRatio || 1);
+  /* a canvas that takes the width of its column; returns the CSS width too,
+     since that is what every caller needs to lay its drawing out */
+  function prepFluid(cv, h) {
+    const w = Math.max(80, cv.clientWidth || cv.parentElement?.clientWidth || 260);
+    cv.style.height = `${h}px`;
+    cv.width = Math.round(w * DPR);
+    cv.height = Math.round(h * DPR);
+    const cx = cv.getContext('2d');
+    cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cx.clearRect(0, 0, w, h);
+    return { cx, w };
+  }
 
-/* canvas → what its pixels mean, for the shared hover tooltip and click
-   handling; a WeakMap keeps the metadata off the DOM nodes themselves */
-const heatMeta = new WeakMap();
-/* canvas → the small caption element underneath it */
-const subLabel = new WeakMap();
+  /* the workhorse: draw a matrix as a heatmap and register hover metadata */
+  function drawHeat(cv, data, rows, cols, opt = {}) {
+    const stride = opt.stride || cols;
+    const base = opt.offset || 0;
+    const cw = opt.cellW || opt.cell || autoCell(rows, cols, opt.maxW || 190, opt.maxH || 190);
+    const ch = opt.cellH || cw;
+    const w = cols * cw, h = rows * ch;
 
-const RAMP_POS = [[0, [13, 18, 25]], [0.45, [146, 64, 14]], [1, [253, 224, 71]]];
-const RAMP_NEG = [[0, [13, 18, 25]], [0.45, [30, 64, 175]], [1, [147, 214, 255]]];
-const RAMP_SEQ = [[0, [8, 12, 18]], [0.3, [8, 74, 96]], [0.65, [34, 211, 238]], [1, [240, 253, 255]]];
-
-function ramp(stops, t){
-  t = clamp(t, 0, 1);
-  for (let i = 1; i < stops.length; i++){
-    if (t <= stops[i][0]){
-      const a = stops[i - 1], b = stops[i];
-      const span = b[0] - a[0] || 1, u = (t - a[0]) / span;
-      return [a[1][0] + (b[1][0] - a[1][0]) * u,
-              a[1][1] + (b[1][1] - a[1][1]) * u,
-              a[1][2] + (b[1][2] - a[1][2]) * u];
+    let mx = opt.max;
+    if (mx === undefined) {
+      mx = 1e-9;
+      for (let i = 0; i < rows; i++)
+        for (let j = 0; j < cols; j++) {
+          const v = Math.abs(data[base + i * stride + j]);
+          if (v > mx) {
+            mx = v;
+          }
+        }
     }
-  }
-  return stops[stops.length - 1][1];
-}
+    const seq = opt.mode === 'seq';
 
-const rgb = (c) => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
-
-function autoCell(rows, cols, maxW, maxH){
-  const cw = Math.floor(maxW / Math.max(1, cols));
-  const chh = Math.floor(maxH / Math.max(1, rows));
-  return Math.max(2, Math.min(cw, chh, 14));
-}
-
-function prep(cv, w, h){
-  cv.style.width = `${w}px`;
-  cv.style.height = `${h}px`;
-  cv.width = Math.max(1, Math.round(w * DPR));
-  cv.height = Math.max(1, Math.round(h * DPR));
-  const cx = cv.getContext('2d');
-  cx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  cx.clearRect(0, 0, w, h);
-  return cx;
-}
-
-/* a canvas that takes the width of its column; returns the CSS width too,
-   since that is what every caller needs to lay its drawing out */
-function prepFluid(cv, h){
-  const w = Math.max(80, cv.clientWidth || cv.parentElement?.clientWidth || 260);
-  cv.style.height = `${h}px`;
-  cv.width = Math.round(w * DPR);
-  cv.height = Math.round(h * DPR);
-  const cx = cv.getContext('2d');
-  cx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  cx.clearRect(0, 0, w, h);
-  return { cx, w };
-}
-
-/* the workhorse: draw a matrix as a heatmap and register hover metadata */
-function drawHeat(cv, data, rows, cols, opt = {}){
-  const stride = opt.stride || cols;
-  const base = opt.offset || 0;
-  const cw = opt.cellW || opt.cell || autoCell(rows, cols, opt.maxW || 190, opt.maxH || 190);
-  const ch = opt.cellH || cw;
-  const w = cols * cw, h = rows * ch;
-
-  let mx = opt.max;
-  if (mx === undefined){
-    mx = 1e-9;
-    for (let i = 0; i < rows; i++)
-      for (let j = 0; j < cols; j++){
-        const v = Math.abs(data[base + i * stride + j]);
-        if (v > mx) mx = v;
+    offCv.width = cols; offCv.height = rows;
+    const img = offCx.createImageData(cols, rows);
+    const px = img.data;
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        const v = data[base + i * stride + j];
+        let col;
+        if (seq) {
+          col = ramp(RAMP_SEQ, v / mx);
+        } else { 
+          const r = v / mx;
+          col = r >= 0 ? ramp(RAMP_POS, r) : ramp(RAMP_NEG, -r);
+        }
+        const o = (i * cols + j) * 4;
+        px[o] = col[0];
+        px[o + 1] = col[1];
+        px[o + 2] = col[2];
+        px[o + 3] = 255;
       }
-  }
-  const seq = opt.mode === 'seq';
+    }
+    offCx.putImageData(img, 0, 0);
 
-  offCv.width = cols; offCv.height = rows;
-  const img = offCx.createImageData(cols, rows);
-  const px = img.data;
-  for (let i = 0; i < rows; i++){
-    for (let j = 0; j < cols; j++){
-      const v = data[base + i * stride + j];
-      let col;
-      if (seq) col = ramp(RAMP_SEQ, v / mx);
-      else { const r = v / mx; col = r >= 0 ? ramp(RAMP_POS, r) : ramp(RAMP_NEG, -r); }
-      const o = (i * cols + j) * 4;
-      px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = 255;
+    const cx = prep(cv, w, h);
+    cx.imageSmoothingEnabled = false;
+    cx.drawImage(offCv, 0, 0, cols, rows, 0, 0, w, h);
+
+    if (opt.hiRow !== undefined && opt.hiRow >= 0 && opt.hiRow < rows) {
+      cx.strokeStyle = 'rgba(255,255,255,.6)';
+      cx.lineWidth = 1;
+      cx.strokeRect(0.5, opt.hiRow * ch + 0.5, w - 1, ch - 1);
+    }
+
+    heatMeta.set(cv, {
+      data, rows, cols, stride, base,
+      cell: cw, cellH: ch, max: mx, name: opt.name || '',
+      rowLab: opt.rowLab, colLab: opt.colLab, unit: opt.unit || ''
+    });
+    return cv;
+  }
+
+  function drawRampLegend(cv) {
+    const w = 120, h = 9;
+    const cx = prep(cv, w, h);
+    for (let i = 0; i < w; i++) {
+      const t = (i / (w - 1)) * 2 - 1;
+      cx.fillStyle = rgb(t >= 0 ? ramp(RAMP_POS, t) : ramp(RAMP_NEG, -t));
+      cx.fillRect(i, 0, 1, h);
     }
   }
-  offCx.putImageData(img, 0, 0);
 
-  const cx = prep(cv, w, h);
-  cx.imageSmoothingEnabled = false;
-  cx.drawImage(offCv, 0, 0, cols, rows, 0, 0, w, h);
+  /* ----- line chart ----- */
+  /* the loss curve is the training panel's anchor, and on a dashboard-sized
+     screen that panel is the tall one, so the chart fills the share of the panel
+     the stylesheet hands its wrapper instead of leaving a gap under it */
+  const DASH_FIXED = window.matchMedia('(min-width:1321px)');
 
-  if (opt.hiRow !== undefined && opt.hiRow >= 0 && opt.hiRow < rows){
-    cx.strokeStyle = 'rgba(255,255,255,.6)';
-    cx.lineWidth = 1;
-    cx.strokeRect(0.5, opt.hiRow * ch + 0.5, w - 1, ch - 1);
+  function lossHeight(cv) {
+    const base = 86;
+    if (!DASH_FIXED.matches) return base; /* elsewhere the panel is as tall as its contents */
+    const wrap = cv.parentElement, cs = getComputedStyle(wrap);
+    return Math.max(base, Math.round(wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
   }
 
-  heatMeta.set(cv, { data, rows, cols, stride, base,
-                     cell: cw, cellH: ch, max: mx, name: opt.name || '',
-                     rowLab: opt.rowLab, colLab: opt.colLab, unit: opt.unit || '' });
-  return cv;
-}
-
-function drawRampLegend(cv){
-  const w = 120, h = 9;
-  const cx = prep(cv, w, h);
-  for (let i = 0; i < w; i++){
-    const t = (i / (w - 1)) * 2 - 1;
-    cx.fillStyle = rgb(t >= 0 ? ramp(RAMP_POS, t) : ramp(RAMP_NEG, -t));
-    cx.fillRect(i, 0, 1, h);
-  }
-}
-
-/* ---------------------------------------------------------- line chart  */
-/* the loss curve is the training panel's anchor, and on a dashboard-sized
-   screen that panel is the tall one, so the chart fills the share of the panel
-   the stylesheet hands its wrapper instead of leaving a gap under it */
-const DASH_FIXED = window.matchMedia('(min-width:1321px)');
-
-function lossHeight(cv){
-  const base = 86;
-  if (!DASH_FIXED.matches) return base;          /* elsewhere the panel is as
-                                                    tall as its contents */
-  const wrap = cv.parentElement, cs = getComputedStyle(wrap);
-  return Math.max(base, Math.round(wrap.clientHeight
-       - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
-}
-
-function drawLoss(cv, raw, ema, ref){
-  const h = lossHeight(cv);
-  const { cx, w } = prepFluid(cv, h);
-  const padL = 30, padB = 13, padT = 6, padR = 4;
-  const iw = w - padL - padR, ih = h - padT - padB;
-  const NG = clamp(Math.round(ih / 26), 3, 8);   /* a taller chart earns more gridlines */
-
-  cx.fillStyle = '#080c12';
-  cx.fillRect(0, 0, w, h);
-
-  const grid = () => {
-    cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
-    cx.beginPath();
-    for (let i = 0; i <= NG; i++){
-      const yy = Math.round(padT + (ih * i) / NG) + 0.5;
-      cx.moveTo(padL, yy); cx.lineTo(w - padR, yy);
-    }
-    cx.stroke();
-  };
-  const caption = () => {
-    cx.fillStyle = '#57657a';
-    cx.font = '9px ui-monospace,monospace';
-    cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
-  };
-
-  /* an empty chart this tall still has to read as a chart, not as a hole */
-  if (!raw.length){
-    grid(); caption();
-    cx.fillStyle = '#57657a';
-    cx.font = '10px ui-monospace,monospace';
-    cx.textAlign = 'center';
-    cx.fillText('press train to start', padL + iw / 2, padT + ih / 2 + 3);
-    cx.textAlign = 'left';
-    return;
-  }
-  let lo = Infinity, hi = -Infinity;
-  for (const v of raw){
-    if (v < lo) lo = v;
-    if (v > hi) hi = v;
-  }
-  if (ref !== undefined && ref > hi) hi = ref;
-  if (hi - lo < 1e-3){ hi += 0.05; lo -= 0.05; }
-  const pad = (hi - lo) * 0.08;
-  hi += pad; lo = Math.max(0, lo - pad);
-
-  const X = (i) => padL + (raw.length < 2 ? iw : (i / (raw.length - 1)) * iw);
-  const Y = (v) => padT + ih - ((v - lo) / (hi - lo)) * ih;
-
-  /* axes */
-  grid();
-  cx.fillStyle = '#57657a';
-  cx.font = '9px ui-monospace,monospace';
-  cx.textAlign = 'right';
-  for (let i = 0; i <= NG; i++){
-    const vv = hi - ((hi - lo) * i) / NG;
-    cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / NG + 3);
-  }
-  cx.textAlign = 'left';
-
-  /* reference line: loss of a uniform random model */
-  if (ref !== undefined && ref <= hi && ref >= lo){
-    cx.strokeStyle = 'rgba(248,113,113,.45)';
-    cx.setLineDash([3, 3]);
-    cx.beginPath(); cx.moveTo(padL, Y(ref)); cx.lineTo(w - padR, Y(ref)); cx.stroke();
-    cx.setLineDash([]);
-    cx.fillStyle = 'rgba(248,113,113,.7)';
-    cx.fillText('random', padL + 3, Y(ref) - 3);
-  }
-
-  const line = (vals, style, width) => {
-    cx.strokeStyle = style; cx.lineWidth = width;
-    cx.beginPath();
-    for (let i = 0; i < vals.length; i++){
-      const x = X(i), y = Y(vals[i]);
-      if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
-    }
-    cx.stroke();
-  };
-  line(raw, 'rgba(34,211,238,.28)', 1);   /* raw */
-  line(ema, '#22d3ee', 1.5);              /* smoothed */
-
-  caption();
-}
-
-/* ---------------------------------------------------------- histogram   */
-function drawHist(cv, data, n, title){
-  const h = 62;
-  const { cx, w } = prepFluid(cv, h);
-  cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
-  let mx = 1e-9;
-  for (let i = 0; i < n; i++){ const a = Math.abs(data[i]); if (a > mx) mx = a; }
-  const NB = 41, bins = new Float64Array(NB);
-  for (let i = 0; i < n; i++){
-    const b = Math.round(((data[i] / mx) * 0.5 + 0.5) * (NB - 1));
-    bins[clamp(b, 0, NB - 1)]++;
-  }
-  let bmx = 0;
-  for (let i = 0; i < NB; i++) if (bins[i] > bmx) bmx = bins[i];
-  const bw = (w - 8) / NB, padB = 12;
-  for (let i = 0; i < NB; i++){
-    const t = (i / (NB - 1)) * 2 - 1;
-    const c = t >= 0 ? ramp(RAMP_POS, Math.abs(t)) : ramp(RAMP_NEG, Math.abs(t));
-    const bh = bmx ? (bins[i] / bmx) * (h - padB - 6) : 0;
-    cx.fillStyle = rgb(c);
-    cx.fillRect(4 + i * bw, h - padB - bh, Math.max(1, bw - 1), bh);
-  }
-  cx.strokeStyle = '#1b2431';
-  cx.beginPath(); cx.moveTo(0, h - padB + 0.5); cx.lineTo(w, h - padB + 0.5); cx.stroke();
-  cx.fillStyle = '#57657a';
-  cx.font = '9px ui-monospace,monospace';
-  cx.fillText((-mx).toFixed(3), 4, h - 2);
-  cx.textAlign = 'center'; cx.fillText(title || 'distribution', w / 2, h - 2);
-  cx.textAlign = 'right'; cx.fillText(`+${mx.toFixed(3)}`, w - 4, h - 2);
-  cx.textAlign = 'left';
-}
-
-/* ---------------------------------------------------------- bar chart   */
-function drawFreq(cv, tok){
-  const h = 54;
-  const { cx, w } = prepFluid(cv, h);
-  cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
-  const V = tok.vocab.length;
-  let mx = 1;
-  for (let i = 0; i < V; i++) if (tok.counts[i] > mx) mx = tok.counts[i];
-  const bw = (w - 6) / V;
-  for (let i = 0; i < V; i++){
-    const bh = (tok.counts[i] / mx) * (h - 14);
-    if (tok.counts[i] === 0) cx.fillStyle = '#1b2431';
-    else cx.fillStyle = i < tok.baseSize ? '#2f7d5b' : '#b45309';
-    cx.fillRect(3 + i * bw, h - 11 - bh, Math.max(1, bw - 1), bh);
-  }
-  cx.fillStyle = '#57657a';
-  cx.font = '9px ui-monospace,monospace';
-  cx.fillText('id 0', 3, h - 2);
-  cx.textAlign = 'right';
-  cx.fillText(`id ${V - 1} · max ${mx}`, w - 3, h - 2);
-  cx.textAlign = 'left';
-}
-
-/* the twin of drawFreq for the model's output: one bar per vocabulary id, so
-   the whole distribution shows and not just the ten rows above it. Once the
-   model is confident its probabilities span many decades, and a linear axis
-   would flatten everything but the winner onto the floor, so the bars run on a
-   log axis six decades deep with one faint gridline per decade. */
-const PROB_DECADES = 6;
-const PROB_FLOOR = 10 ** -PROB_DECADES;
-
-function drawProbs(cv, probs, picked){
-  const h = 62;
-  const { cx, w } = prepFluid(cv, h);
-  const padB = 12, padT = 4, ih = h - padT - padB;
-  const V = S.cfg.nVocab;
-  /* fraction of the plot a probability fills: 0 at the floor, 1 at certainty */
-  const bar = (p) => clamp(1 + Math.log10(Math.max(p, Number.MIN_VALUE)) / PROB_DECADES, 0, 1);
-
-  cx.fillStyle = '#080c12'; cx.fillRect(0, 0, w, h);
-  cx.font = '9px ui-monospace,monospace';
-
-  cx.strokeStyle = '#1b2431'; cx.lineWidth = 1;
-  cx.beginPath();
-  for (let i = 0; i <= PROB_DECADES; i++){
-    const y = Math.round(padT + (ih * i) / PROB_DECADES) + 0.5;
-    cx.moveTo(0, y); cx.lineTo(w, y);
-  }
-  cx.stroke();
-
-  const bw = w / V;
-  let mx = 0;
-  for (let i = 0; i < V; i++){
-    const p = probs[i];
-    if (p > mx) mx = p;
-    const bh = bar(p) * ih;
-    if (bh < 0.5) continue;
-    /* ids that never occur in the corpus are barred from sampling, so they are
-       dimmed however much probability the model puts on them */
-    cx.fillStyle = i === picked ? '#fbbf24' : S.tok.counts[i] ? '#22d3ee' : '#57657a';
-    const x = Math.round(i * bw);
-    cx.fillRect(x, padT + ih - bh, Math.max(1, Math.round((i + 1) * bw) - x - 1), bh);
-  }
-
-  /* where every bar would sit if the model had learned nothing at all */
-  const uy = padT + ih - bar(1 / V) * ih;
-  cx.strokeStyle = 'rgba(248,113,113,.45)';
-  cx.setLineDash([3, 3]);
-  cx.beginPath(); cx.moveTo(0, uy); cx.lineTo(w, uy); cx.stroke();
-  cx.setLineDash([]);
-  cx.fillStyle = 'rgba(248,113,113,.7)';
-
-  cx.strokeStyle = '#1b2431';
-  cx.beginPath(); cx.moveTo(0, h - padB + 0.5); cx.lineTo(w, h - padB + 0.5); cx.stroke();
-  cx.fillStyle = '#57657a';
-  cx.fillText('id 0', 3, h - 2);
-  cx.textAlign = 'center';
-  cx.fillText(`log p · 1 → ${PROB_FLOOR.toExponential()}`, w / 2, h - 2);
-  cx.textAlign = 'right';
-  cx.fillText(`id ${V - 1} · max ${(mx * 100).toFixed(1)}%`, w - 3, h - 2);
-  cx.textAlign = 'left';
-
-  heatMeta.set(cv, {
-    data: probs, rows: 1, cols: V, stride: V, base: 0, cell: bw, cellH: h,
-    describe: (_i, j, p) => {
-      const pct = p < 1e-4 ? `${(p * 100).toExponential(2)}%` : `${(p * 100).toFixed(2)}%`;
-      const note = S.tok.counts[j] ? '' : '\nnot in the corpus — never sampled';
-      return `token ${j}  ${tokDisp(S.tok.vocab[j])}\np = ${pct}${note}`;
-    }
-  });
-}
-
-/* ---------------------------------------------------------- tooltip     */
-let tipEl = null;
-
-function initTip(){
-  tipEl = $('#tip');
-  document.addEventListener('mousemove', (ev) => {
-    const cv = ev.target;
-    const H = heatMeta.get(cv);
-    if (!H){ tipEl.classList.remove('on'); return; }
-    const r = cv.getBoundingClientRect();
-    const cj = Math.floor((ev.clientX - r.left) / H.cell);
-    const ci = Math.floor((ev.clientY - r.top) / H.cellH);
-    if (ci < 0 || ci >= H.rows || cj < 0 || cj >= H.cols){ tipEl.classList.remove('on'); return; }
-    const v = H.data[H.base + ci * H.stride + cj];
-    let txt;
-    if (H.describe) txt = H.describe(ci, cj, v);
-    else {
-      const lines = [];
-      if (H.name) lines.push(H.name);
-      const rl = H.rowLab ? H.rowLab(ci) : `row ${ci}`;
-      const cl = H.colLab ? H.colLab(cj) : `col ${cj}`;
-      lines.push(`${rl}   ×   ${cl}`);
-      lines.push(`= ${Math.abs(v) < 1e-4 && v !== 0 ? v.toExponential(2) : v.toFixed(5)}${H.unit || ''}`);
-      txt = lines.join('\n');
-    }
-    tipEl.textContent = txt;
-    tipEl.classList.add('on');
-    const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
-    let x = ev.clientX + 14, y = ev.clientY + 14;
-    if (x + tw > window.innerWidth - 6) x = ev.clientX - tw - 12;
-    if (y + th > window.innerHeight - 6) y = ev.clientY - th - 12;
-    tipEl.style.left = `${x}px`;
-    tipEl.style.top = `${y}px`;
-  }, { passive: true });
-}
-
-/* ====================================================================== */
-/*  application state                                                     */
-/* ====================================================================== */
-
-const S = {
-  cfg: { ...DEFAULT_CFG },
-  tok: new Tokenizer(),
-  model: null,
-  data: null,
-  corpus: DEFAULT_CORPUS,
-
-  training: false, step: 0, tokensSeen: 0, sps: 0,
-  raw: [], ema: [], emaV: null,
-  lr: 0.02, batch: 30, wd: 0.001,
-
-  temp: 0.85, topk: 10, maxNew: 140,
-  genTokens: [], promptLen: 0, generating: false, genLeft: 0,
-  lastDist: null, lastPick: -1,
-
-  wbMode: 'value', wbSel: 'wte',
-  detail: true, live: true,
-  inBuf: null, tgtBuf: null,
-  vizLabel: '', frame: 0, lastSample: -1
-};
-
-const TENSOR_HUES = { emb: '#22d3ee', w: '#a78bfa', wproj: '#f472b6', b: '#4ade80',
-                      lng: '#fbbf24', lnb: '#fb923c' };
-
-/* ====================================================================== */
-/*  tokenization section                                                  */
-/* ====================================================================== */
-
-function chipFor(id, extraCls){
-  const { tok } = S, s = tok.vocab[id];
-  let cls = 'chip';
-  if (id === 0) cls += ' unk';
-  else if (s === '') cls += ' unused';
-  else if (id < tok.baseSize) cls += ' base';
-  else cls += ' merged';
-  if (extraCls) cls += ` ${extraCls}`;
-  const c = el('div', cls);
-  c.append(el('span', 'id', String(id)), el('span', 't', tokDisp(s)));
-  return c;
-}
-
-function renderTokenizer(){
-  const { tok } = S;
-  $('#tokVocabMeta').textContent =
-    `${tok.vocab.length} ids · ${tok.baseSize - 1} chars + ${tok.merges.length} merges` +
-    (tok.unused ? ` + ${tok.unused} unused` : '');
-
-  const list = $('#vocabList');
-  list.innerHTML = '';
-  for (let i = 0; i < tok.vocab.length; i++){
-    const c = chipFor(i);
-    c.title = `id ${i}  ·  seen ${tok.counts[i]}× in corpus`;
-    list.appendChild(c);
-  }
-
-  const ml = $('#mergeList');
-  ml.innerHTML = '';
-  $('#tokMergeMeta').textContent = `${tok.merges.length} rules, applied in order`;
-  tok.merges.forEach((m, i) => {
-    const r = el('div', 'merge');
-    r.append(
-      el('span', 'r', String(i + 1)),
-      el('span', 'a', tokDisp(tok.vocab[m.a])),
-      el('span', '', '+'),
-      el('span', 'b', tokDisp(tok.vocab[m.b])),
-      el('span', '', '→'),
-      el('span', 'n', tokDisp(tok.vocab[m.id])),
-      el('span', 'c', `${m.count}×`)
-    );
-    ml.appendChild(r);
-  });
-  if (!tok.merges.length) ml.appendChild(el('div', 'note', 'no repeated pairs left to merge'));
-
-  drawFreq($('#freqChart'), tok);
-}
-
-function renderEncoded(){
-  const ids = S.tok.encode($('#promptText').value);
-  const box = $('#encPreview');
-  box.innerHTML = '';
-  for (const id of ids.slice(-S.cfg.nCtx * 2)) box.appendChild(chipFor(id));
-  const cut = ids.length > S.cfg.nCtx;
-  $('#tokEncMeta').textContent =
-    `${ids.length} tokens` + (cut ? ` · last ${S.cfg.nCtx} fed to the model` : '');
-  return ids;
-}
-
-/* ====================================================================== */
-/*  weights & biases panel                                                */
-/* ====================================================================== */
-
-let paramBufCache = null;   /* every parameter laid end to end, for the map */
-let paramGrid = null;       /* that buffer padded out to a square           */
-
-function paramBuf(){
-  const m = S.model;
-  if (!paramBufCache || paramBufCache.length !== m.nParams) paramBufCache = F32(m.nParams);
-  const src = S.wbMode === 'grad' ? 'grad' : 'data';
-  for (const p of m.params) paramBufCache.set(p[src], p.offset);
-  return paramBufCache;
-}
-
-function paramAt(idx){
-  for (const p of S.model.params){
-    if (idx >= p.offset && idx < p.offset + p.n) return { p, local: idx - p.offset };
-  }
-  return null;
-}
-
-function drawParamMap(){
-  const m = S.model, cv = $('#paramMap');
-  const n = m.nParams;
-  const side = Math.ceil(Math.sqrt(n));
-  const buf = paramBuf();
-  if (!paramGrid || paramGrid.length !== side * side) paramGrid = F32(side * side);
-  paramGrid.fill(0);
-  paramGrid.set(buf.subarray(0, n), 0);
-
-  const cell = clamp(Math.floor(316 / side), 1, 8);
-  const scale = robustMax(buf, n);
-  drawHeat(cv, paramGrid, side, side, {
-    cell, max: scale,
-    name: S.wbMode === 'grad' ? 'gradient map' : 'parameter map'
-  });
-
-  heatMeta.get(cv).describe = (i, j) => {
-    const idx = i * side + j;
-    if (idx >= n) return '(padding)';
-    const { p, local } = paramAt(idx);
-    const where = p.shape.length === 2
-      ? `${p.name}[${Math.floor(local / p.shape[1])},${local % p.shape[1]}]`
-      : `${p.name}[${local}]`;
-    return `${where}\n#${idx} of ${n}\n= ${buf[idx].toFixed(6)}` +
-           (S.wbMode === 'grad' ? '  (gradient)' : '');
-  };
-
-  const stat = statsOf(buf, n);
-  $('#wbMeta').textContent =
-    `μ ${fmt(stat.mean, 3)}  σ ${fmt(stat.std, 3)}  max ${fmt(stat.amax, 3)}  scale ±${fmt(scale, 3)}`;
-  $('#wCount').textContent = `${commas(n)} parameters`;
-}
-
-/* colour scale that ignores a handful of outliers — without it the layernorm
-   gains (all exactly 1.0) set the scale and every real weight renders nearly
-   black */
-function robustMax(a, n){
-  const st = statsOf(a, n);
-  let s = Math.abs(st.mean) + 3 * st.std;
-  if (!(s > 1e-9)) s = st.amax;
-  return Math.max(1e-9, Math.min(st.amax, s));
-}
-
-function statsOf(a, n){
-  let mean = 0, amax = 0;
-  for (let i = 0; i < n; i++){
-    mean += a[i];
-    const t = Math.abs(a[i]);
-    if (t > amax) amax = t;
-  }
-  mean /= n || 1;
-  let v = 0;
-  for (let i = 0; i < n; i++){ const dd = a[i] - mean; v += dd * dd; }
-  return { mean, std: Math.sqrt(v / (n || 1)), amax };
-}
-
-function renderTensorList(){
-  const box = $('#tensorList');
-  box.innerHTML = '';
-  for (const p of S.model.params){
-    const r = el('div', `tr${p.name === S.wbSel ? ' on' : ''}`);
-    const dot = el('div', 'dot');
-    dot.style.background = TENSOR_HUES[p.role] || '#7e8da3';
-    r.append(dot, el('div', 'nm', p.name), el('div', 'sh', p.shape.join('×')),
-             el('div', 'ct', commas(p.n)));
-    r.addEventListener('click', () => selectTensor(p.name));
-    box.appendChild(r);
-  }
-}
-
-function selectTensor(name){
-  S.wbSel = name;
-  renderTensorList();
-  drawTensor();
-}
-
-function drawTensor(){
-  const m = S.model;
-  let p = m.P[S.wbSel];
-  if (!p){ p = m.params[0]; S.wbSel = p.name; }
-  const src = S.wbMode === 'grad' ? p.grad : p.data;
-  const twoD = p.shape.length === 2;
-  const rows = twoD ? p.shape[0] : 1;
-  const cols = twoD ? p.shape[1] : p.shape[0];
-
-  const cell = clamp(Math.floor(330 / cols), 3, 12);
-  const cellH = twoD ? clamp(Math.floor(240 / rows), 3, 12) : 14;
-
-  const { tok } = S;
-  let rowLab;
-  if (p.name === 'wte') rowLab = (i) => `token ${i}  ${tokDisp(tok.vocab[i])}`;
-  else if (p.name === 'wpe') rowLab = (i) => `position ${i}`;
-  else rowLab = (i) => `in ${i}`;
-  const colLab = (j) => `${twoD ? 'out ' : 'idx '}${j}`;
-
-  drawHeat($('#tensorMap'), src, rows, cols, {
-    cell, cellH, max: robustMax(src, p.n),
-    name: `${p.name}  [${p.shape.join('×')}]`,
-    rowLab, colLab
-  });
-
-  const st = statsOf(src, p.n);
-  $('#selMeta').textContent = `${p.name} · ${commas(p.n)} values · σ ${fmt(st.std, 4)}`;
-  drawHist($('#histChart'), src, p.n,
-           `${S.wbMode === 'grad' ? 'gradients of ' : 'values of '}${p.name}`);
-}
-
-function renderWeights(){
-  drawParamMap();
-  drawTensor();
-}
-
-/* ====================================================================== */
-/*  transformer panel                                                     */
-/* ====================================================================== */
-
-function stage(parent, title, sub, expl, cls, noBody){
-  const s = el('div', `stage${cls ? ` ${cls}` : ''}`);
-  const h = el('div', 'stage-h');
-  h.appendChild(el('span', 'stage-t', title));
-  if (sub) h.appendChild(el('span', 'stage-s', sub));
-  s.appendChild(h);
-  if (expl) s.appendChild(el('div', 'stage-x', expl));
-  let body = null;
-  if (!noBody){ body = el('div', 'hrow'); s.appendChild(body); }
-  parent.appendChild(s);
-  return { el: s, body };
-}
-
-/* a labelled heatmap slot: caption above, canvas, size caption below */
-function hm(parent, label, det){
-  const w = el('div', `hm${det ? ' det' : ''}`);
-  const l = el('div', 'hm-l');
-  l.innerHTML = label;
-  const cv = document.createElement('canvas');
-  const sub = el('div', 'hm-s', '');
-  w.append(l, cv, sub);
-  parent.appendChild(w);
-  subLabel.set(cv, sub);
-  return cv;
-}
-
-function setSub(cv, text){
-  const sub = subLabel.get(cv);
-  if (sub) sub.textContent = text;
-}
-
-function opsym(parent, sym, det){
-  parent.appendChild(el('div', `opsym${det ? ' det' : ''}`, sym));
-}
-
-let TF = null;
-/* the pass currently on screen, kept so the flow can be drawn again at a new
-   map size — the maps are sized from the panel's measured width, and the
-   browser only knows that width once it has laid the page out */
-let tfView = null;
-
-function buildTF(){
-  const root = $('#tfFlow');
-  root.innerHTML = '';
-  const c = S.cfg;
-  TF = { blocks: [] };
-  tfView = null;
-
-  const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
-    'The highlighted token is the last one; ' +
-    'the prediction for what comes next is read off that position.');
-  TF.tokRow = el('div', 'chips');
-  s0.body.appendChild(TF.tokRow);
-
-  const s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
-    'Each id indexes a row of the token-embedding table; a learned position vector is added on top. ' +
-    `The result is the residual stream: one row per position, ${c.nEmbd} channels wide.`);
-  TF.tokEmb = hm(s1.body, 'token emb');
-  opsym(s1.body, '+');
-  TF.posEmb = hm(s1.body, 'position emb');
-  opsym(s1.body, '=');
-  TF.x0 = hm(s1.body, 'x&#8320; stream');
-
-  for (let l = 0; l < c.nLayer; l++){
-    const B = { att: [] };
-    const sb = stage(root, `${l + 2} · block ${l}`,
-      `${c.nHead} heads · head dim ${c.nEmbd / c.nHead} · d_ff ${c.nFF}`, null, 'blk', true);
-    const wrap = el('div', 'tfflow');
-    sb.el.appendChild(wrap);
-
-    /* ---- attention ---- */
-    const sa = el('div', 'substage');
-    wrap.appendChild(sa);
-    sa.appendChild(el('div', 'substage-t', 'a · causal self-attention'));
-    sa.appendChild(el('div', 'stage-x',
-      'Every position projects its normalised stream into a query, a key and a value. ' +
-      'Each query is dotted with the keys of all positions up to and including itself; ' +
-      'softmax turns those scores into mixing weights, and the values are blended accordingly.'));
-    const r1 = el('div', 'hrow'); sa.appendChild(r1);
-    B.ln1 = hm(r1, 'layernorm', true);
-    opsym(r1, '→', true);
-    B.q = hm(r1, 'Q = ln·W<sub>q</sub>', true);
-    B.k = hm(r1, 'K = ln·W<sub>k</sub>', true);
-    B.v = hm(r1, 'V = ln·W<sub>v</sub>', true);
-    const r2 = el('div', 'hrow'); sa.appendChild(r2);
-    for (let h = 0; h < c.nHead; h++) B.att.push(hm(r2, `head ${h} attention`));
-    const r3 = el('div', 'hrow'); sa.appendChild(r3);
-    B.ao = hm(r3, 'blended values', true);
-    opsym(r3, '→', true);
-    B.attnOut = hm(r3, 'W<sub>o</sub> out', true);
-    opsym(r3, '+');
-    B.xres1 = hm(r3, 'x <span class="op">+ attn</span>');
-
-    /* ---- mlp ---- */
-    const sm = el('div', 'substage');
-    wrap.appendChild(sm);
-    sm.appendChild(el('div', 'substage-t', 'b · feed-forward network'));
-    sm.appendChild(el('div', 'stage-x',
-      `Each position is processed on its own: expand to ${c.nFF} channels, apply GELU, ` +
-      'project back, add to the stream. This is where most of the ' +
-      'per-token knowledge is stored.'));
-    const r4 = el('div', 'hrow'); sm.appendChild(r4);
-    B.ln2 = hm(r4, 'layernorm', true);
-    opsym(r4, '→', true);
-    B.hpre = hm(r4, 'hidden (pre)', true);
-    B.hact = hm(r4, 'GELU');
-    opsym(r4, '→', true);
-    B.mlpOut = hm(r4, 'W<sub>2</sub> out', true);
-    opsym(r4, '+');
-    B.xout = hm(r4, 'x <span class="op">+ mlp</span>');
-
-    TF.blocks.push(B);
-  }
-
-  const s2 = stage(root, `${c.nLayer + 2} · output head`, 'logits = lnf(x) · wteᵀ',
-    'The stream is normalised once more and compared against every token embedding — the output ' +
-    'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
-    'last row gives the next-token distribution shown in the output panel.');
-  TF.lnf = hm(s2.body, 'final layernorm', true);
-  opsym(s2.body, '→', true);
-  TF.logits = hm(s2.body, 'logits');
-  opsym(s2.body, '→');
-  TF.probs = hm(s2.body, 'softmax probabilities');
-
-  root.classList.toggle('compact', !S.detail);
-  $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
-}
-
-function renderTF(C, label){
-  if (!TF || !S.model) return;
-  const c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
-  if (n <= 0) return;
-  tfView = { C, label };
-
-  $('#tfMeta').textContent = label;
-
-  TF.tokRow.innerHTML = '';
-  for (let i = 0; i < n; i++) TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
-
-  /* one square cell for every map in the flow, so a value covers the same
-     area wherever it appears and maps standing side by side line up. Five
-     pixels is the ceiling; the cell only drops below it when the widest tensor
-     of this architecture would otherwise not fit the panel. */
-  const flowW = Math.max(300, ($('#tfFlow').clientWidth || 440) - 30);
-  const cell = clamp(Math.floor(flowW / Math.max(d, hf, V, n)), 2, 5);
-
-  const pos = (i) => `pos ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`;
-  const dim = (j) => `channel ${j}`;
-  const ffd = (j) => `neuron ${j}`;
-  const voc = (j) => `token ${j}  ${tokDisp(S.tok.vocab[j])}`;
-
-  const res = (cv, data, cols, colLab, name) => {
-    drawHeat(cv, data, n, cols, { cell, rowLab: pos, colLab, name });
-    setSub(cv, `${n}×${cols}`);
-  };
-
-  res(TF.tokEmb, C.tokEmb, d, dim, 'token embedding');
-  res(TF.posEmb, C.posEmb, d, dim, 'position embedding');
-  res(TF.x0, C.x0, d, dim, 'residual stream x0');
-
-  for (let l = 0; l < c.nLayer; l++){
-    const B = C.blocks[l], G = TF.blocks[l];
-    res(G.ln1, B.ln1.out, d, dim, `block ${l} · ln1`);
-    res(G.q, B.q, d, dim, `block ${l} · Q`);
-    res(G.k, B.k, d, dim, `block ${l} · K`);
-    res(G.v, B.v, d, dim, `block ${l} · V`);
-    for (let h = 0; h < H; h++){
-      drawHeat(G.att[h], B.att, n, n, {
-        cell, stride: T, offset: h * T * T, mode: 'seq', max: 1,
-        rowLab: (i) => `query ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`,
-        colLab: (j) => `key   ${j}  ${tokDisp(S.tok.vocab[C.tokens[j]])}`,
-        name: `block ${l} · head ${h} attention`
-      });
-      setSub(G.att[h], `${n}×${n} (masked)`);
-    }
-    res(G.ao, B.ao, d, dim, `block ${l} · blended values`);
-    res(G.attnOut, B.attnOut, d, dim, `block ${l} · attention output`);
-    res(G.xres1, B.xres1, d, dim, `block ${l} · stream after attention`);
-    res(G.ln2, B.ln2.out, d, dim, `block ${l} · ln2`);
-    res(G.hpre, B.hpre, hf, ffd, `block ${l} · mlp pre-activation`);
-    res(G.hact, B.hact, hf, ffd, `block ${l} · mlp after GELU`);
-    res(G.mlpOut, B.mlpOut, d, dim, `block ${l} · mlp output`);
-    res(G.xout, B.xout, d, dim, `block ${l} · stream after mlp`);
-  }
-  res(TF.lnf, C.lnf.out, d, dim, 'final layernorm');
-  res(TF.logits, C.logits, V, voc, 'logits');
-  drawHeat(TF.probs, C.probs, n, V, { cell, rowLab: pos, colLab: voc,
-    mode: 'seq', max: 1, name: 'softmax probabilities', hiRow: n - 1 });
-  setSub(TF.probs, `${n}×${V} · last row = prediction`);
-}
-
-function redrawTF(){
-  if (tfView) renderTF(tfView.C, tfView.label);
-}
-
-/* ====================================================================== */
-/*  output panel                                                          */
-/* ====================================================================== */
-
-function renderDist(probs, picked){
-  const box = $('#distBars');
-  box.innerHTML = '';
-  const V = S.cfg.nVocab;
-  const idx = Array.from({ length: V }, (_, i) => i);
-  idx.sort((a, b) => probs[b] - probs[a]);
-  const K = Math.min(10, V);
-  /* scale against the top probability, but never against less than 25%, so a
-     flat distribution still looks flat */
-  const top = Math.max(probs[idx[0]], 0.25);
-  for (let r = 0; r < K; r++){
-    const id = idx[r], p = probs[id];
-    const row = el('div', `bar${id === picked ? ' sel' : ''}`);
-    row.appendChild(el('div', 't', (id === picked ? '▸' : ' ') + tokDisp(S.tok.vocab[id])));
-    const tr = el('div', 'track'), f = el('div', 'fill');
-    f.style.width = `${clamp((p / top) * 100, 0, 100).toFixed(1)}%`;
-    tr.appendChild(f);
-    row.append(tr, el('div', 'p', `${(p * 100).toFixed(1)}%`));
-    box.appendChild(row);
-  }
-  /* the chart keeps its own copy: a resize redraws it long after the forward
-     pass that produced these numbers has been overwritten */
-  S.lastDist = Float32Array.from(probs);
-  S.lastPick = picked;
-  drawProbs($('#probChart'), S.lastDist, picked);
-
-  let ent = 0;
-  for (let i = 0; i < V; i++){ 
-    if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
-  }
-  $('#distMeta').textContent = `entropy ${fmt(ent, 2)} nats · ` + (picked >= 0 ? `sampled "${tokDisp(S.tok.vocab[picked])}"` : `top ${K} of ${V}`);
-}
-
-function renderOutput(){
-  const out = $('#outText');
-  out.innerHTML = '';
-  const pTxt = S.tok.decode(S.genTokens.slice(0, S.promptLen));
-  const gTxt = S.tok.decode(S.genTokens.slice(S.promptLen));
-  out.append(el('span', 'p', pTxt), el('span', 'g', gTxt));
-  out.scrollTop = out.scrollHeight;
-  $('#outCount').textContent =
-    `${S.genTokens.length - S.promptLen} generated · ${S.genTokens.length} total`;
-  const chips = $('#outChips');
-  chips.innerHTML = '';
-  const start = Math.max(0, S.genTokens.length - 36);
-  for (let i = start; i < S.genTokens.length; i++){
-    chips.appendChild(chipFor(S.genTokens[i], i >= S.promptLen ? 'gen' : ''));
-  }
-}
-
-/* ====================================================================== */
-/*  sampling & generation                                                 */
-/* ====================================================================== */
-
-/* tokens the model is allowed to emit: everything that actually occurs in the
-   corpus. Rebuilt only when the tokenizer changes. */
-let allowedCache = null;
-
-function allowedIds(){
-  const tag = `${S.tok.vocab.length}:${S.tok.merges.length}`;
-  if (allowedCache && allowedCache.tag === tag) return allowedCache.list;
-  const list = [];
-  for (let i = 0; i < S.tok.vocab.length; i++) if (S.tok.counts[i] > 0) list.push(i);
-  if (!list.length) for (let i = 1; i < S.tok.vocab.length; i++) list.push(i);
-  allowedCache = { tag, list };
-  return list;
-}
-
-function sampleFrom(probs, temp, k){
-  const ids = [...allowedIds()].sort((a, b) => probs[b] - probs[a]);
-  if (temp <= 0.02) return ids[0];
-  const K = Math.min(k, ids.length);
-  const w = new Float64Array(K);
-  let sum = 0;
-  for (let i = 0; i < K; i++){
-    w[i] = Math.max(probs[ids[i]], 1e-12) ** (1 / temp);
-    sum += w[i];
-  }
-  const r = rand() * sum;
-  let acc = 0;
-  for (let i = 0; i < K; i++){ acc += w[i]; if (r <= acc) return ids[i]; }
-  return ids[K - 1];
-}
-
-function resetGen(){
-  let ids = S.tok.encode($('#promptText').value);
-  if (!ids.length && S.data && S.data.length) ids = [S.data[0]];
-  S.genTokens = ids.slice();
-  S.promptLen = ids.length;
-  renderOutput();
-}
-
-function genOne(){
-  const m = S.model, c = S.cfg;
-  if (!S.genTokens.length) return false;
-  const ctx = S.genTokens.slice(-c.nCtx), n = ctx.length;
-  m.forward(ctx, n, m.cacheViz);
-  const probs = m.cacheViz.probs.subarray((n - 1) * c.nVocab, n * c.nVocab);
-  const id = sampleFrom(probs, S.temp, S.topk);
-  S.genTokens.push(id);
-  renderTF(m.cacheViz, `generating · token ${S.genTokens.length - S.promptLen}`);
-  renderDist(probs, id);
-  renderOutput();
-  return true;
-}
-
-let genTimer = null;
-
-/* the button both starts and stops the run, so its label says what the next
-   click will do while .on keeps it lit for as long as the run is live */
-function setGenBtn(on){
-  const b = $('#btnGen');
-  b.textContent = on ? '■ stop' : '▶ generate';
-  b.classList.toggle('on', on);
-}
-
-function startGen(){
-  if (S.generating){ stopGen(); return; }
-  if (!S.genTokens.length) resetGen();
-  S.generating = true;
-  S.genLeft = S.maxNew;
-  setGenBtn(true);
-  tickGen();
-}
-
-function tickGen(){
-  if (!S.generating) return;
-  if (S.genLeft <= 0 || !genOne()){ stopGen(); return; }
-  S.genLeft--;
-  genTimer = setTimeout(tickGen, 60);
-}
-
-function stopGen(){
-  S.generating = false;
-  clearTimeout(genTimer);
-  setGenBtn(false);
-}
-
-function runPromptForward(){
-  const m = S.model, c = S.cfg;
-  if (!m) return;
-  let ids = S.tok.encode($('#promptText').value);
-  if (!ids.length) ids = [S.data?.length ? S.data[0] : 1];
-  const ctx = ids.slice(-c.nCtx);
-  m.forward(ctx, ctx.length, m.cacheViz);
-  const probs = m.cacheViz.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
-  renderTF(m.cacheViz, `prompt · ${ctx.length} tokens → predicting the next one`);
-  renderDist(probs, -1);
-}
-
-function refreshSample(){
-  const m = S.model, c = S.cfg;
-  let ids = S.tok.encode('the ');
-  if (!ids.length) ids = [S.data?.length ? S.data[0] : 1];
-  const out = ids.slice();
-  for (let i = 0; i < 100; i++){
-    const ctx = out.slice(-c.nCtx);
-    m.forward(ctx, ctx.length, m.cacheAux);
-    const pr = m.cacheAux.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
-    out.push(sampleFrom(pr, 0.7, 8));
-  }
-  $('#sampleOut').textContent = S.tok.decode(out);
-}
-
-/* ====================================================================== */
-/*  training                                                              */
-/* ====================================================================== */
-
-function lrAt(step){
-  const base = S.lr, warm = 80;
-  if (step < warm) return base * (step + 1) / warm;
-  const p = Math.min(1, (step - warm) / 4000);
-  return base * (0.08 + 0.92 * 0.5 * (1 + Math.cos(Math.PI * p)));
-}
-
-function trainStep(){
-  const m = S.model, n = S.cfg.nCtx, B = S.batch, data = S.data;
-  const span = Math.max(1, data.length - n - 1);
-  m.zeroGrad();
-  const scale = 1 / (n * B);
-  let loss = 0;
-  for (let b = 0; b < B; b++){
-    const st = randInt(span);
-    for (let i = 0; i < n; i++){
-      S.inBuf[i] = data[(st + i) % data.length];
-      S.tgtBuf[i] = data[(st + i + 1) % data.length];
-    }
-    m.forward(S.inBuf, n, m.cacheTrain);
-    loss += m.backward(S.tgtBuf, n, m.cacheTrain, scale);
-  }
-  m.step(lrAt(S.step), S.wd);
-  S.step++;
-  S.tokensSeen += n * B;
-  return loss / (n * B);
-}
-
-/* run one small batch backward so the gradient view has something to show
-   before training has ever been started */
-function primeGrads(){
-  const m = S.model, n = S.cfg.nCtx, B = Math.min(4, S.batch), data = S.data;
-  const span = Math.max(1, data.length - n - 1), scale = 1 / (n * B);
-  m.zeroGrad();
-  for (let b = 0; b < B; b++){
-    const st = randInt(span);
-    for (let i = 0; i < n; i++){
-      S.inBuf[i] = data[(st + i) % data.length];
-      S.tgtBuf[i] = data[(st + i + 1) % data.length];
-    }
-    m.forward(S.inBuf, n, m.cacheTrain);
-    m.backward(S.tgtBuf, n, m.cacheTrain, scale);
-  }
-  let sq = 0;
-  for (const p of m.params){
-    for (let j = 0; j < p.n; j++) sq += p.grad[j] * p.grad[j];
-  }
-  m.gradNorm = Math.sqrt(sq);
-}
-
-function randomLoss(){
-  return Math.log(Math.max(2, allowedIds().length));
-}
-
-function updateStats(loss){
-  $('#pStep').textContent = commas(S.step);
-  $('#pLoss').textContent = fmt(loss, 3);
-  $('#pSps').textContent = commas(S.sps);
-  $('#sLoss').textContent = fmt(loss, 4);
-  $('#sPpl').textContent = fmt(Math.exp(loss), 2);
-  $('#sGn').textContent = fmt(S.model.gradNorm, 3);
-  $('#sSeen').textContent = commas(S.tokensSeen);
-}
-
-/* a rebuild pauses training and starts it again, so a frame still sitting in
-   the timer queue from the run before it has to recognise itself as stale
-   instead of looping on alongside the new one */
-let trainRun = 0;
-
-function trainFrame(run){
-  if (!S.training || run !== trainRun) return;
-  const t0 = performance.now();
-  let k = 0, acc = 0;
-  /* always take at least one step, and never hog the thread for a whole batch
-     of them, whatever the clock does */
-  do { acc += trainStep(); k++; } while (k < 512 && performance.now() - t0 < 22);
-  const dt = (performance.now() - t0) / 1000;
-  S.sps = Math.round(k / Math.max(dt, 1e-6));
-  const loss = acc / k;
-
-  S.raw.push(loss);
-  S.emaV = (S.emaV === null) ? loss : S.emaV * 0.88 + loss * 0.12;
-  S.ema.push(S.emaV);
-  if (S.raw.length > 900){
-    const everyOther = (_, i) => i % 2 === 0;
-    S.raw = S.raw.filter(everyOther);
-    S.ema = S.ema.filter(everyOther);
-  }
-  updateStats(loss);
-  drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
-
-  if (S.live){
-    drawParamMap();
-    if (S.frame % 2 === 0) drawTensor();
-    if (S.frame % 3 === 0 && !S.generating) runPromptForward();
-  }
-  if (S.step - S.lastSample >= 200){ S.lastSample = S.step; refreshSample(); }
-
-  S.frame++;
-  /* a timeout keeps the run alive in a background tab, where requestAnimationFrame
-     would be suspended; the yield also keeps the page responsive */
-  setTimeout(trainFrame, 0, run);
-}
-
-function setTrainBtn(on){
-  const b = $('#btnTrain');
-  b.textContent = on ? '❚❚ pause' : '▶ train';
-  b.classList.toggle('on', on);
-}
-
-function toggleTrain(){
-  S.training = !S.training;
-  const run = ++trainRun;
-  setTrainBtn(S.training);
-  if (S.training) setTimeout(trainFrame, 0, run);
-}
-
-/* ====================================================================== */
-/*  build / rebuild                                                       */
-/* ====================================================================== */
-
-function readCfg(){
-  const num = (sel, dflt, lo, hi) => clamp(parseInt($(sel).value, 10) || dflt, lo, hi);
-  return {
-    nEmbd: num('#cfgD', 22, 4, 64),
-    nLayer: num('#cfgL', 2, 1, 4),
-    nHead: num('#cfgH', 2, 1, 8),
-    nFF: num('#cfgF', 50, 4, 160),
-    nCtx: num('#cfgT', 30, 4, 48),
-    nVocab: num('#cfgV', DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX)
-  };
-}
-
-const cfgValid = (c) => c.nEmbd % c.nHead === 0;
-
-function writeCfg(c){
-  $('#cfgD').value = c.nEmbd; $('#cfgL').value = c.nLayer; $('#cfgH').value = c.nHead;
-  $('#cfgF').value = c.nFF;   $('#cfgT').value = c.nCtx;
-  setVocabUI(c.nVocab);
-}
-
-/* top-k picks from the vocabulary, so it can never usefully reach past the end
-   of it: its range follows the vocabulary size and a k left above the new size
-   is pulled down with it */
-function setTopkRange(v){
-  const f = $('#inTopk');
-  f.max = v;
-  const k = clamp(parseInt(f.value, 10) || 1, 1, v);
-  f.value = k;
-  S.topk = k;
-  $('#vTopk').textContent = k;
-}
-
-/* the vocabulary size is edited from two places — the slider in the
-   tokenization section and the number box in the architecture panel — and it
-   bounds top-k, so every write funnels through here. src names the control the
-   user is holding, which is left untouched so the mirror never fights it. */
-function setVocabUI(v, src){
-  v = clamp(parseInt(v, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
-  if (src !== 'slider') $('#inVocab').value = v;
-  if (src !== 'box') $('#cfgV').value = v;
-  $('#vVocab').textContent = v;
-  setTopkRange(v);
-  updateCfgCount();
-  return v;
-}
-
-function updateCfgCount(){
-  const c = readCfg(), box = $('#cfgCount');
-  if (!cfgValid(c)){
-    box.textContent = `d_model ${c.nEmbd} is not divisible by ${c.nHead} heads`;
-    box.style.color = 'var(--bad)';
-    return;
-  }
-  const n = GPT.paramCount(c);
-  box.style.color = '';
-  box.textContent = `${commas(n)} parameters${n === 10000 ? '  ✦' : ''}`;
-}
-
-function updateHeader(){
-  const c = S.cfg;
-  $('#pParams').textContent = commas(S.model.nParams);
-  $('#pArch').textContent = `d${c.nEmbd}·${c.nLayer}L·${c.nHead}H·ff${c.nFF}`;
-  $('#pVocab').textContent = c.nVocab;
-  $('#pCtx').textContent = c.nCtx;
-  $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
-}
-
-function rebuildAll(keepText){
-  stopGen();
-  clearTimeout(vocabTimer);
-  const wasTraining = S.training;
-  S.training = false;
-  setTrainBtn(false);
-
-  let text = $('#trainText').value;
-  if (!text.trim().length){ 
-    text = DEFAULT_CORPUS; 
-    $('#trainText').value = DEFAULT_CORPUS; 
-  }
-  S.corpus = text;
-
-  S.tok.build(text, S.cfg.nVocab);
-  allowedCache = null;
-
-  let ids = [...S.tok.trainIds];
-  if (!ids.length) ids = [1];
-  while (ids.length < S.cfg.nCtx + 2) ids = ids.concat(ids);
-  S.data = Int32Array.from(ids);
-
-  S.model = new GPT(S.cfg);
-  S.inBuf = new Int32Array(S.cfg.nCtx);
-  S.tgtBuf = new Int32Array(S.cfg.nCtx);
-  S.step = 0; S.tokensSeen = 0; S.raw = []; S.ema = []; S.emaV = null;
-  S.lastSample = -1; S.frame = 0; S.sps = 0;
-  paramBufCache = null; paramGrid = null;
-  if (!S.model.P[S.wbSel]) S.wbSel = 'wte';
-
-  $('#trainMeta').textContent = `${text.length} chars → ${S.tok.trainIds.length} tokens`;
-  $('#sampleOut').textContent = '';
-
-  buildTF();
-  renderTokenizer();
-  renderTensorList();
-  renderWeights();
-  renderEncoded();
-  resetGen();
-  runPromptForward();
-  updateHeader();
-  updateCfgCount();
-  updateStats(NaN);
-  $('#pLoss').textContent = '—';
-  drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
-  if (wasTraining && keepText) toggleTrain();
-}
-
-function resetWeights(){
-  stopGen();
-  S.model.initWeights((Math.random() * 4294967295) >>> 0);
-  S.step = 0; S.tokensSeen = 0; S.raw = []; S.ema = []; S.emaV = null; S.lastSample = -1;
-  $('#sampleOut').textContent = '';
-  renderWeights();
-  runPromptForward();
-  resetGen();
-  updateStats(NaN);
-  $('#pLoss').textContent = '—';
-  drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
-  toast('weights re-initialised');
-}
-
-/* ====================================================================== */
-/*  gradient check — verifies the hand-written backward pass              */
-/* ====================================================================== */
-
-/* Directional-derivative check: perturb a whole tensor along a random unit
-   direction v and compare (L(+e) − L(−e)) / 2e against grad · v. Averaging
-   over the tensor keeps the signal well above float32 rounding noise, which
-   a single-element check does not.                                        */
-function gradCheck(){
-  const m = S.model, n = Math.min(8, S.cfg.nCtx);
-  const inp = new Int32Array(n), tgt = new Int32Array(n);
-  for (let i = 0; i < n; i++){
-    inp[i] = S.data[i % S.data.length];
-    tgt[i] = S.data[(i + 1) % S.data.length];
-  }
-  m.zeroGrad();
-  m.forward(inp, n, m.cacheTrain);
-  m.backward(tgt, n, m.cacheTrain, 1 / n);
-
-  let worst = 0, worstName = '';
-  const lines = [];
-  for (const p of m.params){
-    const v = new Float64Array(p.n);
-    let nrm = 0;
-    for (let i = 0; i < p.n; i++){ v[i] = rand() * 2 - 1; nrm += v[i] * v[i]; }
-    nrm = Math.sqrt(nrm) || 1;
-    let ana = 0;
-    for (let i = 0; i < p.n; i++){ v[i] /= nrm; ana += p.grad[i] * v[i]; }
-
-    const orig = Float32Array.from(p.data), eps = 1e-2;
-    for (let i = 0; i < p.n; i++) p.data[i] = orig[i] + eps * v[i];
-    const lp = m.lossOn(inp, tgt, n, m.cacheAux);
-    for (let i = 0; i < p.n; i++) p.data[i] = orig[i] - eps * v[i];
-    const lm = m.lossOn(inp, tgt, n, m.cacheAux);
-    p.data.set(orig);
-
-    const num = (lp - lm) / (2 * eps);
-    /* floor the denominator so near-zero derivatives are judged on absolute
-       error rather than on ratios of numerical noise */
-    const rel = Math.abs(num - ana) / Math.max(Math.abs(num) + Math.abs(ana), 1e-3);
-    lines.push(`${p.name.padEnd(14)} analytic ${ana.toExponential(4)}` +
-               `  numeric ${num.toExponential(4)}  err ${rel.toExponential(2)}`);
-    if (rel > worst){ worst = rel; worstName = p.name; }
-  }
-  m.zeroGrad();
-  console.log(lines.join('\n'));
-  console.log(`worst error ${worst.toExponential(3)} at ${worstName}` +
-              (worst < 5e-3 ? '  — backward pass OK' : '  — CHECK FAILED'));
-  return worst;
-}
-
-/* ====================================================================== */
-/*  wiring                                                                */
-/* ====================================================================== */
-
-let corpusTimer = null;
-let promptTimer = null;
-let resizeTimer = null;
-let vocabTimer = null;
-
-function applyCorpus(){
-  clearTimeout(corpusTimer);
-  const text = $('#trainText').value;
-  if (!text.trim().length || text === S.corpus) return;
-  rebuildAll(true);
-}
-
-function applyVocab(){
-  const v = clamp(parseInt($('#inVocab').value, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
-  if (v === S.cfg.nVocab) return;
-  S.cfg = { ...S.cfg, nVocab: v };
-  rebuildAll(true);
-}
-
-function wire(){
-  $('#btnTrain').addEventListener('click', toggleTrain);
-  $('#btnReset').addEventListener('click', resetWeights);
-
-  const trainText = $('#trainText');
-  trainText.addEventListener('input', () => {
-    clearTimeout(corpusTimer);
-    corpusTimer = setTimeout(applyCorpus, 400);
-  });
-  trainText.addEventListener('change', applyCorpus);
-
-  $('#btnRebuild').addEventListener('click', () => {
-    const c = readCfg();
-    if (!cfgValid(c)){
-      toast(`d_model ${c.nEmbd} must be a multiple of ${c.nHead} heads`);
+  function drawLoss(cv, raw, ema, ref) {
+    const h = lossHeight(cv);
+    const { cx, w } = prepFluid(cv, h);
+    const padL = 30, padB = 13, padT = 6, padR = 4;
+    const iw = w - padL - padR, ih = h - padT - padB;
+    const NG = clamp(Math.round(ih / 26), 3, 8);   /* a taller chart earns more gridlines */
+
+    cx.fillStyle = '#080c12';
+    cx.fillRect(0, 0, w, h);
+
+    const grid = () => {
+      cx.strokeStyle = '#1b2431'; 
+      cx.lineWidth = 1;
+      cx.beginPath();
+      for (let i = 0; i <= NG; i++) {
+        const yy = Math.round(padT + (ih * i) / NG) + 0.5;
+        cx.moveTo(padL, yy);
+        cx.lineTo(w - padR, yy);
+      }
+      cx.stroke();
+    };
+    const caption = () => {
+      cx.fillStyle = '#57657a';
+      cx.font = '9px ui-monospace,monospace';
+      cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
+    };
+
+    /* an empty chart this tall still has to read as a chart, not as a hole */
+    if (!raw.length) {
+      grid(); 
+      caption();
+      cx.fillStyle = '#57657a';
+      cx.font = '10px ui-monospace,monospace';
+      cx.textAlign = 'center';
+      cx.fillText('press train to start', padL + iw / 2, padT + ih / 2 + 3);
+      cx.textAlign = 'left';
       return;
     }
-    S.cfg = c; writeCfg(c); rebuildAll(true);
-    toast(`${commas(GPT.paramCount(c))} parameters`);
-  });
-  for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT'])
-    $(sel).addEventListener('input', updateCfgCount);
+    let lo = Infinity, hi = -Infinity;
+    for (const v of raw) {
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+    if (ref !== undefined && ref > hi) {
+      hi = ref;
+    }
+    if (hi - lo < 1e-3) { 
+      hi += 0.05; lo -= 0.05; 
+    }
+    const pad = (hi - lo) * 0.08;
+    hi += pad; 
+    lo = Math.max(0, lo - pad);
 
-  $('#cfgV').addEventListener('input', () => {
-    const v = parseInt($('#cfgV').value, 10);
-    if (v >= VOCAB_MIN && v <= VOCAB_MAX) setVocabUI(v, 'box');
-    else updateCfgCount();
-  });
-  $('#cfgV').addEventListener('change', () => setVocabUI($('#cfgV').value));
+    const X = (i) => padL + (raw.length < 2 ? iw : (i / (raw.length - 1)) * iw);
+    const Y = (v) => padT + ih - ((v - lo) / (hi - lo)) * ih;
 
-  $('#inVocab').addEventListener('input', () => {
-    setVocabUI($('#inVocab').value, 'slider');
-    clearTimeout(vocabTimer);
-    vocabTimer = setTimeout(applyVocab, 220);
-  });
+    /* axes */
+    grid();
+    cx.fillStyle = '#57657a';
+    cx.font = '9px ui-monospace,monospace';
+    cx.textAlign = 'right';
+    for (let i = 0; i <= NG; i++) {
+      const vv = hi - ((hi - lo) * i) / NG;
+      cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / NG + 3);
+    }
+    cx.textAlign = 'left';
 
-  const inLr = $('#inLr'), inBatch = $('#inBatch');
-  inLr.addEventListener('input', () => {
-    S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
-  });
-  inBatch.addEventListener('input', () => {
-    S.batch = clamp(parseInt(inBatch.value, 10) || 30, 1, 64);
-  });
+    /* reference line: loss of a uniform random model */
+    if (ref !== undefined && ref <= hi && ref >= lo) {
+      cx.strokeStyle = 'rgba(248,113,113,.45)';
+      cx.setLineDash([3, 3]);
+      cx.beginPath();
+      cx.moveTo(padL, Y(ref));
+      cx.lineTo(w - padR, Y(ref));
+      cx.stroke();
+      cx.setLineDash([]);
+      cx.fillStyle = 'rgba(248,113,113,.7)';
+      cx.fillText('random', padL + 3, Y(ref) - 3);
+    }
 
-  const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
-  chkLive.addEventListener('change', () => { S.live = chkLive.checked; });
-  chkDetail.addEventListener('change', () => {
-    S.detail = chkDetail.checked;
-    $('#tfFlow').classList.toggle('compact', !S.detail);
-  });
-
-  $('#promptText').addEventListener('input', () => {
-    clearTimeout(promptTimer);
-    promptTimer = setTimeout(() => {
-      stopGen();
-      renderEncoded();
-      resetGen();
-      runPromptForward();
-    }, 200);
-  });
-
-  const slider = (sel, out, key, fixed) => {
-    const f = $(sel);
-    const sync = () => {
-      S[key] = parseFloat(f.value);
-      $(out).textContent = fixed ? S[key].toFixed(fixed) : S[key];
+    const line = (vals, style, width) => {
+      cx.strokeStyle = style; cx.lineWidth = width;
+      cx.beginPath();
+      for (let i = 0; i < vals.length; i++) {
+        const x = X(i), y = Y(vals[i]);
+        if (i === 0) {
+          cx.moveTo(x, y);
+        } else {
+          cx.lineTo(x, y);
+        }
+      }
+      cx.stroke();
     };
-    f.addEventListener('input', sync);
-    sync();
-  };
-  slider('#inTemp', '#vTemp', 'temp', 2);
-  slider('#inTopk', '#vTopk', 'topk', 0);
-  slider('#inMax', '#vMax', 'maxNew', 0);
+    line(raw, 'rgba(34,211,238,.28)', 1);   /* raw */
+    line(ema, '#22d3ee', 1.5);              /* smoothed */
 
-  $('#btnGen').addEventListener('click', startGen);
-  $('#btnStep').addEventListener('click', () => { stopGen(); genOne(); });
-  $('#btnClear').addEventListener('click', () => { stopGen(); resetGen(); runPromptForward(); });
+    caption();
+  }
 
-  const modeButtons = $$('#wbMode button');
-  for (const b of modeButtons){
-    b.addEventListener('click', () => {
-      for (const x of modeButtons) x.classList.remove('on');
-      b.classList.add('on');
-      S.wbMode = b.dataset.m;
-      if (S.wbMode === 'grad' && !S.training && S.model.gradNorm === 0) primeGrads();
-      renderWeights();
+  /* ----- histogram ----- */
+  function drawHist(cv, data, n, title) {
+    const h = 62;
+    const { cx, w } = prepFluid(cv, h);
+    cx.fillStyle = '#080c12';
+    cx.fillRect(0, 0, w, h);
+    let mx = 1e-9;
+    for (let i = 0; i < n; i++) { 
+      const a = Math.abs(data[i]);
+      if (a > mx) {
+        mx = a;
+      }
+    }
+    const NB = 41, bins = new Float64Array(NB);
+    for (let i = 0; i < n; i++) {
+      const b = Math.round(((data[i] / mx) * 0.5 + 0.5) * (NB - 1));
+      bins[clamp(b, 0, NB - 1)]++;
+    }
+    let bmx = 0;
+    for (let i = 0; i < NB; i++) {
+      if (bins[i] > bmx) {
+        bmx = bins[i];
+      }
+    }
+    const bw = (w - 8) / NB, padB = 12;
+    for (let i = 0; i < NB; i++) {
+      const t = (i / (NB - 1)) * 2 - 1;
+      const c = t >= 0 ? ramp(RAMP_POS, Math.abs(t)) : ramp(RAMP_NEG, Math.abs(t));
+      const bh = bmx ? (bins[i] / bmx) * (h - padB - 6) : 0;
+      cx.fillStyle = rgb(c);
+      cx.fillRect(4 + i * bw, h - padB - bh, Math.max(1, bw - 1), bh);
+    }
+    cx.strokeStyle = '#1b2431';
+    cx.beginPath(); cx.moveTo(0, h - padB + 0.5); cx.lineTo(w, h - padB + 0.5); cx.stroke();
+    cx.fillStyle = '#57657a';
+    cx.font = '9px ui-monospace,monospace';
+    cx.fillText((-mx).toFixed(3), 4, h - 2);
+    cx.textAlign = 'center';
+    cx.fillText(title || 'distribution', w / 2, h - 2);
+    cx.textAlign = 'right';
+    cx.fillText(`+${mx.toFixed(3)}`, w - 4, h - 2);
+    cx.textAlign = 'left';
+  }
+
+  /* ----- bar chart ----- */
+  function drawFreq(cv, tok) {
+    const h = 54;
+    const { cx, w } = prepFluid(cv, h);
+    cx.fillStyle = '#080c12';
+    cx.fillRect(0, 0, w, h);
+    const V = tok.vocab.length;
+    let mx = 1;
+    for (let i = 0; i < V; i++) {
+      if (tok.counts[i] > mx) {
+        mx = tok.counts[i];
+      }
+    }
+    const bw = (w - 6) / V;
+    for (let i = 0; i < V; i++) {
+      const bh = (tok.counts[i] / mx) * (h - 14);
+      if (tok.counts[i] === 0) {
+        cx.fillStyle = '#1b2431';
+      } else {
+        cx.fillStyle = i < tok.baseSize ? '#2f7d5b' : '#b45309';
+      }
+      cx.fillRect(3 + i * bw, h - 11 - bh, Math.max(1, bw - 1), bh);
+    }
+    cx.fillStyle = '#57657a';
+    cx.font = '9px ui-monospace,monospace';
+    cx.fillText('id 0', 3, h - 2);
+    cx.textAlign = 'right';
+    cx.fillText(`id ${V - 1} · max ${mx}`, w - 3, h - 2);
+    cx.textAlign = 'left';
+  }
+
+  /* the twin of drawFreq for the model's output: one bar per vocabulary id, so
+     the whole distribution shows and not just the ten rows above it. Once the
+     model is confident its probabilities span many decades, and a linear axis
+     would flatten everything but the winner onto the floor, so the bars run on a
+     log axis six decades deep with one faint gridline per decade. */
+  const PROB_DECADES = 6;
+  const PROB_FLOOR = 10 ** -PROB_DECADES;
+
+  function drawProbs(cv, probs, picked) {
+    const h = 62;
+    const { cx, w } = prepFluid(cv, h);
+    const padB = 12, padT = 4, ih = h - padT - padB;
+    const V = S.cfg.nVocab;
+    /* fraction of the plot a probability fills: 0 at the floor, 1 at certainty */
+    const bar = (p) => clamp(1 + Math.log10(Math.max(p, Number.MIN_VALUE)) / PROB_DECADES, 0, 1);
+
+    cx.fillStyle = '#080c12';
+    cx.fillRect(0, 0, w, h);
+    cx.font = '9px ui-monospace,monospace';
+
+    cx.strokeStyle = '#1b2431';
+    cx.lineWidth = 1;
+    cx.beginPath();
+    for (let i = 0; i <= PROB_DECADES; i++) {
+      const y = Math.round(padT + (ih * i) / PROB_DECADES) + 0.5;
+      cx.moveTo(0, y);
+      cx.lineTo(w, y);
+    }
+    cx.stroke();
+
+    const bw = w / V;
+    let mx = 0;
+    for (let i = 0; i < V; i++) {
+      const p = probs[i];
+      if (p > mx) mx = p;
+      const bh = bar(p) * ih;
+      if (bh < 0.5) continue;
+      /* ids that never occur in the corpus are barred from sampling, so they are
+         dimmed however much probability the model puts on them */
+      cx.fillStyle = i === picked ? '#fbbf24' : S.tok.counts[i] ? '#22d3ee' : '#57657a';
+      const x = Math.round(i * bw);
+      cx.fillRect(x, padT + ih - bh, Math.max(1, Math.round((i + 1) * bw) - x - 1), bh);
+    }
+
+    /* where every bar would sit if the model had learned nothing at all */
+    const uy = padT + ih - bar(1 / V) * ih;
+    cx.strokeStyle = 'rgba(248,113,113,.45)';
+    cx.setLineDash([3, 3]);
+    cx.beginPath();
+    cx.moveTo(0, uy);
+    cx.lineTo(w, uy);
+    cx.stroke();
+    cx.setLineDash([]);
+    cx.fillStyle = 'rgba(248,113,113,.7)';
+
+    cx.strokeStyle = '#1b2431';
+    cx.beginPath();
+    cx.moveTo(0, h - padB + 0.5);
+    cx.lineTo(w, h - padB + 0.5);
+    cx.stroke();
+    cx.fillStyle = '#57657a';
+    cx.fillText('id 0', 3, h - 2);
+    cx.textAlign = 'center';
+    cx.fillText(`log p · 1 → ${PROB_FLOOR.toExponential()}`, w / 2, h - 2);
+    cx.textAlign = 'right';
+    cx.fillText(`id ${V - 1} · max ${(mx * 100).toFixed(1)}%`, w - 3, h - 2);
+    cx.textAlign = 'left';
+
+    heatMeta.set(cv, {
+      data: probs, rows: 1, cols: V, stride: V, base: 0, cell: bw, cellH: h,
+      describe: (_i, j, p) => {
+        const pct = p < 1e-4 ? `${(p * 100).toExponential(2)}%` : `${(p * 100).toFixed(2)}%`;
+        const note = S.tok.counts[j] ? '' : '\nnot in the corpus — never sampled';
+        return `token ${j}  ${tokDisp(S.tok.vocab[j])}\np = ${pct}${note}`;
+      }
     });
   }
 
-  /* the parameter map is redrawn on every training frame, so its click
-     handler is registered once here and reads the geometry back out of the
-     heatmap metadata the last redraw left behind */
-  $('#paramMap').addEventListener('click', (ev) => {
-    const cv = ev.currentTarget, H = heatMeta.get(cv);
-    if (!H) return;
-    const r = cv.getBoundingClientRect();
-    const idx = Math.floor((ev.clientY - r.top) / H.cellH) * H.cols
-              + Math.floor((ev.clientX - r.left) / H.cell);
-    const hit = paramAt(idx);
-    if (hit) selectTensor(hit.p.name);
-  });
+  /* ----- tooltip ----- */
+  let tipEl = null;
 
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
-      drawTensor();
-      drawFreq($('#freqChart'), S.tok);
-      redrawTF();
-      if (S.lastDist) drawProbs($('#probChart'), S.lastDist, S.lastPick);
-    }, 180);
-  });
-}
+  function initTip() {
+    tipEl = $('#tip');
+    document.addEventListener('mousemove', (ev) => {
+      const cv = ev.target;
+      const H = heatMeta.get(cv);
+      if (!H) { 
+        tipEl.classList.remove('on');
+        return;
+      }
+      const r = cv.getBoundingClientRect();
+      const cj = Math.floor((ev.clientX - r.left) / H.cell);
+      const ci = Math.floor((ev.clientY - r.top) / H.cellH);
+      if (ci < 0 || ci >= H.rows || cj < 0 || cj >= H.cols) { 
+        tipEl.classList.remove('on');
+        return;
+      }
+      const v = H.data[H.base + ci * H.stride + cj];
+      let txt;
+      if (H.describe) {
+        txt = H.describe(ci, cj, v);
+      } else {
+        const lines = [];
+        if (H.name) {
+          lines.push(H.name);
+        }
+        const rl = H.rowLab ? H.rowLab(ci) : `row ${ci}`;
+        const cl = H.colLab ? H.colLab(cj) : `col ${cj}`;
+        lines.push(`${rl}   ×   ${cl}`);
+        lines.push(`= ${Math.abs(v) < 1e-4 && v !== 0 ? v.toExponential(2) : v.toFixed(5)}${H.unit || ''}`);
+        txt = lines.join('\n');
+      }
+      tipEl.textContent = txt;
+      tipEl.classList.add('on');
+      const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+      let x = ev.clientX + 14, y = ev.clientY + 14;
+      if (x + tw > window.innerWidth - 6) x = ev.clientX - tw - 12;
+      if (y + th > window.innerHeight - 6) y = ev.clientY - th - 12;
+      tipEl.style.left = `${x}px`;
+      tipEl.style.top = `${y}px`;
+    }, { passive: true });
+  }
 
-/* ====================================================================== */
-/*  boot                                                                  */
-/* ====================================================================== */
+  /* ====================================================================== */
+  /*  application state                                                     */
+  /* ====================================================================== */
 
-function boot(){
-  initTip();
-  $('#trainText').value = DEFAULT_CORPUS;
-  writeCfg(S.cfg);
-  wire();
-  drawRampLegend($('#legDiv'));
-  rebuildAll(false);
-  requestAnimationFrame(redrawTF);   /* that first pass drew before layout */
-  selectTensor('wte');
-  window.slm = { S, gradCheck, GPT, paramCount: GPT.paramCount };
-}
+  const S = {
+    cfg: { ...DEFAULT_CFG },
+    tok: new Tokenizer(),
+    model: null,
+    data: null,
+    corpus: '',
+    training: false,
+    step: 0,
+    tokensSeen: 0,
+    sps: 0,
+    raw: [],
+    ema: [],
+    emaV: null,
+    lr: 0.02,
+    batch: 30,
+    wd: 0.001,
+    temp: 0.85,
+    topk: 10, maxNew: 140,
+    genTokens: [],
+    promptLen: 0,
+    generating: false,
+    genLeft: 0,
+    lastDist: null,
+    lastPick: -1,
+    wbMode: 'value',
+    wbSel: 'wte',
+    detail: true,
+    live: true,
+    inBuf: null,
+    tgtBuf: null,
+    vizLabel: '',
+    frame: 0,
+    lastSample: -1
+  };
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-else boot();
+  const TENSOR_HUES = {
+    emb: '#22d3ee',
+    w: '#a78bfa',
+    wproj: '#f472b6',
+    b: '#4ade80',
+    lng: '#fbbf24',
+    lnb: '#fb923c'
+  };
 
-// DOWNLOADLINKSTART
-// This code is removed in the downloaded html file.
-if (window.location.protocol === 'https:') {
-  const bannerpanel = document.getElementById('banner');
-  const bannerpaneldownloadlink = document.createElement('div');
-  Object.assign(bannerpaneldownloadlink.style, {
-    display: 'inline-block',
-    position: 'relative',
-    marginLeft: '60px',
-    width: '40px',
-    height: '40px'
-  });
-  bannerpanel.appendChild(bannerpaneldownloadlink);
-  const downloadlink = document.createElement('div');
-  downloadlink.title = 'Download html file with all the code, if you want to run it offline and tinker with the code.';
-  Object.assign(downloadlink.style, {
-    position: 'absolute',
-    left: '8px',
-    top: '8px',
-    width: '24px',
-    height: '24px',
-    cursor: 'pointer'
-  });
-  bannerpaneldownloadlink.appendChild(downloadlink);
-  const downloadlink_svg = document.createElement('div');
-  Object.assign(downloadlink_svg.style, {
-    position: 'absolute',
-    left: '0px',
-    top: '0px',
-    width: '24px',
-    height: '24px',
-    cursor: 'pointer'
-  });
-  downloadlink_svg.innerHTML = `
+  /* ====================================================================== */
+  /*  tokenization section                                                  */
+  /* ====================================================================== */
+
+  function chipFor(id, extraCls) {
+    const { tok } = S, s = tok.vocab[id];
+    let cls = 'chip';
+    if (id === 0) {
+      cls += ' unk';
+    } else if (s === '') {
+      cls += ' unused';
+    } else if (id < tok.baseSize) {
+      cls += ' base';
+    } else {
+      cls += ' merged';
+    }
+    if (extraCls) {
+      cls += ` ${extraCls}`;
+    }
+    const c = el('div', cls);
+    c.append(el('span', 'id', String(id)), el('span', 't', tokDisp(s)));
+    return c;
+  }
+
+  function renderTokenizer() {
+    const { tok } = S;
+    $('#tokVocabMeta').textContent =
+      `${tok.vocab.length} ids · ${tok.baseSize - 1} chars + ${tok.merges.length} merges` +
+      (tok.unused ? ` + ${tok.unused} unused` : '');
+
+    const list = $('#vocabList');
+    list.innerHTML = '';
+    for (let i = 0; i < tok.vocab.length; i++) {
+      const c = chipFor(i);
+      c.title = `id ${i}  ·  seen ${tok.counts[i]}× in corpus`;
+      list.appendChild(c);
+    }
+
+    const ml = $('#mergeList');
+    ml.innerHTML = '';
+    $('#tokMergeMeta').textContent = `${tok.merges.length} rules, applied in order`;
+    tok.merges.forEach((m, i) => {
+      const r = el('div', 'merge');
+      r.append(
+        el('span', 'r', String(i + 1)),
+        el('span', 'a', tokDisp(tok.vocab[m.a])),
+        el('span', '', '+'),
+        el('span', 'b', tokDisp(tok.vocab[m.b])),
+        el('span', '', '→'),
+        el('span', 'n', tokDisp(tok.vocab[m.id])),
+        el('span', 'c', `${m.count}×`)
+      );
+      ml.appendChild(r);
+    });
+    if (!tok.merges.length) {
+      ml.appendChild(el('div', 'note', 'no repeated pairs left to merge'));
+    }
+
+    drawFreq($('#freqChart'), tok);
+  }
+
+  function renderEncoded() {
+    const ids = S.tok.encode($('#promptText').value);
+    const box = $('#encPreview');
+    box.innerHTML = '';
+    for (const id of ids.slice(-S.cfg.nCtx * 2)) {
+      box.appendChild(chipFor(id));
+    }
+    const cut = ids.length > S.cfg.nCtx;
+    $('#tokEncMeta').textContent =
+      `${ids.length} tokens` + (cut ? ` · last ${S.cfg.nCtx} fed to the model` : '');
+    return ids;
+  }
+
+  /* ====================================================================== */
+  /*  weights & biases panel                                                */
+  /* ====================================================================== */
+
+  let paramBufCache = null;   /* every parameter laid end to end, for the map */
+  let paramGrid = null;       /* that buffer padded out to a square           */
+
+  function paramBuf() {
+    const m = S.model;
+    if (!paramBufCache || paramBufCache.length !== m.nParams) {
+      paramBufCache = F32(m.nParams);
+    }
+    const src = S.wbMode === 'grad' ? 'grad' : 'data';
+    for (const p of m.params) {
+      paramBufCache.set(p[src], p.offset);
+    }
+    return paramBufCache;
+  }
+
+  function paramAt(idx) {
+    for (const p of S.model.params) {
+      if (idx >= p.offset && idx < p.offset + p.n) {
+        return { p, local: idx - p.offset };
+      }
+    }
+    return null;
+  }
+
+  function drawParamMap() {
+    const m = S.model, cv = $('#paramMap');
+    const n = m.nParams;
+    const side = Math.ceil(Math.sqrt(n));
+    const buf = paramBuf();
+    if (!paramGrid || paramGrid.length !== side * side) {
+      paramGrid = F32(side * side);
+    }
+    paramGrid.fill(0);
+    paramGrid.set(buf.subarray(0, n), 0);
+
+    const cell = clamp(Math.floor(316 / side), 1, 8);
+    const scale = robustMax(buf, n);
+    drawHeat(cv, paramGrid, side, side, {
+      cell, max: scale,
+      name: S.wbMode === 'grad' ? 'gradient map' : 'parameter map'
+    });
+
+    heatMeta.get(cv).describe = (i, j) => {
+      const idx = i * side + j;
+      if (idx >= n) return '(padding)';
+      const { p, local } = paramAt(idx);
+      const where = p.shape.length === 2
+        ? `${p.name}[${Math.floor(local / p.shape[1])},${local % p.shape[1]}]`
+        : `${p.name}[${local}]`;
+      return `${where}\n#${idx} of ${n}\n= ${buf[idx].toFixed(6)}` + (S.wbMode === 'grad' ? '  (gradient)' : '');
+    };
+
+    const stat = statsOf(buf, n);
+    $('#wbMeta').textContent =
+      `μ ${fmt(stat.mean, 3)}  σ ${fmt(stat.std, 3)}  max ${fmt(stat.amax, 3)}  scale ±${fmt(scale, 3)}`;
+    $('#wCount').textContent = `${commas(n)} parameters`;
+  }
+
+  /* colour scale that ignores a handful of outliers — without it the layernorm
+     gains (all exactly 1.0) set the scale and every real weight renders nearly
+     black */
+  function robustMax(a, n) {
+    const st = statsOf(a, n);
+    let s = Math.abs(st.mean) + 3 * st.std;
+    if (!(s > 1e-9)) {
+      s = st.amax;
+    }
+    return Math.max(1e-9, Math.min(st.amax, s));
+  }
+
+  function statsOf(a, n) {
+    let mean = 0, amax = 0;
+    for (let i = 0; i < n; i++) {
+      mean += a[i];
+      const t = Math.abs(a[i]);
+      if (t > amax) {
+        amax = t;
+      }
+    }
+    mean /= n || 1;
+    let v = 0;
+    for (let i = 0; i < n; i++) {
+      const dd = a[i] - mean;
+      v += dd * dd;
+    }
+    return { mean, std: Math.sqrt(v / (n || 1)), amax };
+  }
+
+  function renderTensorList() {
+    const box = $('#tensorList');
+    box.innerHTML = '';
+    for (const p of S.model.params) {
+      const r = el('div', `tr${p.name === S.wbSel ? ' on' : ''}`);
+      const dot = el('div', 'dot');
+      dot.style.background = TENSOR_HUES[p.role] || '#7e8da3';
+      r.append(dot, el('div', 'nm', p.name), el('div', 'sh', p.shape.join('×')),
+        el('div', 'ct', commas(p.n)));
+      r.addEventListener('click', () => selectTensor(p.name));
+      box.appendChild(r);
+    }
+  }
+
+  function selectTensor(name) {
+    S.wbSel = name;
+    renderTensorList();
+    drawTensor();
+  }
+
+  function drawTensor() {
+    const m = S.model;
+    let p = m.P[S.wbSel];
+    if (!p) {
+      p = m.params[0];
+      S.wbSel = p.name;
+    }
+    const src = S.wbMode === 'grad' ? p.grad : p.data;
+    const twoD = p.shape.length === 2;
+    const rows = twoD ? p.shape[0] : 1;
+    const cols = twoD ? p.shape[1] : p.shape[0];
+
+    const cell = clamp(Math.floor(330 / cols), 3, 12);
+    const cellH = twoD ? clamp(Math.floor(240 / rows), 3, 12) : 14;
+
+    const { tok } = S;
+    let rowLab;
+    if (p.name === 'wte') {
+      rowLab = (i) => `token ${i}  ${tokDisp(tok.vocab[i])}`;
+    } else if (p.name === 'wpe') {
+      rowLab = (i) => `position ${i}`;
+    } else {
+      rowLab = (i) => `in ${i}`;
+    }
+    const colLab = (j) => `${twoD ? 'out ' : 'idx '}${j}`;
+
+    drawHeat($('#tensorMap'), src, rows, cols, {
+      cell, cellH, max: robustMax(src, p.n),
+      name: `${p.name}  [${p.shape.join('×')}]`,
+      rowLab, colLab
+    });
+
+    const st = statsOf(src, p.n);
+    $('#selMeta').textContent = `${p.name} · ${commas(p.n)} values · σ ${fmt(st.std, 4)}`;
+    drawHist($('#histChart'), src, p.n,
+      `${S.wbMode === 'grad' ? 'gradients of ' : 'values of '}${p.name}`);
+  }
+
+  function renderWeights() {
+    drawParamMap();
+    drawTensor();
+  }
+
+  /* ====================================================================== */
+  /*  transformer panel                                                     */
+  /* ====================================================================== */
+
+  function stage(parent, title, sub, expl, cls, noBody) {
+    const s = el('div', `stage${cls ? ` ${cls}` : ''}`);
+    const h = el('div', 'stage-h');
+    h.appendChild(el('span', 'stage-t', title));
+    if (sub) {
+      h.appendChild(el('span', 'stage-s', sub));
+    }
+    s.appendChild(h);
+    if (expl) {
+      s.appendChild(el('div', 'stage-x', expl));
+    }
+    let body = null;
+    if (!noBody) {
+      body = el('div', 'hrow');
+      s.appendChild(body);
+    }
+    parent.appendChild(s);
+    return { el: s, body };
+  }
+
+  /* a labelled heatmap slot: caption above, canvas, size caption below */
+  function hm(parent, label, det) {
+    const w = el('div', `hm${det ? ' det' : ''}`);
+    const l = el('div', 'hm-l');
+    l.innerHTML = label;
+    const cv = document.createElement('canvas');
+    const sub = el('div', 'hm-s', '');
+    w.append(l, cv, sub);
+    parent.appendChild(w);
+    subLabel.set(cv, sub);
+    return cv;
+  }
+
+  function setSub(cv, text) {
+    const sub = subLabel.get(cv);
+    if (sub) sub.textContent = text;
+  }
+
+  function opsym(parent, sym, det) {
+    parent.appendChild(el('div', `opsym${det ? ' det' : ''}`, sym));
+  }
+
+  let TF = null;
+  /* the pass currently on screen, kept so the flow can be drawn again at a new
+     map size — the maps are sized from the panel's measured width, and the
+     browser only knows that width once it has laid the page out */
+  let tfView = null;
+
+  function buildTF() {
+    const root = $('#tfFlow');
+    root.innerHTML = '';
+    const c = S.cfg;
+    TF = { blocks: [] };
+    tfView = null;
+
+    const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
+      'The highlighted token is the last one; ' +
+      'the prediction for what comes next is read off that position.');
+    TF.tokRow = el('div', 'chips');
+    s0.body.appendChild(TF.tokRow);
+
+    const s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
+      'Each id indexes a row of the token-embedding table; a learned position vector is added on top. ' +
+      `The result is the residual stream: one row per position, ${c.nEmbd} channels wide.`);
+    TF.tokEmb = hm(s1.body, 'token emb');
+    opsym(s1.body, '+');
+    TF.posEmb = hm(s1.body, 'position emb');
+    opsym(s1.body, '=');
+    TF.x0 = hm(s1.body, 'x&#8320; stream');
+
+    for (let l = 0; l < c.nLayer; l++) {
+      const B = { att: [] };
+      const sb = stage(root, `${l + 2} · block ${l}`,
+        `${c.nHead} heads · head dim ${c.nEmbd / c.nHead} · d_ff ${c.nFF}`, null, 'blk', true);
+      const wrap = el('div', 'tfflow');
+      sb.el.appendChild(wrap);
+
+      /* ---- attention ---- */
+      const sa = el('div', 'substage');
+      wrap.appendChild(sa);
+      sa.appendChild(el('div', 'substage-t', 'a · causal self-attention'));
+      sa.appendChild(el('div', 'stage-x',
+        'Every position projects its normalised stream into a query, a key and a value. ' +
+        'Each query is dotted with the keys of all positions up to and including itself; ' +
+        'softmax turns those scores into mixing weights, and the values are blended accordingly.'));
+      const r1 = el('div', 'hrow');
+      sa.appendChild(r1);
+      B.ln1 = hm(r1, 'layernorm', true);
+      opsym(r1, '→', true);
+      B.q = hm(r1, 'Q = ln·W<sub>q</sub>', true);
+      B.k = hm(r1, 'K = ln·W<sub>k</sub>', true);
+      B.v = hm(r1, 'V = ln·W<sub>v</sub>', true);
+      const r2 = el('div', 'hrow');
+      sa.appendChild(r2);
+      for (let h = 0; h < c.nHead; h++) {
+        B.att.push(hm(r2, `head ${h} attention`));
+      }
+      const r3 = el('div', 'hrow');
+      sa.appendChild(r3);
+      B.ao = hm(r3, 'blended values', true);
+      opsym(r3, '→', true);
+      B.attnOut = hm(r3, 'W<sub>o</sub> out', true);
+      opsym(r3, '+');
+      B.xres1 = hm(r3, 'x <span class="op">+ attn</span>');
+
+      /* ---- mlp ---- */
+      const sm = el('div', 'substage');
+      wrap.appendChild(sm);
+      sm.appendChild(el('div', 'substage-t', 'b · feed-forward network'));
+      sm.appendChild(el('div', 'stage-x',
+        `Each position is processed on its own: expand to ${c.nFF} channels, apply GELU, ` +
+        'project back, add to the stream. This is where most of the ' +
+        'per-token knowledge is stored.'));
+      const r4 = el('div', 'hrow');
+      sm.appendChild(r4);
+      B.ln2 = hm(r4, 'layernorm', true);
+      opsym(r4, '→', true);
+      B.hpre = hm(r4, 'hidden (pre)', true);
+      B.hact = hm(r4, 'GELU');
+      opsym(r4, '→', true);
+      B.mlpOut = hm(r4, 'W<sub>2</sub> out', true);
+      opsym(r4, '+');
+      B.xout = hm(r4, 'x <span class="op">+ mlp</span>');
+
+      TF.blocks.push(B);
+    }
+
+    const s2 = stage(root, `${c.nLayer + 2} · output head`, 'logits = lnf(x) · wteᵀ',
+      'The stream is normalised once more and compared against every token embedding — the output ' +
+      'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
+      'last row gives the next-token distribution shown in the output panel.');
+    TF.lnf = hm(s2.body, 'final layernorm', true);
+    opsym(s2.body, '→', true);
+    TF.logits = hm(s2.body, 'logits');
+    opsym(s2.body, '→');
+    TF.probs = hm(s2.body, 'softmax probabilities');
+
+    root.classList.toggle('compact', !S.detail);
+    $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
+  }
+
+  function renderTF(C, label) {
+    if (!TF || !S.model) return;
+    const c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
+    if (n <= 0) return;
+    tfView = { C, label };
+
+    $('#tfMeta').textContent = label;
+
+    TF.tokRow.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
+    }
+
+    /* one square cell for every map in the flow, so a value covers the same
+       area wherever it appears and maps standing side by side line up. Five
+       pixels is the ceiling; the cell only drops below it when the widest tensor
+       of this architecture would otherwise not fit the panel. */
+    const flowW = Math.max(300, ($('#tfFlow').clientWidth || 440) - 30);
+    const cell = clamp(Math.floor(flowW / Math.max(d, hf, V, n)), 2, 5);
+
+    const pos = (i) => `pos ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`;
+    const dim = (j) => `channel ${j}`;
+    const ffd = (j) => `neuron ${j}`;
+    const voc = (j) => `token ${j}  ${tokDisp(S.tok.vocab[j])}`;
+
+    const res = (cv, data, cols, colLab, name) => {
+      drawHeat(cv, data, n, cols, { cell, rowLab: pos, colLab, name });
+      setSub(cv, `${n}×${cols}`);
+    };
+
+    res(TF.tokEmb, C.tokEmb, d, dim, 'token embedding');
+    res(TF.posEmb, C.posEmb, d, dim, 'position embedding');
+    res(TF.x0, C.x0, d, dim, 'residual stream x0');
+
+    for (let l = 0; l < c.nLayer; l++) {
+      const B = C.blocks[l], G = TF.blocks[l];
+      res(G.ln1, B.ln1.out, d, dim, `block ${l} · ln1`);
+      res(G.q, B.q, d, dim, `block ${l} · Q`);
+      res(G.k, B.k, d, dim, `block ${l} · K`);
+      res(G.v, B.v, d, dim, `block ${l} · V`);
+      for (let h = 0; h < H; h++) {
+        drawHeat(G.att[h], B.att, n, n, {
+          cell, stride: T, offset: h * T * T, mode: 'seq', max: 1,
+          rowLab: (i) => `query ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`,
+          colLab: (j) => `key   ${j}  ${tokDisp(S.tok.vocab[C.tokens[j]])}`,
+          name: `block ${l} · head ${h} attention`
+        });
+        setSub(G.att[h], `${n}×${n} (masked)`);
+      }
+      res(G.ao, B.ao, d, dim, `block ${l} · blended values`);
+      res(G.attnOut, B.attnOut, d, dim, `block ${l} · attention output`);
+      res(G.xres1, B.xres1, d, dim, `block ${l} · stream after attention`);
+      res(G.ln2, B.ln2.out, d, dim, `block ${l} · ln2`);
+      res(G.hpre, B.hpre, hf, ffd, `block ${l} · mlp pre-activation`);
+      res(G.hact, B.hact, hf, ffd, `block ${l} · mlp after GELU`);
+      res(G.mlpOut, B.mlpOut, d, dim, `block ${l} · mlp output`);
+      res(G.xout, B.xout, d, dim, `block ${l} · stream after mlp`);
+    }
+    res(TF.lnf, C.lnf.out, d, dim, 'final layernorm');
+    res(TF.logits, C.logits, V, voc, 'logits');
+    drawHeat(TF.probs, C.probs, n, V, {
+      cell, rowLab: pos, colLab: voc,
+      mode: 'seq', max: 1, name: 'softmax probabilities', hiRow: n - 1
+    });
+    setSub(TF.probs, `${n}×${V} · last row = prediction`);
+  }
+
+  function redrawTF() {
+    if (tfView) renderTF(tfView.C, tfView.label);
+  }
+
+  /* ====================================================================== */
+  /*  output panel                                                          */
+  /* ====================================================================== */
+
+  function renderDist(probs, picked) {
+    const box = $('#distBars');
+    box.innerHTML = '';
+    const V = S.cfg.nVocab;
+    const idx = Array.from({ length: V }, (_, i) => i);
+    idx.sort((a, b) => probs[b] - probs[a]);
+    const K = Math.min(10, V);
+    /* scale against the top probability, but never against less than 25%, so a
+       flat distribution still looks flat */
+    const top = Math.max(probs[idx[0]], 0.25);
+    for (let r = 0; r < K; r++) {
+      const id = idx[r], p = probs[id];
+      const row = el('div', `bar${id === picked ? ' sel' : ''}`);
+      row.appendChild(el('div', 't', (id === picked ? '▸' : ' ') + tokDisp(S.tok.vocab[id])));
+      const tr = el('div', 'track'), f = el('div', 'fill');
+      f.style.width = `${clamp((p / top) * 100, 0, 100).toFixed(1)}%`;
+      tr.appendChild(f);
+      row.append(tr, el('div', 'p', `${(p * 100).toFixed(1)}%`));
+      box.appendChild(row);
+    }
+    /* the chart keeps its own copy: a resize redraws it long after the forward
+       pass that produced these numbers has been overwritten */
+    S.lastDist = Float32Array.from(probs);
+    S.lastPick = picked;
+    drawProbs($('#probChart'), S.lastDist, picked);
+
+    let ent = 0;
+    for (let i = 0; i < V; i++) {
+      if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
+    }
+    $('#distMeta').textContent = `entropy ${fmt(ent, 2)} nats · ` + (picked >= 0 ? `sampled "${tokDisp(S.tok.vocab[picked])}"` : `top ${K} of ${V}`);
+  }
+
+  function renderOutput() {
+    const out = $('#outText');
+    out.innerHTML = '';
+    const pTxt = S.tok.decode(S.genTokens.slice(0, S.promptLen));
+    const gTxt = S.tok.decode(S.genTokens.slice(S.promptLen));
+    out.append(el('span', 'p', pTxt), el('span', 'g', gTxt));
+    out.scrollTop = out.scrollHeight;
+    $('#outCount').textContent =
+      `${S.genTokens.length - S.promptLen} generated · ${S.genTokens.length} total`;
+    const chips = $('#outChips');
+    chips.innerHTML = '';
+    const start = Math.max(0, S.genTokens.length - 36);
+    for (let i = start; i < S.genTokens.length; i++) {
+      chips.appendChild(chipFor(S.genTokens[i], i >= S.promptLen ? 'gen' : ''));
+    }
+  }
+
+  /* ====================================================================== */
+  /*  sampling & generation                                                 */
+  /* ====================================================================== */
+
+  /* tokens the model is allowed to emit: everything that actually occurs in the
+     corpus. Rebuilt only when the tokenizer changes. */
+  let allowedCache = null;
+
+  function allowedIds() {
+    const tag = `${S.tok.vocab.length}:${S.tok.merges.length}`;
+    if (allowedCache && allowedCache.tag === tag) return allowedCache.list;
+    const list = [];
+    for (let i = 0; i < S.tok.vocab.length; i++) {
+      if (S.tok.counts[i] > 0) list.push(i);
+    }
+    if (!list.length) {
+      for (let i = 1; i < S.tok.vocab.length; i++) {
+        list.push(i);
+      }
+    }
+    allowedCache = { tag, list };
+    return list;
+  }
+
+  function sampleFrom(probs, temp, k) {
+    const ids = [...allowedIds()].sort((a, b) => probs[b] - probs[a]);
+    if (temp <= 0.02) return ids[0];
+    const K = Math.min(k, ids.length);
+    const w = new Float64Array(K);
+    let sum = 0;
+    for (let i = 0; i < K; i++) {
+      w[i] = Math.max(probs[ids[i]], 1e-12) ** (1 / temp);
+      sum += w[i];
+    }
+    const r = rand() * sum;
+    let acc = 0;
+    for (let i = 0; i < K; i++) {
+      acc += w[i];
+      if (r <= acc) {
+        return ids[i];
+      }
+    }
+    return ids[K - 1];
+  }
+
+  function resetGen() {
+    let ids = S.tok.encode($('#promptText').value);
+    if (!ids.length && S.data && S.data.length) {
+      ids = [S.data[0]];
+    }
+    S.genTokens = ids.slice();
+    S.promptLen = ids.length;
+    renderOutput();
+  }
+
+  function genOne() {
+    const m = S.model, c = S.cfg;
+    if (!S.genTokens.length) return false;
+    const ctx = S.genTokens.slice(-c.nCtx), n = ctx.length;
+    m.forward(ctx, n, m.cacheViz);
+    const probs = m.cacheViz.probs.subarray((n - 1) * c.nVocab, n * c.nVocab);
+    const id = sampleFrom(probs, S.temp, S.topk);
+    S.genTokens.push(id);
+    renderTF(m.cacheViz, `generating · token ${S.genTokens.length - S.promptLen}`);
+    renderDist(probs, id);
+    renderOutput();
+    return true;
+  }
+
+  let genTimer = null;
+
+  /* the button both starts and stops the run, so its label says what the next
+     click will do while .on keeps it lit for as long as the run is live */
+  function setGenBtn(on) {
+    const b = $('#btnGen');
+    b.textContent = on ? '■ stop' : '▶ generate';
+    b.classList.toggle('on', on);
+  }
+
+  function startGen() {
+    if (S.generating) {
+      stopGen();
+      return;
+    }
+    if (!S.genTokens.length) resetGen();
+    S.generating = true;
+    S.genLeft = S.maxNew;
+    setGenBtn(true);
+    tickGen();
+  }
+
+  function tickGen() {
+    if (!S.generating) return;
+    if (S.genLeft <= 0 || !genOne()) {
+      stopGen();
+      return;
+    }
+    S.genLeft--;
+    genTimer = setTimeout(tickGen, 60);
+  }
+
+  function stopGen() {
+    S.generating = false;
+    clearTimeout(genTimer);
+    setGenBtn(false);
+  }
+
+  function runPromptForward() {
+    const m = S.model, c = S.cfg;
+    if (!m) return;
+    let ids = S.tok.encode($('#promptText').value);
+    if (!ids.length) {
+      ids = [S.data?.length ? S.data[0] : 1];
+    }
+    const ctx = ids.slice(-c.nCtx);
+    m.forward(ctx, ctx.length, m.cacheViz);
+    const probs = m.cacheViz.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
+    renderTF(m.cacheViz, `prompt · ${ctx.length} tokens → predicting the next one`);
+    renderDist(probs, -1);
+  }
+
+  function refreshSample() {
+    const m = S.model, c = S.cfg;
+    let ids = S.tok.encode('the ');
+    if (!ids.length) {
+      ids = [S.data?.length ? S.data[0] : 1];
+    }
+    const out = ids.slice();
+    for (let i = 0; i < 100; i++) {
+      const ctx = out.slice(-c.nCtx);
+      m.forward(ctx, ctx.length, m.cacheAux);
+      const pr = m.cacheAux.probs.subarray((ctx.length - 1) * c.nVocab, ctx.length * c.nVocab);
+      out.push(sampleFrom(pr, 0.7, 8));
+    }
+    $('#sampleOut').textContent = S.tok.decode(out);
+  }
+
+  /* ====================================================================== */
+  /*  training                                                              */
+  /* ====================================================================== */
+
+  function lrAt(step) {
+    const base = S.lr, warm = 80;
+    if (step < warm) return base * (step + 1) / warm;
+    const p = Math.min(1, (step - warm) / 4000);
+    return base * (0.08 + 0.92 * 0.5 * (1 + Math.cos(Math.PI * p)));
+  }
+
+  function trainStep() {
+    const m = S.model, n = S.cfg.nCtx, B = S.batch, data = S.data;
+    const span = Math.max(1, data.length - n - 1);
+    m.zeroGrad();
+    const scale = 1 / (n * B);
+    let loss = 0;
+    for (let b = 0; b < B; b++) {
+      const st = randInt(span);
+      for (let i = 0; i < n; i++) {
+        S.inBuf[i] = data[(st + i) % data.length];
+        S.tgtBuf[i] = data[(st + i + 1) % data.length];
+      }
+      m.forward(S.inBuf, n, m.cacheTrain);
+      loss += m.backward(S.tgtBuf, n, m.cacheTrain, scale);
+    }
+    m.step(lrAt(S.step), S.wd);
+    S.step++;
+    S.tokensSeen += n * B;
+    return loss / (n * B);
+  }
+
+  /* run one small batch backward so the gradient view has something to show
+     before training has ever been started */
+  function primeGrads() {
+    const m = S.model, n = S.cfg.nCtx, B = Math.min(4, S.batch), data = S.data;
+    const span = Math.max(1, data.length - n - 1), scale = 1 / (n * B);
+    m.zeroGrad();
+    for (let b = 0; b < B; b++) {
+      const st = randInt(span);
+      for (let i = 0; i < n; i++) {
+        S.inBuf[i] = data[(st + i) % data.length];
+        S.tgtBuf[i] = data[(st + i + 1) % data.length];
+      }
+      m.forward(S.inBuf, n, m.cacheTrain);
+      m.backward(S.tgtBuf, n, m.cacheTrain, scale);
+    }
+    let sq = 0;
+    for (const p of m.params) {
+      for (let j = 0; j < p.n; j++) {
+        sq += p.grad[j] * p.grad[j];
+      }
+    }
+    m.gradNorm = Math.sqrt(sq);
+  }
+
+  function randomLoss() {
+    return Math.log(Math.max(2, allowedIds().length));
+  }
+
+  function updateStats(loss) {
+    $('#pStep').textContent = commas(S.step);
+    $('#pLoss').textContent = fmt(loss, 3);
+    $('#pSps').textContent = commas(S.sps);
+    $('#sLoss').textContent = fmt(loss, 4);
+    $('#sPpl').textContent = fmt(Math.exp(loss), 2);
+    $('#sGn').textContent = fmt(S.model.gradNorm, 3);
+    $('#sSeen').textContent = commas(S.tokensSeen);
+  }
+
+  /* a rebuild pauses training and starts it again, so a frame still sitting in
+     the timer queue from the run before it has to recognise itself as stale
+     instead of looping on alongside the new one */
+  let trainRun = 0;
+
+  function trainFrame(run) {
+    if (!S.training || run !== trainRun) return;
+    const t0 = performance.now();
+    let k = 0, acc = 0;
+    /* always take at least one step, and never hog the thread for a whole batch
+       of them, whatever the clock does */
+    do { 
+      acc += trainStep();
+      k++;
+    } while (k < 512 && performance.now() - t0 < 22);
+    const dt = (performance.now() - t0) / 1000;
+    S.sps = Math.round(k / Math.max(dt, 1e-6));
+    const loss = acc / k;
+
+    S.raw.push(loss);
+    S.emaV = (S.emaV === null) ? loss : S.emaV * 0.88 + loss * 0.12;
+    S.ema.push(S.emaV);
+    if (S.raw.length > 900) {
+      const everyOther = (_, i) => i % 2 === 0;
+      S.raw = S.raw.filter(everyOther);
+      S.ema = S.ema.filter(everyOther);
+    }
+    updateStats(loss);
+    drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+
+    if (S.live) {
+      drawParamMap();
+      if (S.frame % 2 === 0) {
+        drawTensor();
+      }
+      if (S.frame % 3 === 0 && !S.generating) {
+        runPromptForward();
+      }
+    }
+    if (S.step - S.lastSample >= 200) {
+      S.lastSample = S.step;
+      refreshSample();
+    }
+
+    S.frame++;
+    /* a timeout keeps the run alive in a background tab, where requestAnimationFrame
+       would be suspended; the yield also keeps the page responsive */
+    setTimeout(trainFrame, 0, run);
+  }
+
+  function setTrainBtn(on) {
+    const b = $('#btnTrain');
+    b.textContent = on ? '❚❚ pause' : '▶ train';
+    b.classList.toggle('on', on);
+  }
+
+  function toggleTrain() {
+    S.training = !S.training;
+    const run = ++trainRun;
+    setTrainBtn(S.training);
+    if (S.training) setTimeout(trainFrame, 0, run);
+  }
+
+  /* ====================================================================== */
+  /*  build / rebuild                                                       */
+  /* ====================================================================== */
+
+  function readCfg() {
+    const num = (sel, dflt, lo, hi) => clamp(parseInt($(sel).value, 10) || dflt, lo, hi);
+    return {
+      nEmbd: num('#cfgD', 22, 4, 64),
+      nLayer: num('#cfgL', 2, 1, 4),
+      nHead: num('#cfgH', 2, 1, 8),
+      nFF: num('#cfgF', 50, 4, 160),
+      nCtx: num('#cfgT', 30, 4, 48),
+      nVocab: num('#cfgV', DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX)
+    };
+  }
+
+  const cfgValid = (c) => c.nEmbd % c.nHead === 0;
+
+  function writeCfg(c) {
+    $('#cfgD').value = c.nEmbd;
+    $('#cfgL').value = c.nLayer;
+    $('#cfgH').value = c.nHead;
+    $('#cfgF').value = c.nFF;
+    $('#cfgT').value = c.nCtx;
+    setVocabUI(c.nVocab);
+  }
+
+  /* top-k picks from the vocabulary, so it can never usefully reach past the end
+     of it: its range follows the vocabulary size and a k left above the new size
+     is pulled down with it */
+  function setTopkRange(v) {
+    const f = $('#inTopk');
+    f.max = v;
+    const k = clamp(parseInt(f.value, 10) || 1, 1, v);
+    f.value = k;
+    S.topk = k;
+    $('#vTopk').textContent = k;
+  }
+
+  /* the vocabulary size is edited from two places — the slider in the
+     tokenization section and the number box in the architecture panel — and it
+     bounds top-k, so every write funnels through here. src names the control the
+     user is holding, which is left untouched so the mirror never fights it. */
+  function setVocabUI(v, src) {
+    v = clamp(parseInt(v, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
+    if (src !== 'slider') {
+      $('#inVocab').value = v;
+    }
+    if (src !== 'box') {
+      $('#cfgV').value = v;
+    }
+    $('#vVocab').textContent = v;
+    setTopkRange(v);
+    updateCfgCount();
+    return v;
+  }
+
+  function updateCfgCount() {
+    const c = readCfg(), box = $('#cfgCount');
+    if (!cfgValid(c)) {
+      box.textContent = `d_model ${c.nEmbd} is not divisible by ${c.nHead} heads`;
+      box.style.color = 'var(--bad)';
+      return;
+    }
+    const n = GPT.paramCount(c);
+    box.style.color = '';
+    box.textContent = `${commas(n)} parameters${n === 10000 ? '  ✦' : ''}`;
+  }
+
+  function updateHeader() {
+    const c = S.cfg;
+    $('#pParams').textContent = commas(S.model.nParams);
+    $('#pArch').textContent = `d${c.nEmbd}·${c.nLayer}L·${c.nHead}H·ff${c.nFF}`;
+    $('#pVocab').textContent = c.nVocab;
+    $('#pCtx').textContent = c.nCtx;
+    $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
+  }
+
+  function rebuildAll(keepText) {
+    stopGen();
+    clearTimeout(vocabTimer);
+    const wasTraining = S.training;
+    S.training = false;
+    setTrainBtn(false);
+    let text = $('#trainText').value;
+    if (text.length === 0) {
+      text = '0';
+    }
+    S.corpus = text;
+    S.tok.build(text, S.cfg.nVocab);
+    allowedCache = null;
+    let ids = [...S.tok.trainIds];
+    if (!ids.length) {
+      ids = [1];
+    }
+    while (ids.length < S.cfg.nCtx + 2) {
+      ids = ids.concat(ids);
+    }
+    S.data = Int32Array.from(ids);
+    S.model = new GPT(S.cfg);
+    S.inBuf = new Int32Array(S.cfg.nCtx);
+    S.tgtBuf = new Int32Array(S.cfg.nCtx);
+    S.step = 0;
+    S.tokensSeen = 0;
+    S.raw = [];
+    S.ema = [];
+    S.emaV = null;
+    S.lastSample = -1;
+    S.frame = 0;
+    S.sps = 0;
+    paramBufCache = null;
+    paramGrid = null;
+    if (!S.model.P[S.wbSel]) {
+      S.wbSel = 'wte';
+    }
+    $('#trainMeta').textContent = `${text.length} chars → ${S.tok.trainIds.length} tokens`;
+    $('#sampleOut').textContent = '';
+    buildTF();
+    renderTokenizer();
+    renderTensorList();
+    renderWeights();
+    renderEncoded();
+    resetGen();
+    runPromptForward();
+    updateHeader();
+    updateCfgCount();
+    updateStats(NaN);
+    $('#pLoss').textContent = '—';
+    drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+    if (wasTraining && keepText) {
+      toggleTrain();
+    }
+  }
+
+  function resetWeights() {
+    stopGen();
+    S.model.initWeights((Math.random() * 4294967295) >>> 0);
+    S.step = 0;
+    S.tokensSeen = 0;
+    S.raw = [];
+    S.ema = [];
+    S.emaV = null;
+    S.lastSample = -1;
+    $('#sampleOut').textContent = '';
+    renderWeights();
+    runPromptForward();
+    resetGen();
+    updateStats(NaN);
+    $('#pLoss').textContent = '—';
+    drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+    toast('weights re-initialised');
+  }
+
+  /* ====================================================================== */
+  /*  gradient check — verifies the hand-written backward pass              */
+  /* ====================================================================== */
+
+  /* Directional-derivative check: perturb a whole tensor along a random unit
+     direction v and compare (L(+e) − L(−e)) / 2e against grad · v. Averaging
+     over the tensor keeps the signal well above float32 rounding noise, which
+     a single-element check does not.                                        */
+  function gradCheck() {
+    const m = S.model, n = Math.min(8, S.cfg.nCtx);
+    const inp = new Int32Array(n), tgt = new Int32Array(n);
+    for (let i = 0; i < n; i++) {
+      inp[i] = S.data[i % S.data.length];
+      tgt[i] = S.data[(i + 1) % S.data.length];
+    }
+    m.zeroGrad();
+    m.forward(inp, n, m.cacheTrain);
+    m.backward(tgt, n, m.cacheTrain, 1 / n);
+
+    let worst = 0, worstName = '';
+    const lines = [];
+    for (const p of m.params) {
+      const v = new Float64Array(p.n);
+      let nrm = 0;
+      for (let i = 0; i < p.n; i++) {
+        v[i] = rand() * 2 - 1;
+        nrm += v[i] * v[i];
+      }
+      nrm = Math.sqrt(nrm) || 1;
+      let ana = 0;
+      for (let i = 0; i < p.n; i++) {
+        v[i] /= nrm;
+        ana += p.grad[i] * v[i];
+      }
+
+      const orig = Float32Array.from(p.data), eps = 1e-2;
+      for (let i = 0; i < p.n; i++) {
+        p.data[i] = orig[i] + eps * v[i];
+      }
+      const lp = m.lossOn(inp, tgt, n, m.cacheAux);
+      for (let i = 0; i < p.n; i++) {
+        p.data[i] = orig[i] - eps * v[i];
+      }
+      const lm = m.lossOn(inp, tgt, n, m.cacheAux);
+      p.data.set(orig);
+
+      const num = (lp - lm) / (2 * eps);
+      /* floor the denominator so near-zero derivatives are judged on absolute
+         error rather than on ratios of numerical noise */
+      const rel = Math.abs(num - ana) / Math.max(Math.abs(num) + Math.abs(ana), 1e-3);
+      lines.push(`${p.name.padEnd(14)} analytic ${ana.toExponential(4)}` +
+        `  numeric ${num.toExponential(4)}  err ${rel.toExponential(2)}`);
+      if (rel > worst) {
+        worst = rel;
+        worstName = p.name;
+      }
+    }
+    m.zeroGrad();
+    console.log(lines.join('\n'));
+    console.log(`worst error ${worst.toExponential(3)} at ${worstName}` +
+      (worst < 5e-3 ? '  — backward pass OK' : '  — CHECK FAILED'));
+    return worst;
+  }
+
+  /* ====================================================================== */
+  /*  wiring                                                                */
+  /* ====================================================================== */
+
+  let corpusTimer = null;
+  let promptTimer = null;
+  let resizeTimer = null;
+  let vocabTimer = null;
+
+  function applyCorpus() {
+    clearTimeout(corpusTimer);
+    //const text = $('#trainText').value;
+    //if (!text.trim().length || text === S.corpus) return;
+    rebuildAll(true);
+  }
+
+  function applyVocab() {
+    const v = clamp(parseInt($('#inVocab').value, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
+    if (v === S.cfg.nVocab) return;
+    S.cfg = { ...S.cfg, nVocab: v };
+    rebuildAll(true);
+  }
+
+  function wire() {
+    $('#btnTrain').addEventListener('click', toggleTrain);
+    $('#btnReset').addEventListener('click', resetWeights);
+
+    const trainText = $('#trainText');
+    trainText.addEventListener('input', () => {
+      clearTimeout(corpusTimer);
+      corpusTimer = setTimeout(applyCorpus, 400);
+    });
+    trainText.addEventListener('change', applyCorpus);
+
+    $('#btnRebuild').addEventListener('click', () => {
+      const c = readCfg();
+      if (!cfgValid(c)) {
+        toast(`d_model ${c.nEmbd} must be a multiple of ${c.nHead} heads`);
+        return;
+      }
+      S.cfg = c;
+      writeCfg(c);
+      rebuildAll(true);
+      toast(`${commas(GPT.paramCount(c))} parameters`);
+    });
+    for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT']) {
+      $(sel).addEventListener('input', updateCfgCount);
+    }
+
+    $('#cfgV').addEventListener('input', () => {
+      const v = parseInt($('#cfgV').value, 10);
+      if (v >= VOCAB_MIN && v <= VOCAB_MAX) {
+        setVocabUI(v, 'box');
+      } else {
+        updateCfgCount();
+      }
+    });
+    $('#cfgV').addEventListener('change', () => setVocabUI($('#cfgV').value));
+
+    $('#inVocab').addEventListener('input', () => {
+      setVocabUI($('#inVocab').value, 'slider');
+      clearTimeout(vocabTimer);
+      vocabTimer = setTimeout(applyVocab, 220);
+    });
+
+    const inLr = $('#inLr'), inBatch = $('#inBatch');
+    inLr.addEventListener('input', () => {
+      S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
+    });
+    inBatch.addEventListener('input', () => {
+      S.batch = clamp(parseInt(inBatch.value, 10) || 30, 1, 64);
+    });
+
+    const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
+    chkLive.addEventListener('change', () => { S.live = chkLive.checked; });
+    chkDetail.addEventListener('change', () => {
+      S.detail = chkDetail.checked;
+      $('#tfFlow').classList.toggle('compact', !S.detail);
+    });
+
+    $('#promptText').addEventListener('input', () => {
+      clearTimeout(promptTimer);
+      promptTimer = setTimeout(() => {
+        stopGen();
+        renderEncoded();
+        resetGen();
+        runPromptForward();
+      }, 200);
+    });
+
+    const slider = (sel, out, key, fixed) => {
+      const f = $(sel);
+      const sync = () => {
+        S[key] = parseFloat(f.value);
+        $(out).textContent = fixed ? S[key].toFixed(fixed) : S[key];
+      };
+      f.addEventListener('input', sync);
+      sync();
+    };
+    slider('#inTemp', '#vTemp', 'temp', 2);
+    slider('#inTopk', '#vTopk', 'topk', 0);
+    slider('#inMax', '#vMax', 'maxNew', 0);
+
+    $('#btnGen').addEventListener('click', startGen);
+    $('#btnStep').addEventListener('click', () => { stopGen(); genOne(); });
+    $('#btnClear').addEventListener('click', () => { stopGen(); resetGen(); runPromptForward(); });
+
+    const modeButtons = $$('#wbMode button');
+    for (const b of modeButtons) {
+      b.addEventListener('click', () => {
+        for (const x of modeButtons) {
+          x.classList.remove('on');
+        }
+        b.classList.add('on');
+        S.wbMode = b.dataset.m;
+        if (S.wbMode === 'grad' && !S.training && S.model.gradNorm === 0) {
+          primeGrads();
+        }
+        renderWeights();
+      });
+    }
+
+    /* the parameter map is redrawn on every training frame, so its click
+       handler is registered once here and reads the geometry back out of the
+       heatmap metadata the last redraw left behind */
+    $('#paramMap').addEventListener('click', (ev) => {
+      const cv = ev.currentTarget, H = heatMeta.get(cv);
+      if (!H) return;
+      const r = cv.getBoundingClientRect();
+      const idx = Math.floor((ev.clientY - r.top) / H.cellH) * H.cols
+        + Math.floor((ev.clientX - r.left) / H.cell);
+      const hit = paramAt(idx);
+      if (hit) selectTensor(hit.p.name);
+    });
+
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
+        drawTensor();
+        drawFreq($('#freqChart'), S.tok);
+        redrawTF();
+        if (S.lastDist) {
+          drawProbs($('#probChart'), S.lastDist, S.lastPick);
+        }
+      }, 180);
+    });
+  }
+
+  /* ====================================================================== */
+  /*  boot                                                                  */
+  /* ====================================================================== */
+
+  function boot() {
+    initTip();
+    $('#trainText').value = SAMPLE_CORPUS_1;
+    writeCfg(S.cfg);
+    wire();
+    drawRampLegend($('#legDiv'));
+    rebuildAll(false);
+    requestAnimationFrame(redrawTF);   /* that first pass drew before layout */
+    selectTensor('wte');
+    window.slm = { S, gradCheck, GPT, paramCount: GPT.paramCount };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  // DOWNLOADLINKSTART
+  // This code is removed in the downloaded html file.
+  if (window.location.protocol === 'https:') {
+    const bannerpanel = document.getElementById('banner');
+    const bannerpaneldownloadlink = document.createElement('div');
+    Object.assign(bannerpaneldownloadlink.style, {
+      display: 'inline-block',
+      position: 'relative',
+      marginLeft: '60px',
+      width: '40px',
+      height: '40px'
+    });
+    bannerpanel.appendChild(bannerpaneldownloadlink);
+    const downloadlink = document.createElement('div');
+    downloadlink.title = 'Download html file with all the code, if you want to run it offline and tinker with the code.';
+    Object.assign(downloadlink.style, {
+      position: 'absolute',
+      left: '8px',
+      top: '8px',
+      width: '24px',
+      height: '24px',
+      cursor: 'pointer'
+    });
+    bannerpaneldownloadlink.appendChild(downloadlink);
+    const downloadlink_svg = document.createElement('div');
+    Object.assign(downloadlink_svg.style, {
+      position: 'absolute',
+      left: '0px',
+      top: '0px',
+      width: '24px',
+      height: '24px',
+      cursor: 'pointer'
+    });
+    downloadlink_svg.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 24px; height: 24px;">
       <path fill="#ffffff" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
     </svg>
   `;
-  downloadlink.appendChild(downloadlink_svg);
-  let downloaded = false;
-  downloadlink.addEventListener('click', async () => {
-    if (downloaded) {
-      return;
-    }
-    downloaded = true;
-    downloadlink.title = '';
-    downloadlink.style.cursor = 'default';
-    downloadlink_svg.style.display = 'none';
-    try {
-      const response = await fetch(window.location.href);
-      let html = await response.text();
-      html = html.replace(/\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g, '');
-      const blob = new Blob([html], {type: 'text/html'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      a.href = url;
-      a.download = `slm_${dateYYYYMMDD}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-    }
-  });
-}
-// DOWNLOADLINKEND
+    downloadlink.appendChild(downloadlink_svg);
+    let downloaded = false;
+    downloadlink.addEventListener('click', async () => {
+      if (downloaded) {
+        return;
+      }
+      downloaded = true;
+      downloadlink.title = '';
+      downloadlink.style.cursor = 'default';
+      downloadlink_svg.style.display = 'none';
+      try {
+        const response = await fetch(window.location.href);
+        let html = await response.text();
+        html = html.replace(/\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g, '');
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        a.href = url;
+        a.download = `slm_${dateYYYYMMDD}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+      }
+    });
+  }
+  // DOWNLOADLINKEND
 </script>
 </body>
 </html>
