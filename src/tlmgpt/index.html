@@ -86,9 +86,6 @@ body{
         grid-template-rows:minmax(0,1.49fr) max-content minmax(0,2.07fr)}
   .panel{min-height:0}
   .pbody{flex:1 1 auto;max-height:none !important}
-  /* training & tokenization runs the full height of the dashboard: the loss
-     curve and the training sample split whatever slack the column has left,
-     and the body scrolls once the two sections together outgrow it */
   .a-train .cv-wrap.fill{flex:3 1 0;min-height:98px}
   .a-train #sampleOut{flex:1 1 0;min-height:80px}
 }
@@ -156,8 +153,6 @@ body{
 .tfflow > *{flex:0 0 auto}
 .hrow > *{flex:0 0 auto}
 .hrow > .chips{flex:1 1 100%;min-width:0}
-/* below the dashboard breakpoint every panel simply takes the height it needs
-   and the dashboard itself scrolls */
 
 /* ---------- controls ---------- */
 .row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -515,8 +510,7 @@ canvas.fluid{width:100%}
 <div id="toast"></div>
 <script>
   /* ==========================================================================
-     tlmGPT — tiny language model
-     A generative pre-trained transformer in ~10,000 parameters.
+     tlmGPT — tiny language model GPT
      ========================================================================== */
   'use strict';
 
@@ -848,7 +842,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     constructor() {
       this.reset();
     }
-
     reset() {
       this.vocab = ['�']; // decoded string for each id
       this.merges = []; // {a,b,id,count}
@@ -858,7 +851,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       this.trainIds = new Int32Array(0);
       this.counts = new Int32Array(1);
     }
-
     /* rewrite every adjacent (a,b) pair as the single id nid, left to right */
     static #applyMerge(ids, a, b, nid) {
       const out = [];
@@ -872,7 +864,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
       return out;
     }
-
     build(text, target) {
       this.reset();
       const size = Math.max(2, target | 0);
@@ -927,7 +918,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
       return this.trainIds;
     }
-
     encode(text) {
       let ids = [];
       for (const ch of text) {
@@ -938,7 +928,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
       return ids;
     }
-
     decode(ids) {
       let s = '';
       for (const id of ids) {
@@ -947,7 +936,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       return s;
     }
   }
-
   /* printable form of a token: spaces and newlines get visible glyphs */
   function tokDisp(s) {
     if (s === undefined || s === null) return '?';
@@ -955,7 +943,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     if (s === '�') return '¿unk?';
     return s.replace(/ /g, '·').replace(/\n/g, '⏎').replace(/\t/g, '⇥');
   }
-
   /* ====================================================================== */
   /*  math kernels                                                          */
   /* ====================================================================== */
@@ -980,7 +967,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
     }
   }
-
   /* accumulates dInp += dOut W^T ; dW += inp^T dOut ; db += sum dOut */
   function mmBack(dInp, dW, db, dOut, inp, W, N, DI, DO) {
     for (let t = 0; t < N; t++) {
@@ -1002,7 +988,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
     }
   }
-
   /* layer norm over the last dimension, storing what backprop needs */
   function lnFwd(C, inp, g, b, N, D) {
     for (let t = 0; t < N; t++) {
@@ -1026,7 +1011,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
     }
   }
-
   function lnBack(dInp, pg, pb, dOut, C, N, D) {
     const g = pg.data, dg = pg.grad, db = pb.grad;
     for (let t = 0; t < N; t++) {
@@ -1048,14 +1032,12 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
   }
 
   const GELU_C = 0.7978845608028654; /* sqrt(2/pi) */
-
   function gelu(y, x, n) {
     for (let i = 0; i < n; i++) {
       const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
       y[i] = 0.5 * v * (1 + t);
     }
   }
-
   function geluBack(dx, dy, x, n) {
     for (let i = 0; i < n; i++) {
       const v = x[i], t = Math.tanh(GELU_C * (v + 0.044715 * v * v * v));
@@ -1069,11 +1051,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
   /* ====================================================================== */
 
   const DEFAULT_CFG = { nVocab: 100, nCtx: 30, nEmbd: 22, nLayer: 2, nHead: 2, nFF: 50 };
-
   /* the vocabulary size is adjustable at run time; every control that edits it
      or is bounded by it reads its limits from here */
   const VOCAB_MIN = 40, VOCAB_MAX = 100;
-
   const lnCache = (T, d) => ({ out: F32(T * d), xhat: F32(T * d), mu: F32(T), rstd: F32(T) });
 
   class GPT {
@@ -1085,7 +1065,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         + 2 * d * c.nFF + c.nFF + d; /* mlp */
       return d * (c.nVocab + c.nCtx) + c.nLayer * per + 2 * d;
     }
-
     constructor(cfg) {
       const { nVocab, nCtx, nEmbd, nLayer, nHead, nFF } = cfg;
       this.cfg = { nVocab, nCtx, nEmbd, nLayer, nHead, nFF };
@@ -1101,7 +1080,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       this.cacheAux = this.#makeCache();
       this.scratch = this.#makeScratch();
     }
-
     #add(name, shape, role) {
       const n = shape.reduce((a, b) => a * b, 1);
       const p = {
@@ -1119,7 +1097,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       this.P[name] = p;
       return p;
     }
-
     /* the object literal below is evaluated in source order, so params keep the
        declaration order the offsets and the init RNG stream depend on */
     #alloc() {
@@ -1150,7 +1127,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
       this.nParams = off;
     }
-
     initWeights(seed) {
       RNG = mulberry32(seed >>> 0);
       const c = this.cfg;
@@ -1177,7 +1153,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       this.t = 0;
       this.gradNorm = 0;
     }
-
     #makeCache() {
       const c = this.cfg, T = c.nCtx, d = c.nEmbd;
       const blocks = [];
@@ -1211,7 +1186,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         probs: F32(T * c.nVocab)
       };
     }
-
     #makeScratch() {
       const c = this.cfg, T = c.nCtx, d = c.nEmbd;
       return {
@@ -1231,11 +1205,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         dsc: F32(T)
       };
     }
-
     /* ----- forward pass ----- */
     forward(tokens, n, C) {
-      const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
-        hf = c.nFF, V = c.nVocab, T = c.nCtx;
+      const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer, hf = c.nFF, V = c.nVocab, T = c.nCtx;
       const scale = 1 / Math.sqrt(dh);
       const wte = this.P.wte.data, wpe = this.P.wpe.data;
       C.n = n;
@@ -1342,8 +1314,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
 
     /* ----- backward pass ----- */
     backward(targets, n, C, lossScale) {
-      const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer,
-        hf = c.nFF, V = c.nVocab, T = c.nCtx;
+      const c = this.cfg, d = c.nEmbd, H = c.nHead, dh = d / H, L = c.nLayer, hf = c.nFF, V = c.nVocab, T = c.nCtx;
       const s = this.scratch, scale = 1 / Math.sqrt(dh);
       const wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
       let loss = 0;
@@ -1445,11 +1416,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
       return loss;
     }
-
     zeroGrad() {
       for (const p of this.params) p.grad.fill(0);
     }
-
     /* AdamW with global gradient-norm clipping */
     step(lr, wd) {
       this.t++;
@@ -1475,7 +1444,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         }
       }
     }
-
     /* one full loss evaluation, used by the gradient checker */
     lossOn(inp, tgt, n, C) {
       this.forward(inp, n, C);
@@ -1550,7 +1518,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     return { cx, w };
   }
 
-  /* the workhorse: draw a matrix as a heatmap and register hover metadata */
+  /* draw a matrix as a heatmap and register hover metadata */
   function drawHeat(cv, data, rows, cols, opt = {}) {
     const stride = opt.stride || cols;
     const base = opt.offset || 0;
@@ -1590,7 +1558,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
     }
     offCx.putImageData(img, 0, 0);
-
     const cx = prep(cv, w, h);
     cx.imageSmoothingEnabled = false;
     cx.drawImage(offCv, 0, 0, cols, rows, 0, 0, w, h);
@@ -1629,7 +1596,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const wrap = cv.parentElement, cs = getComputedStyle(wrap);
     return Math.max(base, Math.round(wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)));
   }
-
   function drawLoss(cv, raw, ema, ref) {
     const h = lossHeight(cv);
     const { cx, w } = prepFluid(cv, h);
@@ -1870,7 +1836,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
 
   /* ----- tooltip ----- */
   let tipEl = null;
-
   function initTip() {
     tipEl = $('#tip');
     document.addEventListener('mousemove', (ev) => {
@@ -1991,9 +1956,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
 
   function renderTokenizer() {
     const { tok } = S;
-    $('#tokVocabMeta').textContent =
-      `${tok.vocab.length} ids · ${tok.baseSize - 1} chars + ${tok.merges.length} merges` +
-      (tok.unused ? ` + ${tok.unused} unused` : '');
+    $('#tokVocabMeta').textContent = `${tok.vocab.length} ids · ${tok.baseSize - 1} chars + ${tok.merges.length} merges` + (tok.unused ? ` + ${tok.unused} unused` : '');
     const list = $('#vocabList');
     list.innerHTML = '';
     for (let i = 0; i < tok.vocab.length; i++) {
