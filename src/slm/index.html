@@ -522,17 +522,14 @@ canvas.fluid{width:100%}
      ========================================================================== */
   'use strict';
 
-  /* ----- utils ----- */
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-
   function el(tag, cls, txt) {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
     if (txt !== undefined) e.textContent = txt;
     return e;
   }
-
   const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
   const F32 = (n) => new Float32Array(n);
   const fmt = (v, n = 3) => (v === undefined || v === null || !Number.isFinite(v) ? '—' : v.toFixed(n));
@@ -568,7 +565,6 @@ canvas.fluid{width:100%}
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
   }
-
 
   // sample data from https://sample.json-format.com/
   const SAMPLE_CORPUS_1 = `[
@@ -882,7 +878,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     build(text, target) {
       this.reset();
       const size = Math.max(2, target | 0);
-
       /* --- base vocabulary: the most frequent characters --- */
       const freq = new Map();
       for (const ch of text) freq.set(ch, (freq.get(ch) || 0) + 1);
@@ -896,13 +891,11 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         this.vocab.push(ch);
       }
       this.baseSize = this.vocab.length;
-
       /* --- encode corpus with base ids --- */
       let ids = [];
       for (const ch of text) {
         ids.push(this.charToId.get(ch) ?? UNK);
       }
-
       /* --- repeatedly merge the most frequent adjacent pair --- */
       while (this.vocab.length < size) {
         const counts = new Map();
@@ -928,9 +921,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         this.vocab.push(''); 
         this.unused++;
       }
-
       this.trainIds = Int32Array.from(ids);
-
       /* --- how often each token actually occurs --- */
       this.counts = new Int32Array(this.vocab.length);
       for (const id of ids) {
@@ -1249,7 +1240,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         hf = c.nFF, V = c.nVocab, T = c.nCtx;
       const scale = 1 / Math.sqrt(dh);
       const wte = this.P.wte.data, wpe = this.P.wpe.data;
-
       C.n = n;
       for (let t = 0; t < n; t++) {
         C.tokens[t] = tokens[t];
@@ -1260,19 +1250,16 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
           C.x0[oo + i] = wte[to + i] + wpe[oo + i];
         }
       }
-
       let x = C.x0;
       for (let l = 0; l < L; l++) {
         const B = C.blocks[l], p = this.layers[l];
         for (let i = 0; i < n * d; i++) {
           B.xin[i] = x[i];
         }
-
         lnFwd(B.ln1, B.xin, p.ln1g.data, p.ln1b.data, n, d);
         mm(B.q, B.ln1.out, p.Wq.data, null, n, d, d);
         mm(B.k, B.ln1.out, p.Wk.data, null, n, d, d);
         mm(B.v, B.ln1.out, p.Wv.data, null, n, d, d);
-
         /* causal multi-head self-attention */
         for (let h = 0; h < H; h++) {
           const hd = h * dh, ab = h * T * T;
@@ -1287,7 +1274,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
               }
               s *= scale;
               B.att[row + j] = s;
-              if (s > mx) mx = s;
+              if (s > mx) {
+                mx = s;
+              }
             }
             let sum = 0;
             for (let j = 0; j <= i; j++) {
@@ -1313,12 +1302,10 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
             }
           }
         }
-
         mm(B.attnOut, B.ao, p.Wo.data, null, n, d, d);
         for (let i = 0; i < n * d; i++) {
           B.xres1[i] = B.xin[i] + B.attnOut[i];
         }
-
         lnFwd(B.ln2, B.xres1, p.ln2g.data, p.ln2b.data, n, d);
         mm(B.hpre, B.ln2.out, p.W1.data, p.b1.data, n, d, hf);
         gelu(B.hact, B.hpre, n * hf);
@@ -1326,12 +1313,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         for (let i = 0; i < n * d; i++) {
           B.xout[i] = B.xres1[i] + B.mlpOut[i];
         }
-
         x = B.xout;
       }
-
       lnFwd(C.lnf, x, this.P['lnf.g'].data, this.P['lnf.b'].data, n, d);
-
       /* output head, weights tied to the token embedding */
       for (let t = 0; t < n; t++) {
         const xo = t * d, lo = t * V;
@@ -1365,7 +1349,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       const s = this.scratch, scale = 1 / Math.sqrt(dh);
       const wte = this.P.wte.data, gwte = this.P.wte.grad, gwpe = this.P.wpe.grad;
       let loss = 0;
-
       /* softmax cross-entropy */
       for (let t = 0; t < n; t++) {
         const lo = t * V, tg = targets[t];
@@ -1374,7 +1357,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
           s.dlogits[lo + k] = (C.probs[lo + k] - (k === tg ? 1 : 0)) * lossScale;
         }
       }
-
       /* tied head: logits = lnf.out @ wte^T */
       const dxf = s.dxf;
       dxf.fill(0, 0, n * d);
@@ -1390,20 +1372,16 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
           }
         }
       }
-
       const dx = s.dx;
       dx.fill(0, 0, n * d);
       lnBack(dx, this.P['lnf.g'], this.P['lnf.b'], dxf, C.lnf, n, d);
-
       for (let l = L - 1; l >= 0; l--) {
         const B = C.blocks[l], p = this.layers[l];
-
         /* --- residual 2: xout = xres1 + mlpOut --- */
         const dres = s.dres;
         for (let i = 0; i < n * d; i++) {
           dres[i] = dx[i];
         }
-
         s.dh1.fill(0, 0, n * hf);
         mmBack(s.dh1, p.W2.grad, p.b2.grad, dx, B.hact, p.W2.data, n, hf, d);
         geluBack(s.dh2, s.dh1, B.hpre, n * hf);
@@ -1411,16 +1389,13 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         dtmp.fill(0, 0, n * d);
         mmBack(dtmp, p.W1.grad, p.b1.grad, s.dh2, B.ln2.out, p.W1.data, n, d, hf);
         lnBack(dres, p.ln2g, p.ln2b, dtmp, B.ln2, n, d);
-
         /* --- residual 1: xres1 = xin + attnOut --- */
         const din = s.din;
         for (let i = 0; i < n * d; i++) {
           din[i] = dres[i];
         }
-
         s.dao.fill(0, 0, n * d);
         mmBack(s.dao, p.Wo.grad, null, dres, B.ao, p.Wo.data, n, d, d);
-
         s.dq.fill(0, 0, n * d); 
         s.dk.fill(0, 0, n * d); 
         s.dv.fill(0, 0, n * d);
@@ -1453,18 +1428,15 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
             }
           }
         }
-
         dtmp.fill(0, 0, n * d);
         mmBack(dtmp, p.Wq.grad, null, s.dq, B.ln1.out, p.Wq.data, n, d, d);
         mmBack(dtmp, p.Wk.grad, null, s.dk, B.ln1.out, p.Wk.data, n, d, d);
         mmBack(dtmp, p.Wv.grad, null, s.dv, B.ln1.out, p.Wv.data, n, d, d);
         lnBack(din, p.ln1g, p.ln1b, dtmp, B.ln1, n, d);
-
         for (let i = 0; i < n * d; i++) {
           dx[i] = din[i];
         }
       }
-
       /* --- embeddings --- */
       for (let t = 0; t < n; t++) {
         const eo = t * d, to = C.tokens[t] * d;
@@ -1525,13 +1497,11 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
   const offCv = document.createElement('canvas');
   const offCx = offCv.getContext('2d');
   const DPR = Math.min(2, window.devicePixelRatio || 1);
-
   /* canvas → what its pixels mean, for the shared hover tooltip and click
      handling; a WeakMap keeps the metadata off the DOM nodes themselves */
   const heatMeta = new WeakMap();
   /* canvas → the small caption element underneath it */
   const subLabel = new WeakMap();
-
   const RAMP_POS = [[0, [13, 18, 25]], [0.45, [146, 64, 14]], [1, [253, 224, 71]]];
   const RAMP_NEG = [[0, [13, 18, 25]], [0.45, [30, 64, 175]], [1, [147, 214, 255]]];
   const RAMP_SEQ = [[0, [8, 12, 18]], [0.3, [8, 74, 96]], [0.65, [34, 211, 238]], [1, [240, 253, 255]]];
@@ -1589,7 +1559,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const cw = opt.cellW || opt.cell || autoCell(rows, cols, opt.maxW || 190, opt.maxH || 190);
     const ch = opt.cellH || cw;
     const w = cols * cw, h = rows * ch;
-
     let mx = opt.max;
     if (mx === undefined) {
       mx = 1e-9;
@@ -1602,7 +1571,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         }
     }
     const seq = opt.mode === 'seq';
-
     offCv.width = cols; offCv.height = rows;
     const img = offCx.createImageData(cols, rows);
     const px = img.data;
@@ -1628,13 +1596,11 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const cx = prep(cv, w, h);
     cx.imageSmoothingEnabled = false;
     cx.drawImage(offCv, 0, 0, cols, rows, 0, 0, w, h);
-
     if (opt.hiRow !== undefined && opt.hiRow >= 0 && opt.hiRow < rows) {
       cx.strokeStyle = 'rgba(255,255,255,.6)';
       cx.lineWidth = 1;
       cx.strokeRect(0.5, opt.hiRow * ch + 0.5, w - 1, ch - 1);
     }
-
     heatMeta.set(cv, {
       data, rows, cols, stride, base,
       cell: cw, cellH: ch, max: mx, name: opt.name || '',
@@ -1672,10 +1638,8 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const padL = 30, padB = 13, padT = 6, padR = 4;
     const iw = w - padL - padR, ih = h - padT - padB;
     const NG = clamp(Math.round(ih / 26), 3, 8);   /* a taller chart earns more gridlines */
-
     cx.fillStyle = '#080c12';
     cx.fillRect(0, 0, w, h);
-
     const grid = () => {
       cx.strokeStyle = '#1b2431'; 
       cx.lineWidth = 1;
@@ -1692,7 +1656,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       cx.font = '9px ui-monospace,monospace';
       cx.fillText('cross-entropy loss (nats/token)', padL + 2, h - 3);
     };
-
     /* an empty chart this tall still has to read as a chart, not as a hole */
     if (!raw.length) {
       grid(); 
@@ -1718,10 +1681,8 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const pad = (hi - lo) * 0.08;
     hi += pad; 
     lo = Math.max(0, lo - pad);
-
     const X = (i) => padL + (raw.length < 2 ? iw : (i / (raw.length - 1)) * iw);
     const Y = (v) => padT + ih - ((v - lo) / (hi - lo)) * ih;
-
     /* axes */
     grid();
     cx.fillStyle = '#57657a';
@@ -1732,7 +1693,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       cx.fillText(vv.toFixed(2), padL - 4, padT + (ih * i) / NG + 3);
     }
     cx.textAlign = 'left';
-
     /* reference line: loss of a uniform random model */
     if (ref !== undefined && ref <= hi && ref >= lo) {
       cx.strokeStyle = 'rgba(248,113,113,.45)';
@@ -1745,7 +1705,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       cx.fillStyle = 'rgba(248,113,113,.7)';
       cx.fillText('random', padL + 3, Y(ref) - 3);
     }
-
     const line = (vals, style, width) => {
       cx.strokeStyle = style; cx.lineWidth = width;
       cx.beginPath();
@@ -1761,7 +1720,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     };
     line(raw, 'rgba(34,211,238,.28)', 1);   /* raw */
     line(ema, '#22d3ee', 1.5);              /* smoothed */
-
     caption();
   }
 
@@ -1855,11 +1813,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const V = S.cfg.nVocab;
     /* fraction of the plot a probability fills: 0 at the floor, 1 at certainty */
     const bar = (p) => clamp(1 + Math.log10(Math.max(p, Number.MIN_VALUE)) / PROB_DECADES, 0, 1);
-
     cx.fillStyle = '#080c12';
     cx.fillRect(0, 0, w, h);
     cx.font = '9px ui-monospace,monospace';
-
     cx.strokeStyle = '#1b2431';
     cx.lineWidth = 1;
     cx.beginPath();
@@ -1869,7 +1825,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       cx.lineTo(w, y);
     }
     cx.stroke();
-
     const bw = w / V;
     let mx = 0;
     for (let i = 0; i < V; i++) {
@@ -1883,7 +1838,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       const x = Math.round(i * bw);
       cx.fillRect(x, padT + ih - bh, Math.max(1, Math.round((i + 1) * bw) - x - 1), bh);
     }
-
     /* where every bar would sit if the model had learned nothing at all */
     const uy = padT + ih - bar(1 / V) * ih;
     cx.strokeStyle = 'rgba(248,113,113,.45)';
@@ -1894,7 +1848,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     cx.stroke();
     cx.setLineDash([]);
     cx.fillStyle = 'rgba(248,113,113,.7)';
-
     cx.strokeStyle = '#1b2431';
     cx.beginPath();
     cx.moveTo(0, h - padB + 0.5);
@@ -1907,7 +1860,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     cx.textAlign = 'right';
     cx.fillText(`id ${V - 1} · max ${(mx * 100).toFixed(1)}%`, w - 3, h - 2);
     cx.textAlign = 'left';
-
     heatMeta.set(cv, {
       data: probs, rows: 1, cols: V, stride: V, base: 0, cell: bw, cellH: h,
       describe: (_i, j, p) => {
@@ -1956,8 +1908,12 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       tipEl.classList.add('on');
       const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
       let x = ev.clientX + 14, y = ev.clientY + 14;
-      if (x + tw > window.innerWidth - 6) x = ev.clientX - tw - 12;
-      if (y + th > window.innerHeight - 6) y = ev.clientY - th - 12;
+      if (x + tw > window.innerWidth - 6) {
+        x = ev.clientX - tw - 12;
+      }
+      if (y + th > window.innerHeight - 6) {
+        y = ev.clientY - th - 12;
+      }
       tipEl.style.left = `${x}px`;
       tipEl.style.top = `${y}px`;
     }, { passive: true });
@@ -2040,7 +1996,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     $('#tokVocabMeta').textContent =
       `${tok.vocab.length} ids · ${tok.baseSize - 1} chars + ${tok.merges.length} merges` +
       (tok.unused ? ` + ${tok.unused} unused` : '');
-
     const list = $('#vocabList');
     list.innerHTML = '';
     for (let i = 0; i < tok.vocab.length; i++) {
@@ -2048,7 +2003,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       c.title = `id ${i}  ·  seen ${tok.counts[i]}× in corpus`;
       list.appendChild(c);
     }
-
     const ml = $('#mergeList');
     ml.innerHTML = '';
     $('#tokMergeMeta').textContent = `${tok.merges.length} rules, applied in order`;
@@ -2068,7 +2022,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     if (!tok.merges.length) {
       ml.appendChild(el('div', 'note', 'no repeated pairs left to merge'));
     }
-
     drawFreq($('#freqChart'), tok);
   }
 
@@ -2123,14 +2076,12 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     }
     paramGrid.fill(0);
     paramGrid.set(buf.subarray(0, n), 0);
-
     const cell = clamp(Math.floor(316 / side), 1, 8);
     const scale = robustMax(buf, n);
     drawHeat(cv, paramGrid, side, side, {
       cell, max: scale,
       name: S.wbMode === 'grad' ? 'gradient map' : 'parameter map'
     });
-
     heatMeta.get(cv).describe = (i, j) => {
       const idx = i * side + j;
       if (idx >= n) return '(padding)';
@@ -2140,7 +2091,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         : `${p.name}[${local}]`;
       return `${where}\n#${idx} of ${n}\n= ${buf[idx].toFixed(6)}` + (S.wbMode === 'grad' ? '  (gradient)' : '');
     };
-
     const stat = statsOf(buf, n);
     $('#wbMeta').textContent =
       `μ ${fmt(stat.mean, 3)}  σ ${fmt(stat.std, 3)}  max ${fmt(stat.amax, 3)}  scale ±${fmt(scale, 3)}`;
@@ -2208,10 +2158,8 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const twoD = p.shape.length === 2;
     const rows = twoD ? p.shape[0] : 1;
     const cols = twoD ? p.shape[1] : p.shape[0];
-
     const cell = clamp(Math.floor(330 / cols), 3, 12);
     const cellH = twoD ? clamp(Math.floor(240 / rows), 3, 12) : 14;
-
     const { tok } = S;
     let rowLab;
     if (p.name === 'wte') {
@@ -2222,13 +2170,11 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       rowLab = (i) => `in ${i}`;
     }
     const colLab = (j) => `${twoD ? 'out ' : 'idx '}${j}`;
-
     drawHeat($('#tensorMap'), src, rows, cols, {
       cell, cellH, max: robustMax(src, p.n),
       name: `${p.name}  [${p.shape.join('×')}]`,
       rowLab, colLab
     });
-
     const st = statsOf(src, p.n);
     $('#selMeta').textContent = `${p.name} · ${commas(p.n)} values · σ ${fmt(st.std, 4)}`;
     drawHist($('#histChart'), src, p.n,
@@ -2298,13 +2244,11 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const c = S.cfg;
     TF = { blocks: [] };
     tfView = null;
-
     const s0 = stage(root, '0 · context', `up to ${c.nCtx} tokens`,
       'The highlighted token is the last one; ' +
       'the prediction for what comes next is read off that position.');
     TF.tokRow = el('div', 'chips');
     s0.body.appendChild(TF.tokRow);
-
     const s1 = stage(root, '1 · embeddings', 'wte[token] + wpe[position]',
       'Each id indexes a row of the token-embedding table; a learned position vector is added on top. ' +
       `The result is the residual stream: one row per position, ${c.nEmbd} channels wide.`);
@@ -2313,14 +2257,12 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     TF.posEmb = hm(s1.body, 'position emb');
     opsym(s1.body, '=');
     TF.x0 = hm(s1.body, 'x&#8320; stream');
-
     for (let l = 0; l < c.nLayer; l++) {
       const B = { att: [] };
       const sb = stage(root, `${l + 2} · block ${l}`,
         `${c.nHead} heads · head dim ${c.nEmbd / c.nHead} · d_ff ${c.nFF}`, null, 'blk', true);
       const wrap = el('div', 'tfflow');
       sb.el.appendChild(wrap);
-
       /* ---- attention ---- */
       const sa = el('div', 'substage');
       wrap.appendChild(sa);
@@ -2348,7 +2290,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       B.attnOut = hm(r3, 'W<sub>o</sub> out', true);
       opsym(r3, '+');
       B.xres1 = hm(r3, 'x <span class="op">+ attn</span>');
-
       /* ---- mlp ---- */
       const sm = el('div', 'substage');
       wrap.appendChild(sm);
@@ -2367,10 +2308,8 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       B.mlpOut = hm(r4, 'W<sub>2</sub> out', true);
       opsym(r4, '+');
       B.xout = hm(r4, 'x <span class="op">+ mlp</span>');
-
       TF.blocks.push(B);
     }
-
     const s2 = stage(root, `${c.nLayer + 2} · output head`, 'logits = lnf(x) · wteᵀ',
       'The stream is normalised once more and compared against every token embedding — the output ' +
       'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
@@ -2380,7 +2319,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     TF.logits = hm(s2.body, 'logits');
     opsym(s2.body, '→');
     TF.probs = hm(s2.body, 'softmax probabilities');
-
     root.classList.toggle('compact', !S.detail);
     $('#tfArch').textContent = `d${c.nEmbd} · ${c.nLayer}L · ${c.nHead}H · ff${c.nFF}`;
   }
@@ -2390,35 +2328,28 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const c = S.cfg, n = C.n, d = c.nEmbd, V = c.nVocab, T = c.nCtx, hf = c.nFF, H = c.nHead;
     if (n <= 0) return;
     tfView = { C, label };
-
     $('#tfMeta').textContent = label;
-
     TF.tokRow.innerHTML = '';
     for (let i = 0; i < n; i++) {
       TF.tokRow.appendChild(chipFor(C.tokens[i], i === n - 1 ? 'hi' : ''));
     }
-
     /* one square cell for every map in the flow, so a value covers the same
        area wherever it appears and maps standing side by side line up. Five
        pixels is the ceiling; the cell only drops below it when the widest tensor
        of this architecture would otherwise not fit the panel. */
     const flowW = Math.max(300, ($('#tfFlow').clientWidth || 440) - 30);
     const cell = clamp(Math.floor(flowW / Math.max(d, hf, V, n)), 2, 5);
-
     const pos = (i) => `pos ${i}  ${tokDisp(S.tok.vocab[C.tokens[i]])}`;
     const dim = (j) => `channel ${j}`;
     const ffd = (j) => `neuron ${j}`;
     const voc = (j) => `token ${j}  ${tokDisp(S.tok.vocab[j])}`;
-
     const res = (cv, data, cols, colLab, name) => {
       drawHeat(cv, data, n, cols, { cell, rowLab: pos, colLab, name });
       setSub(cv, `${n}×${cols}`);
     };
-
     res(TF.tokEmb, C.tokEmb, d, dim, 'token embedding');
     res(TF.posEmb, C.posEmb, d, dim, 'position embedding');
     res(TF.x0, C.x0, d, dim, 'residual stream x0');
-
     for (let l = 0; l < c.nLayer; l++) {
       const B = C.blocks[l], G = TF.blocks[l];
       res(G.ln1, B.ln1.out, d, dim, `block ${l} · ln1`);
@@ -2485,7 +2416,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     S.lastDist = Float32Array.from(probs);
     S.lastPick = picked;
     drawProbs($('#probChart'), S.lastDist, picked);
-
     let ent = 0;
     for (let i = 0; i < V; i++) {
       if (probs[i] > 1e-12) ent -= probs[i] * Math.log(probs[i]);
@@ -2735,7 +2665,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const dt = (performance.now() - t0) / 1000;
     S.sps = Math.round(k / Math.max(dt, 1e-6));
     const loss = acc / k;
-
     S.raw.push(loss);
     S.emaV = (S.emaV === null) ? loss : S.emaV * 0.88 + loss * 0.12;
     S.ema.push(S.emaV);
@@ -2746,7 +2675,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     }
     updateStats(loss);
     drawLoss($('#lossChart'), S.raw, S.ema, randomLoss());
-
     if (S.live) {
       drawParamMap();
       if (S.frame % 2 === 0) {
@@ -2760,7 +2688,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       S.lastSample = S.step;
       refreshSample();
     }
-
     S.frame++;
     /* a timeout keeps the run alive in a background tab, where requestAnimationFrame
        would be suspended; the yield also keeps the page responsive */
@@ -2951,7 +2878,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     m.zeroGrad();
     m.forward(inp, n, m.cacheTrain);
     m.backward(tgt, n, m.cacheTrain, 1 / n);
-
     let worst = 0, worstName = '';
     const lines = [];
     for (const p of m.params) {
@@ -2967,7 +2893,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         v[i] /= nrm;
         ana += p.grad[i] * v[i];
       }
-
       const orig = Float32Array.from(p.data), eps = 1e-2;
       for (let i = 0; i < p.n; i++) {
         p.data[i] = orig[i] + eps * v[i];
@@ -2978,7 +2903,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
       const lm = m.lossOn(inp, tgt, n, m.cacheAux);
       p.data.set(orig);
-
       const num = (lp - lm) / (2 * eps);
       /* floor the denominator so near-zero derivatives are judged on absolute
          error rather than on ratios of numerical noise */
@@ -3028,7 +2952,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       corpusTimer = setTimeout(applyCorpus, 400);
     });
     trainText.addEventListener('change', applyCorpus);
-
     $('#btnSample1').addEventListener('click', () => {
       if ($('#trainText').value !== SAMPLE_CORPUS_1) {
         $('#trainText').value = SAMPLE_CORPUS_1;
@@ -3041,7 +2964,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         rebuildAll(true);
       }
     });
-
     $('#btnRebuild').addEventListener('click', () => {
       const c = readCfg();
       if (!cfgValid(c)) {
@@ -3056,7 +2978,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     for (const sel of ['#cfgD', '#cfgL', '#cfgH', '#cfgF', '#cfgT']) {
       $(sel).addEventListener('input', updateCfgCount);
     }
-
     $('#cfgV').addEventListener('input', () => {
       const v = parseInt($('#cfgV').value, 10);
       if (v >= VOCAB_MIN && v <= VOCAB_MAX) {
@@ -3066,13 +2987,11 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       }
     });
     $('#cfgV').addEventListener('change', () => setVocabUI($('#cfgV').value));
-
     $('#inVocab').addEventListener('input', () => {
       setVocabUI($('#inVocab').value, 'slider');
       clearTimeout(vocabTimer);
       vocabTimer = setTimeout(applyVocab, 220);
     });
-
     const inLr = $('#inLr'), inBatch = $('#inBatch');
     inLr.addEventListener('input', () => {
       S.lr = clamp(parseFloat(inLr.value) || 0.02, 0.0001, 0.5);
@@ -3080,14 +2999,12 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     inBatch.addEventListener('input', () => {
       S.batch = clamp(parseInt(inBatch.value, 10) || 30, 1, 64);
     });
-
     const chkLive = $('#chkLive'), chkDetail = $('#chkDetail');
     chkLive.addEventListener('change', () => { S.live = chkLive.checked; });
     chkDetail.addEventListener('change', () => {
       S.detail = chkDetail.checked;
       $('#tfFlow').classList.toggle('compact', !S.detail);
     });
-
     $('#promptText').addEventListener('input', () => {
       clearTimeout(promptTimer);
       promptTimer = setTimeout(() => {
@@ -3097,7 +3014,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         runPromptForward();
       }, 200);
     });
-
     const slider = (sel, out, key, fixed) => {
       const f = $(sel);
       const sync = () => {
@@ -3110,11 +3026,9 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     slider('#inTemp', '#vTemp', 'temp', 2);
     slider('#inTopk', '#vTopk', 'topk', 0);
     slider('#inMax', '#vMax', 'maxNew', 0);
-
     $('#btnGen').addEventListener('click', startGen);
     $('#btnStep').addEventListener('click', () => { stopGen(); genOne(); });
     $('#btnClear').addEventListener('click', () => { stopGen(); resetGen(); runPromptForward(); });
-
     const modeButtons = $$('#wbMode button');
     for (const b of modeButtons) {
       b.addEventListener('click', () => {
@@ -3129,7 +3043,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         renderWeights();
       });
     }
-
     /* the parameter map is redrawn on every training frame, so its click
        handler is registered once here and reads the geometry back out of the
        heatmap metadata the last redraw left behind */
@@ -3142,7 +3055,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       const hit = paramAt(idx);
       if (hit) selectTensor(hit.p.name);
     });
-
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
