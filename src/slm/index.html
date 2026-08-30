@@ -188,6 +188,7 @@ body{
 }
 .btn[disabled]{opacity:.4;cursor:not-allowed}
 .btn.sm{padding:2px 7px;font-size:10.5px}
+.btn.xsm{padding:1px 3px;font-size:9px}
 textarea{
   width:100%;background:#080c12;color:var(--text);border:1px solid var(--line2);
   border-radius:5px;padding:7px 8px;font-family:var(--mono);font-size:11.5px;line-height:1.5;
@@ -389,7 +390,11 @@ canvas.fluid{width:100%}
       </div>
     </div>
     <div class="pbody">
-      <div class="sub">corpus - training data</div>
+      <div class="sub">
+        <span>corpus - training data</span>
+        <button id="btnSample1" class="btn xsm" style="margin-left:5px;">sample 1</button>
+        <button id="btnSample2" class="btn xsm" style="margin-left:5px;">sample 2</button>
+      </div>
       <textarea class="lightTheme" id="trainText" rows="5" spellcheck="false"></textarea>
       <span class="meta" id="trainMeta">—</span>
       <div class="grid2">
@@ -3003,8 +3008,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
 
   function applyCorpus() {
     clearTimeout(corpusTimer);
-    //const text = $('#trainText').value;
-    //if (!text.trim().length || text === S.corpus) return;
     rebuildAll(true);
   }
 
@@ -3025,6 +3028,15 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       corpusTimer = setTimeout(applyCorpus, 400);
     });
     trainText.addEventListener('change', applyCorpus);
+
+    $('#btnSample1').addEventListener('click', () => {
+      $('#trainText').value = SAMPLE_CORPUS_1;
+      rebuildAll(true);
+    });
+    $('#btnSample2').addEventListener('click', () => {
+      $('#trainText').value = SAMPLE_CORPUS_2;
+      rebuildAll(true);
+    });
 
     $('#btnRebuild').addEventListener('click', () => {
       const c = readCfg();
