@@ -2650,8 +2650,6 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       refreshSample();
     }
     S.frame++;
-    /* a timeout keeps the run alive in a background tab, where requestAnimationFrame
-       would be suspended; the yield also keeps the page responsive */
     setTimeout(trainFrame, 0, run);
   }
 
