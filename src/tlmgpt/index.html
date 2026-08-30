@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>slm - small language model</title>
+<title>tlmGPT - tiny language model GPT visualizer</title>
 <link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
 <style>
 :root{
@@ -358,13 +358,13 @@ canvas.fluid{width:100%}
 
 <div id="banner" class="banner">
   <div style="display: inline-block;"><a href="https://complexity.zone">complexity.zone</a></div>
-  <div style="display: inline-block; margin-left: 60px; font-size: 16px;">slm - small language model</div>
+  <div style="display: inline-block; margin-left: 60px; font-size: 16px;">tlmGPT - tiny language model GPT visualizer</div>
 </div>
 
 <header class="top">
   <div class="brand">
-    <div class="logo">slm</div>
-    <div class="tag"><b>small language model</b></div>
+    <div class="logo">tlmGPT</div>
+    <div class="tag"><b>GPT visualizer</b></div>
   </div>
   <div class="pills">
     <div class="pill"><span class="k">params</span><span class="v" id="pParams">—</span></div>
@@ -410,7 +410,6 @@ canvas.fluid{width:100%}
       </div>
       <div class="sub">sample generated while training</div>
       <div class="outtext mono" id="sampleOut"></div>
-
       <div class="sub">tokenization</div>
       <div class="slider"><span class="lab">vocab size</span><input id="inVocab" type="range" min="40" max="100" step="1" value="100"><span class="val" id="vVocab">100</span></div>
       <div class="sub">vocabulary <span class="dim" id="tokVocabMeta"></span></div>
@@ -516,7 +515,7 @@ canvas.fluid{width:100%}
 <div id="toast"></div>
 <script>
   /* ==========================================================================
-     slm — small language model
+     tlmGPT — tiny language model
      A generative pre-trained transformer in ~10,000 parameters.
      ========================================================================== */
   'use strict';
@@ -3081,7 +3080,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     rebuildAll(false);
     requestAnimationFrame(redrawTF);   /* that first pass drew before layout */
     selectTensor('wte');
-    window.slm = { S, gradCheck, GPT, paramCount: GPT.paramCount };
+    window.tlmgpt = { S, gradCheck, GPT, paramCount: GPT.paramCount };
   }
 
   if (document.readyState === 'loading') {
@@ -3147,7 +3146,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
         const a = document.createElement('a');
         const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         a.href = url;
-        a.download = `slm_${dateYYYYMMDD}.html`;
+        a.download = `tlmgpt_${dateYYYYMMDD}.html`;
         a.click();
         URL.revokeObjectURL(url);
       } catch (error) {
