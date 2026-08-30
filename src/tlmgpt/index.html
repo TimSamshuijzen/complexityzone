@@ -2618,7 +2618,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     const t0 = performance.now();
     let k = 0, acc = 0;
     /* always take at least one step, and never hog the thread for a whole batch
-       of them, whatever the clock does */
+       of them */
     do { 
       acc += trainStep();
       k++;
@@ -2707,8 +2707,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
 
   /* the vocabulary size is edited from two places, the slider in the
      tokenization section and the number box in the architecture panel, and it
-     bounds top-k, so every write funnels through here. src names the control the
-     user is holding, which is left untouched so the mirror never fights it. */
+     bounds top-k, so every write funnels through here. */
   function setVocabUI(v, src) {
     v = clamp(parseInt(v, 10) || DEFAULT_CFG.nVocab, VOCAB_MIN, VOCAB_MAX);
     if (src !== 'slider') {
