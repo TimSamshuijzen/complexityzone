@@ -510,7 +510,7 @@ canvas.fluid{width:100%}
 <div id="toast"></div>
 <script>
   /* ==========================================================================
-     tlmGPT — tiny language model GPT
+     tlmGPT - tiny language model GPT
      ========================================================================== */
   'use strict';
 
@@ -1828,7 +1828,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       data: probs, rows: 1, cols: V, stride: V, base: 0, cell: bw, cellH: h,
       describe: (_i, j, p) => {
         const pct = p < 1e-4 ? `${(p * 100).toExponential(2)}%` : `${(p * 100).toFixed(2)}%`;
-        const note = S.tok.counts[j] ? '' : '\nnot in the corpus — never sampled';
+        const note = S.tok.counts[j] ? '' : '\nnot in the corpus - never sampled';
         return `token ${j}  ${tokDisp(S.tok.vocab[j])}\np = ${pct}${note}`;
       }
     });
@@ -2058,7 +2058,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     $('#wCount').textContent = `${commas(n)} parameters`;
   }
 
-  /* colour scale that ignores a handful of outliers — without it the layernorm
+  /* colour scale that ignores a handful of outliers, without it the layernorm
      gains (all exactly 1.0) set the scale and every real weight renders nearly
      black */
   function robustMax(a, n) {
@@ -2195,7 +2195,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
 
   let TF = null;
   /* the pass currently on screen, kept so the flow can be drawn again at a new
-     map size — the maps are sized from the panel's measured width, and the
+     map size, the maps are sized from the panel's measured width, and the
      browser only knows that width once it has laid the page out */
   let tfView = null;
 
@@ -2272,7 +2272,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
       TF.blocks.push(B);
     }
     const s2 = stage(root, `output head`, 'logits = lnf(x) · wteᵀ',
-      'The stream is normalised once more and compared against every token embedding — the output ' +
+      'The stream is normalised once more and compared against every token embedding, the output ' +
       'weights are tied to the input embeddings, so the same 924 numbers are reused. Softmax over the ' +
       'last row gives the next-token distribution shown in the output panel.');
     TF.lnf = hm(s2.body, 'final layernorm', true);
@@ -2705,8 +2705,8 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     $('#vTopk').textContent = k;
   }
 
-  /* the vocabulary size is edited from two places — the slider in the
-     tokenization section and the number box in the architecture panel — and it
+  /* the vocabulary size is edited from two places, the slider in the
+     tokenization section and the number box in the architecture panel, and it
      bounds top-k, so every write funnels through here. src names the control the
      user is holding, which is left untouched so the mirror never fights it. */
   function setVocabUI(v, src) {
@@ -2820,7 +2820,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
   }
 
   /* ====================================================================== */
-  /*  gradient check — verifies backward pass                               */
+  /*  gradient check - verifies backward pass                               */
   /* ====================================================================== */
 
   /* Directional-derivative check: perturb a whole tensor along a random unit
@@ -2875,8 +2875,7 @@ But one day, Tim ate too many oats. His tummy hurt a lot. He was not lively anym
     }
     m.zeroGrad();
     console.log(lines.join('\n'));
-    console.log(`worst error ${worst.toExponential(3)} at ${worstName}` +
-      (worst < 5e-3 ? '  — backward pass OK' : '  — CHECK FAILED'));
+    console.log(`worst error ${worst.toExponential(3)} at ${worstName}` + (worst < 5e-3 ? '  - backward pass OK' : '  - CHECK FAILED'));
     return worst;
   }
 
