@@ -5,7 +5,7 @@ Auto mode
 
 Each session is a fresh context window. Manual code changes and fixes were made in between sessions.
 
-## Session 1 - create first version of slm
+## Session 1 - create first version
 
 **Prompt 1**
 
