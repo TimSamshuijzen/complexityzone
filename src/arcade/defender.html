@@ -85,12 +85,12 @@
     }
     .tools button {
       padding: 9px 12px;
-      border: 1px solid #62564b66;
+      border: 1px solid #f1ede3;
       border-radius: 3px;
       background: #171513bb;
       font: 10px monospace;
       letter-spacing: 1px;
-      color: #bcb6aa;
+      color: #f1ede3;
     }
     .tools button:hover {
       color: #fff0ce;
@@ -320,6 +320,16 @@
     }
     .screen-message[hidden] {
       display: none;
+    }
+    .screen-message button {
+      padding: 6px 12px;
+      border: 1px solid #68614b;
+      background: #171b1c;
+      color: #ffe495;
+      letter-spacing: inherit;
+    }
+    .screen-message button:hover {
+      background: #30302a;
     }
     .screen-message small {
       display: block;
@@ -803,9 +813,6 @@
         font-size: 8px;
         letter-spacing: 0;
       }
-      .footer .archive {
-        display: none;
-      }
       .footer .quick {
         font-size: 8px;
       }
@@ -829,12 +836,9 @@
     <nav class="tools" aria-label="Game options">
       <button id="sound-button" aria-label="Enable sound, M" title="Sound · M">SOUND OFF</button>
       <button id="pause-button" aria-label="Pause, P" title="Pause · P">PAUSE</button>
-      <button id="view-button" aria-label="Toggle screen view, V" title="Screen view · V">
-        SCREEN
-      </button>
-      <button id="fullscreen-button" aria-label="Fullscreen, F" title="Fullscreen · F">
-        FULLSCREEN
-      </button>
+      <button id="view-button" aria-label="Toggle screen view, V" title="Screen view · V">SCREEN</button>
+      <button id="fullscreen-button" aria-label="Fullscreen, F" title="Fullscreen · F">FULLSCREEN</button>
+      <button id="help-button">HELP</button>
     </nav>
   </header>
   <aside class="side-note">
@@ -843,6 +847,8 @@
     <div class="rule"></div>
     <p>Protect the humanoids.<br />Intercept the landers.<br />Bring your people home.</p>
     <p>Catch falling humanoids and return them to the surface. Keep one eye on the scanner.</p>
+    <div class="rule"></div>
+    <p>Press "25¢ PUSH" and "1 PLAYER" to start.</p>
   </aside>
   <main class="stage" aria-label="Williams Defender arcade cabinet">
     <section class="cabinet">
@@ -920,11 +926,11 @@
       <div class="front">
         <div class="coin-door">
           <button class="coin" id="coin-one" aria-label="Insert coin, 5">
-            <span>25¢<br />PUSH / 5</span>
+            <span>25¢<br />PUSH</span>
           </button>
           <div class="williams-badge" aria-hidden="true"><span>W</span></div>
           <button class="coin" id="coin-two" aria-label="Insert coin, 5">
-            <span>25¢<br />PUSH / 5</span>
+            <span>25¢<br />PUSH</span>
           </button>
         </div>
       </div>
@@ -974,12 +980,10 @@
     </p>
   </aside>
   <footer class="footer">
-    <span class="archive">DEFENDER / RED LABEL</span><span class="quick">5 COIN &nbsp; 1 START &nbsp; ↑ ↓ MOVE &nbsp;
-      SPACE FIRE</span><button id="help-button">HELP [?]</button>
   </footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <dialog id="help">
-    <h2>DEFENDER / 1981</h2>
+    <h2>DEFENDER / WILLIAMS ELECTRONICS / 1981</h2>
     <p>
       Insert a coin with <b>5</b>, then press <b>1</b> for one player or <b>2</b> for two players
       (two credits, alternating turns).
@@ -3964,7 +3968,11 @@ function setPaused(value) {
   pauseButton.setAttribute("aria-pressed", String(paused));
   message.hidden = !paused;
   if (paused) {
-    message.innerHTML = "PAUSED<small>PRESS P OR CLICK RESUME</small>";
+    message.innerHTML = 'PAUSED<small>PRESS P OR CLICK <button type="button">RESUME</button></small>';
+    message.querySelector("button").addEventListener("click", () => {
+      togglePause();
+      screen.focus({ preventScroll: true });
+    });
     saveCMOS();
   }
 }

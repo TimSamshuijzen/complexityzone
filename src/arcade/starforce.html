@@ -5,7 +5,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
 <meta name="theme-color" content="#090c16" />
-<title>STAR FORCE · 1984 Arcade</title>
+<title>STAR FORCE 1984</title>
 <style>
   * {
     box-sizing: border-box;
@@ -52,29 +52,6 @@
       repeating-linear-gradient(0deg, transparent 0 49px, #25374e40 50px),
       repeating-linear-gradient(90deg, transparent 0 99px, #25374e40 100px);
     mask-image: linear-gradient(transparent, #000);
-  }
-  .edition {
-    position: fixed;
-    top: 34px;
-    left: 38px;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: #798596;
-  }
-  .edition strong {
-    display: block;
-    color: #c6d1dd;
-    font-size: 13px;
-    margin-bottom: 10px;
-  }
-  .side-note {
-    position: fixed;
-    right: 34px;
-    bottom: 35px;
-    color: #607185;
-    font: 10px monospace;
-    letter-spacing: 2px;
-    writing-mode: vertical-rl;
   }
   .stage {
     position: absolute;
@@ -447,14 +424,6 @@
     text-align: center;
     letter-spacing: 1px;
   }
-  .coin b {
-    display: block;
-    width: 39px;
-    height: 6px;
-    background: #000;
-    border-top: 1px solid #8d633f;
-    margin: 0 auto 8px;
-  }
   .utility {
     display: flex;
     gap: 5px;
@@ -464,15 +433,6 @@
     background: #111923;
     color: #91a6b8;
     font-size: 10px;
-  }
-  .footer {
-    position: absolute;
-    bottom: -10px;
-    width: 100%;
-    text-align: center;
-    color: #708293;
-    font: 9px monospace;
-    letter-spacing: 1px;
   }
   .screw {
     position: absolute;
@@ -554,21 +514,167 @@
     background: none;
     box-shadow: none;
   }
-  @media (max-width: 900px) {
-    .edition,
-    .side-note {
-      display: none;
+
+    .topbar {
+      position: fixed;
+      z-index: 10;
+      top: 24px;
+      left: 30px;
+      right: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+    .edition {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font: 10px monospace;
+      letter-spacing: 2px;
+      color: #a9a49b;
+    }
+    .edition i {
+      width: 6px;
+      height: 6px;
+      background: #e35d37;
+      border-radius: 50%;
+      box-shadow: 0 0 14px #e35d3790;
+    }
+    .tools {
+      display: flex;
+      gap: 7px;
+    }
+    .tools button {
+      padding: 9px 12px;
+      border: 1px solid #f1ede3;
+      border-radius: 3px;
+      background: #171513bb;
+      font: 10px monospace;
+      letter-spacing: 1px;
+      color: #f1ede3;
+    }
+    .tools button:hover {
+      color: #fff0ce;
+      background: #30241c;
+    }
+    .side-note {
+      position: fixed;
+      top: 46%;
+      left: max(32px, calc(50% - 565px));
+      width: 195px;
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+    .eyebrow {
+      font: 9px monospace;
+      letter-spacing: 3px;
+      color: #c06647;
+    }
+    .side-note h1 {
+      font-size: 25px;
+      line-height: 1.12;
+      letter-spacing: 1px;
+      margin: 16px 0 20px;
+      font-weight: 800;
+    }
+    .side-note p {
+      color: #878580;
+      font-size: 12px;
+      line-height: 1.8;
+      max-width: 166px;
+    }
+    .side-note .rule {
+      height: 1px;
+      width: 35px;
+      background: #8c3e29;
+      margin: 23px 0;
+    }
+    .side-note .small {
+      font: 9px monospace;
+      color: #67645f;
+      letter-spacing: 1px;
+      line-height: 1.9;
+    }
+    .legend {
+      position: fixed;
+      right: max(32px, calc(50% - 565px));
+      top: 47%;
+      width: 182px;
+      transform: translateY(-50%);
+    }
+    .legend dl {
+      margin: 22px 0;
+    }
+    .legend dl div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid #ffffff09;
+      font-size: 11px;
+    }
+    .legend dt {
+      color: #918b81;
+    }
+    .legend dd {
+      margin: 0;
+      color: #e1d5b9;
+      font: 11px monospace;
+    }
+    .legend p {
+      color: #66635f;
+      font-size: 10px;
+      line-height: 1.8;
+    }
+
+  .stage { top: calc(50% + 20px); }
+  .lower { justify-content: space-around; }
+  .screen-only .stage {
+    width: min(calc(100vw - 32px), calc((100vh - 120px) * 7 / 8));
+    height: min(calc((100vw - 32px) * 8 / 7), calc(100vh - 120px));
+    transform: translate(-50%, -50%);
+  }
+  .screen-only .cabinet, .screen-only .bezel, .screen-only .screen-shell, .screen-only .screen {
+    position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0;
+    background: #000; border: 0; box-shadow: none; border-radius: 10px;
+  }
+  .screen-only .marquee, .screen-only .console, .screen-only .lower,
+  .screen-only .cabinet::before, .screen-only .cabinet::after,
+  .screen-only .bezel-label, .screen-only .status, .screen-only .side-note, .screen-only .legend { display: none; }
+  .help { overflow: auto; touch-action: pan-y; }
+  @media (max-width: 1150px) { .side-note, .legend { display: none; } }
+  @media (max-width: 650px) {
+    .topbar { top: 14px; left: 14px; right: 14px; gap: 8px; flex-wrap: wrap; }
+    .edition { font-size: 8px; letter-spacing: 1px; gap: 7px; }
+    .tools { gap: 4px; }
+    .tools button { padding: 9px 7px; font-size: 9px; letter-spacing: 0; }
+  }
+  @media (max-height: 520px) {
+    .topbar { top: 9px; }
+    .tools button { padding: 6px 9px; }
   }
 </style>
 </head>
 <body>
 <div class="ambient"></div>
-<div class="edition">
-  <strong>THE ARCADE ARCHIVE</strong>
-  VOL. 01 / TEHKAN / 1984
-</div>
-<div class="side-note">ONE SHIP. AN INFINITE FRONTIER.</div>
+<header class="topbar">
+  <div class="edition"><i></i><span>STAR FORCE / TEHKAN / 1984</span></div>
+  <nav class="tools" aria-label="Game options">
+    <button id="mute" aria-label="Toggle sound, M" title="Sound · M">SOUND OFF</button>
+    <button id="pause" aria-label="Pause, P" title="Pause · P">PAUSE</button>
+    <button id="view" aria-label="Toggle screen view, V" title="Screen view · V" aria-pressed="false">SCREEN</button>
+    <button id="full" aria-label="Fullscreen, F" title="Fullscreen · F">FULLSCREEN</button>
+    <button id="info" aria-label="Controls and credits">HELP</button>
+  </nav>
+</header>
+<aside class="side-note">
+  <div class="eyebrow">UNIVERSAL SPACE PATROL</div>
+  <h1>TAKE FLIGHT.<br />DEFEND THE<br />GALAXY.</h1>
+  <div class="rule"></div>
+  <p>Pilot your star fighter.<br />Dodge enemy fire.<br />Destroy the targets below.</p>
+  <div class="rule"></div>
+  <p>Press "INSERT COIN", then press "1 PLAYER" to start.</p>
+</aside>
 <main class="stage" aria-label="Star Force arcade cabinet">
   <div class="cabinet">
     <header class="marquee">
@@ -603,22 +709,6 @@
             height="256"
             aria-label="Star Force game screen"></canvas>
           <div class="glass"></div>
-          <div class="overlay" id="welcome">
-            <small>EST. 1984 / ORIGINAL ARCADE</small>
-            <h1>READY, PILOT?</h1>
-            <p>
-              The galaxy is waiting.
-              <br />
-              Take your place at the controls.
-            </p>
-            <button class="primary" id="play">INSERT COIN & PLAY</button>
-            <p>
-              ARROWS / WASD &nbsp; MOVE
-              <br />
-              SPACE / X &nbsp; FIRE
-            </p>
-            <small>PRESS ENTER TO LAUNCH</small>
-          </div>
           <div class="overlay" id="pauseOverlay" hidden>
             <small>FLIGHT ON HOLD</small>
             <h1>PAUSED</h1>
@@ -641,7 +731,7 @@
               <br />
               P / Escape — Pause
               <br />
-              M — Mute · F — Fullscreen
+              M — Sound · V — Screen · F — Fullscreen
             </p>
             <p>
               Touch: use the joystick area and FIRE.
@@ -697,24 +787,26 @@
     <section class="lower">
       <div class="speaker"></div>
       <button id="coin" class="coin">
-        <b></b>
-        INSERT COIN · C
+        INSERT COIN
       </button>
-      <div class="utility">
-        <button id="mute" aria-label="Mute sound" title="Mute (M)">SND</button>
-        <button id="pause" aria-label="Pause" title="Pause (P)">Ⅱ</button>
-        <button id="full" aria-label="Fullscreen" title="Fullscreen (F)">⛶</button>
-        <button id="info" aria-label="Controls and credits" title="Controls and credits">
-          ?
-        </button>
-      </div>
     </section>
   </div>
-  <div class="footer">
-    ARROWS TO MOVE &nbsp; / &nbsp; SPACE TO FIRE &nbsp; / &nbsp; C FOR CREDIT &nbsp; / &nbsp; P
-    TO PAUSE
-  </div>
 </main>
+<aside class="legend">
+  <div class="eyebrow">FLIGHT CONTROLS</div>
+  <dl>
+    <div><dt>Move</dt><dd>↑ ↓ ← →</dd></div>
+    <div><dt>Move (alternate)</dt><dd>W A S D</dd></div>
+    <div><dt>Fire</dt><dd>SPACE / X</dd></div>
+    <div><dt>Rapid fire</dt><dd>Z</dd></div>
+  </dl>
+  <dl>
+    <div><dt>Insert coin</dt><dd>5 / C</dd></div>
+    <div><dt>1 / 2 players</dt><dd>1 / 2</dd></div>
+  </dl>
+  <p>Two players take turns at the controls. Use the joystick area and FIRE on touch screens.</p>
+</aside>
+
 <script>
 (() => {
   var GA = Object.defineProperty;
@@ -5835,7 +5927,7 @@
       _ = e;
       return;
     }
-    if (c && Q.state === "running") {
+    if (Q.state === "running") {
       Y < Q.currentTime && (Y = Q.currentTime + 0.012);
       let t = 0;
       for (; Y < Q.currentTime + 0.045 && t++ < 8;) J(!0);
@@ -5856,6 +5948,7 @@
   async function G() {
     try {
       await Q.resume();
+      g("mute").textContent = n || Q.state !== "running" ? "SOUND OFF" : "SOUND ON";
     } catch (e) {
       g("status").textContent = "SOUND UNAVAILABLE \xB7 " + e.message;
     }
@@ -5863,7 +5956,6 @@
   function V() {
     c ||
       ((c = !0),
-      (g("welcome").hidden = !0),
       (g("state").textContent = "PLAY"),
       f.coin(!0),
       (o = 18),
@@ -5879,18 +5971,19 @@
       (g("stick").style.transform = "rotate(-12deg)"));
   }
   function H(e) {
-    c &&
       ((a = e),
       hA(),
       iA(),
       (g("pauseOverlay").hidden = !e),
-      (g("state").textContent = e ? "PAUSED" : "PLAY"),
+      (g("pause").textContent = e ? "RESUME" : "PAUSE"),
+      (g("state").textContent = e ? "PAUSED" : c ? "PLAY" : "READY"),
       e || G());
   }
   function HA() {
+    if (Q.state !== "running") n = true;
     ((n = !n),
       m.gain.setTargetAtTime(n ? 0 : 0.75, Q.currentTime, 0.015),
-      (g("mute").textContent = n ? "OFF" : "SND"),
+      (g("mute").textContent = n ? "SOUND OFF" : "SOUND ON"),
       g("mute").setAttribute(
         "aria-label",
         n ? "Unmute sound" : "Mute sound",
@@ -5906,7 +5999,6 @@
   function wA() {
     (c ||
       ((c = !0),
-      (g("welcome").hidden = !0),
       (g("state").textContent = "PLAY")),
       f.coin(!0),
       G(),
@@ -5959,6 +6051,7 @@
     "Escape",
     "KeyM",
     "KeyF",
+    "KeyV",
   ]);
   window.addEventListener(
     "keydown",
@@ -5973,6 +6066,7 @@
         }
         if (e.code === "KeyM") return HA();
         if (e.code === "KeyF") return MA();
+        if (e.code === "KeyV") return toggleView();
         if (e.code === "Escape" && !g("help").hidden) return uA();
         if (["KeyP", "Escape"].includes(e.code)) return H(!a);
         if (["KeyC", "Digit5", "Digit0"].includes(e.code)) return wA();
@@ -6010,7 +6104,6 @@
   for (let e of document.querySelectorAll("[data-dir]"))
     zA(e, e.dataset.dir);
   zA(g("fire"), "fire");
-  g("play").onclick = V;
   g("one").onclick = () => S(1);
   g("two").onclick = () => S(2);
   g("coin").onclick = wA;
@@ -6018,12 +6111,21 @@
   g("resume").onclick = () => H(!1);
   g("mute").onclick = HA;
   g("full").onclick = MA;
+  function toggleView() {
+    const screenOnly = document.body.classList.toggle("screen-only");
+    g("view").textContent = screenOnly ? "CABINET" : "SCREEN";
+    g("view").setAttribute("aria-pressed", String(screenOnly));
+  }
+  g("view").onclick = toggleView;
+  document.addEventListener("fullscreenchange", () => {
+    g("full").textContent = document.fullscreenElement ? "EXIT FULL" : "FULLSCREEN";
+  });
   var vA = !1;
   function uA() {
-    ((g("help").hidden = !0), c && !vA && H(!1));
+    ((g("help").hidden = !0), !vA && H(!1));
   }
   g("info").onclick = () => {
-    ((vA = a), c && H(!0), (g("help").hidden = !1));
+    ((vA = a), H(!0), (g("help").hidden = !1));
   };
   g("closeHelp").onclick = uA;
   g("reset").onclick = () => {
@@ -6033,14 +6135,14 @@
       (g("help").hidden = !0),
       (a = !1),
       (c = !1),
-      (g("welcome").hidden = !1),
       (g("pauseOverlay").hidden = !0),
+      (g("pause").textContent = "PAUSE"),
       (g("state").textContent = "READY"));
   };
   function YA() {
     document.documentElement.style.setProperty(
       "--scale",
-      Math.min((innerWidth - 12) / 660, (innerHeight - 40) / 900, 1.3),
+      Math.min((innerWidth - 12) / 660, (innerHeight - 140) / 900, 1.3),
     );
   }
   window.addEventListener("resize", YA);
