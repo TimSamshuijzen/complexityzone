@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07060f" />
+  <title>complexity.zone - Arcade</title>
+  <meta name="description" content="A small neon arcade with classic machines." />
+  <link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Monoton&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07060f;
+      --cyan: #2ee6ff;
+      --magenta: #ff2bd6;
+      --yellow: #ffe14d;
+      --orange: #ff5a2a;
+      --green: #3dff8a;
+      --home: #80cccc;
+      --ink: #e8e6f5;
+      --muted: #8d88a8;
+      --pixel: "Press Start 2P", "Courier New", monospace;
+      --neon: "Monoton", "Arial Black", Impact, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+    a {
+      color: inherit;
+    }
+
+    /* ---------- backdrop: night sky, horizon glow, grid floor ---------- */
+    .sky,
+    .floor,
+    .horizon {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .sky {
+      inset: 0;
+      background:
+        radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, #cfe, transparent),
+        radial-gradient(1.5px 1.5px at 210px 20px, #fff, transparent),
+        radial-gradient(1px 1px at 60px 150px, #fdf, transparent),
+        radial-gradient(1px 1px at 170px 190px, #fff, transparent),
+        radial-gradient(1px 1px at 250px 120px, #cff, transparent),
+        radial-gradient(1.5px 1.5px at 90px 230px, #fff, transparent),
+        radial-gradient(1px 1px at 280px 260px, #fff, transparent),
+        linear-gradient(#05040c, #120b2a 55%, #2a0f4a);
+      background-size:
+        300px 300px, 300px 300px, 300px 300px, 300px 300px,
+        300px 300px, 300px 300px, 300px 300px, 300px 300px,
+        100% 100%;
+    }
+    .horizon {
+      left: 0;
+      right: 0;
+      bottom: 42vh;
+      height: 34vh;
+      background: radial-gradient(ellipse at 50% 100%, #ff2bd640, #ff2bd612 40%, transparent 70%);
+    }
+    .horizon::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: var(--magenta);
+      box-shadow: 0 0 18px var(--magenta), 0 0 50px #ff2bd680;
+    }
+    .floor {
+      left: -50%;
+      right: -50%;
+      bottom: 0;
+      height: 42vh;
+      transform-origin: 50% 0;
+      transform: perspective(420px) rotateX(58deg);
+      background:
+        repeating-linear-gradient(90deg, #ff2bd6cc 0 2px, transparent 2px 90px),
+        repeating-linear-gradient(0deg, #ff2bd6cc 0 2px, transparent 2px 70px);
+      background-size: auto, 100% 70px;
+      mask-image: linear-gradient(transparent, #000 45%);
+      -webkit-mask-image: linear-gradient(transparent, #000 45%);
+      animation: floor-scroll 2.4s linear infinite;
+    }
+    @keyframes floor-scroll {
+      to {
+        background-position: 0 0, 0 70px;
+      }
+    }
+
+    /* ---------- top menu ---------- */
+    .topbar {
+      position: relative;
+      z-index: 3;
+      height: 40px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0b0a1acc;
+      border-bottom: 1px solid #ffffff14;
+      backdrop-filter: blur(6px);
+    }
+    .topbar .home {
+      color: var(--home);
+      font-size: 18px;
+      line-height: 40px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: text-shadow 0.25s;
+    }
+    .topbar .home:hover {
+      text-shadow: 0 0 10px #80cccc99;
+    }
+    .topbar .crumb {
+      color: var(--muted);
+      font-size: 18px;
+      margin-left: 12px;
+    }
+
+    /* ---------- hall ---------- */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 44px 16px 90px;
+      text-align: center;
+    }
+    .sign .over {
+      margin: 0;
+      font: 11px/1 var(--pixel);
+      letter-spacing: 5px;
+      color: #80cccc;
+      text-shadow: 0 0 6px #80cccc, 0 0 20px #80cccc80;
+    }
+    .sign h1 {
+      margin: 14px 0 0;
+      font: 400 clamp(44px, 12vw, 124px)/1 var(--neon);
+      letter-spacing: 0.05em;
+      color: #eafcff;
+      text-shadow:
+        0 0 4px #fff,
+        0 0 12px var(--cyan),
+        0 0 34px var(--cyan),
+        0 0 70px #2ee6ff88;
+      animation: flicker 7s infinite;
+    }
+    .sign .tag {
+      margin: 24px 0 0;
+      font: 10px/1.9 var(--pixel);
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+    @keyframes flicker {
+      0%, 17%, 19%, 23%, 25%, 61%, 63%, 100% {
+        opacity: 1;
+      }
+      18%, 24%, 62% {
+        opacity: 0.5;
+      }
+      20% {
+        opacity: 0.85;
+      }
+    }
+
+    .hall {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 40px 70px;
+      margin-top: 58px;
+    }
+    .machine {
+      width: 320px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .machine.defender {
+      --glow: var(--orange);
+      --glow-soft: #ff5a2a55;
+    }
+    .machine.starforce {
+      --glow: var(--cyan);
+      --glow-soft: #2ee6ff55;
+    }
+
+    /* ---------- cabinet ---------- */
+    .cabinet {
+      display: block;
+      position: relative;
+      width: 300px;
+      padding: 10px 12px 14px;
+      border-radius: 14px 14px 6px 6px;
+      border: 1px solid #33333d;
+      text-decoration: none;
+      background: linear-gradient(90deg,
+          #08080c, #2a2a33 2%, #15151b 5%,
+          #131319 95%, #2c2c35 98%, #08080c);
+      box-shadow:
+        0 40px 60px -20px #000,
+        0 0 40px -10px var(--glow),
+        inset 0 0 0 4px #0a0a0e;
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+    .cabinet::before,
+    .cabinet::after {
+      content: "";
+      position: absolute;
+      top: 96px;
+      bottom: 78px;
+      width: 3px;
+      border-radius: 2px;
+      background: var(--glow);
+      box-shadow: 0 0 10px var(--glow), 0 0 26px var(--glow);
+      opacity: 0.85;
+    }
+    .cabinet::before {
+      left: 5px;
+    }
+    .cabinet::after {
+      right: 5px;
+    }
+    .cabinet:hover,
+    .cabinet:focus-visible {
+      outline: none;
+      transform: translateY(-8px);
+      box-shadow:
+        0 60px 70px -20px #000,
+        0 0 80px -6px var(--glow),
+        inset 0 0 0 4px #0a0a0e;
+    }
+
+    .marquee {
+      position: relative;
+      height: 92px;
+      padding: 12px 16px;
+      border: 3px solid #0a0a0e;
+      border-radius: 10px 10px 3px 3px;
+      background: radial-gradient(ellipse at 50% 30%, #1d1c2c, #0b0b12 75%);
+      box-shadow: inset 0 0 26px var(--glow-soft), 0 0 20px -6px var(--glow);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .marquee::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(165deg, transparent 40%, #ffffff0c 50%, transparent 60%);
+      pointer-events: none;
+    }
+    .marquee .mark {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 5px var(--glow)) drop-shadow(0 0 14px var(--glow-soft));
+    }
+
+    .bezel {
+      margin-top: 10px;
+      height: 230px;
+      border: 3px solid #0a0a0e;
+      border-radius: 8px;
+      background: #050507;
+      box-shadow: inset 0 0 0 2px #1c1c24;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .screen {
+      position: relative;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #000;
+      box-shadow: 0 0 26px -4px var(--glow);
+    }
+    .defender .screen {
+      width: 236px;
+      height: 177px;
+    }
+    .starforce .screen {
+      width: 154px;
+      height: 176px;
+    }
+    .screen canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+    .glass {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 2px, #00000055 2px 3px),
+        radial-gradient(ellipse at 50% 35%, #ffffff12, transparent 60%);
+    }
+    .attract {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 12px;
+      text-align: center;
+      font: 8px/1 var(--pixel);
+      letter-spacing: 1px;
+      color: #fff;
+      text-shadow: 0 0 6px #fff;
+      animation: blink 1.1s infinite;
+    }
+    @keyframes blink {
+      0%, 49% {
+        opacity: 1;
+      }
+      50%, 100% {
+        opacity: 0;
+      }
+    }
+
+    .panel {
+      margin-top: 10px;
+      height: 64px;
+      padding: 0 26px;
+      border: 2px solid #0a0a0e;
+      border-radius: 6px;
+      background: linear-gradient(#2a2a34, #17171e);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stick {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0a0a0e 34%, #2c2c36 36%, #101015 70%, #2c2c36 72%, #0a0a0e);
+      display: grid;
+      place-items: center;
+    }
+    .stick::after {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ff7676, #b3161c 55%, #5a0a0d);
+      box-shadow: 0 0 10px #ff3b3b88, 0 2px 3px #000;
+      transform: translate(3px, -2px);
+    }
+    .btns {
+      display: flex;
+      gap: 9px;
+    }
+    .btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: inset 0 -4px 0 #0007, inset 0 2px 0 #fff5, 0 0 9px currentColor;
+    }
+    .btn.red {
+      color: #ff3b3b;
+    }
+    .btn.white {
+      color: #f4f2ff;
+    }
+    .btn.green {
+      color: #3dff8a;
+    }
+    .btn.yellow {
+      color: #ffe14d;
+    }
+    .btn.blue {
+      color: #4da3ff;
+    }
+
+    .coin {
+      margin-top: 10px;
+      height: 78px;
+      border: 2px solid #0a0a0e;
+      border-radius: 6px;
+      background: linear-gradient(#111116, #0b0b10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+    .slots {
+      display: flex;
+      gap: 28px;
+    }
+    .slot {
+      width: 14px;
+      height: 28px;
+      border-radius: 3px;
+      background: #1d1d26;
+      box-shadow: inset 0 0 0 2px #2b2b36, inset 0 0 6px #000;
+    }
+    .slot::after {
+      content: "";
+      display: block;
+      width: 3px;
+      height: 14px;
+      margin: 7px auto;
+      background: #000;
+    }
+    .insert {
+      font: 8px/1 var(--pixel);
+      letter-spacing: 2px;
+      color: var(--yellow);
+      text-shadow: 0 0 7px var(--yellow);
+      animation: blink 1.5s infinite;
+    }
+
+    .pool {
+      width: 340px;
+      height: 70px;
+      margin-top: -28px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, var(--glow), transparent 60%);
+      opacity: 0.28;
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    /* ---------- plaque ---------- */
+    .plaque {
+      margin-top: 4px;
+    }
+    .plaque h2 {
+      margin: 0;
+      font: 14px/1.5 var(--pixel);
+      color: #fff;
+      text-shadow: 0 0 10px var(--glow);
+    }
+    .plaque .meta {
+      margin: 8px 0 0;
+      font: 9px/1.8 var(--pixel);
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .plaque p {
+      margin: 12px 0 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #bcb8d2;
+    }
+    .play {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 12px 18px;
+      font: 10px/1 var(--pixel);
+      letter-spacing: 2px;
+      color: var(--glow);
+      border: 2px solid var(--glow);
+      border-radius: 4px;
+      text-decoration: none;
+      text-shadow: 0 0 6px var(--glow);
+      box-shadow: 0 0 14px -2px var(--glow), inset 0 0 14px -8px var(--glow);
+      transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+    }
+    .play:hover,
+    .play:focus-visible {
+      outline: none;
+      background: var(--glow);
+      color: #0a0a0e;
+      text-shadow: none;
+      box-shadow: 0 0 28px var(--glow);
+    }
+
+    @media (max-width: 760px) {
+      .topbar .crumb {
+        display: none;
+      }
+      .hall {
+        gap: 54px;
+      }
+    }
+    @media (max-width: 480px) {
+      .sign .tag {
+        font-size: 8px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .floor,
+      .sign h1,
+      .attract,
+      .insert {
+        animation: none;
+      }
+      .cabinet {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="horizon" aria-hidden="true"></div>
+  <div class="floor" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div>
+      <a class="home" href="https://complexity.zone/">complexity.zone</a>
+      <span class="crumb">/ arcade</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="sign">
+      <p class="over">COMPLEXITY ZONE</p>
+      <h1>ARCADE</h1>
+      <p class="tag">ORIGINAL ROMS AND SOUNDS</p>
+    </section>
+
+    <section class="hall">
+      <figure class="machine defender">
+        <a class="cabinet" href="./defender.html" aria-label="Play Defender (1981)">
+          <div class="marquee">
+        <svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="51 41 695 155"
+          preserveAspectRatio="xMidYMid meet" role="img" aria-label="Williams Defender">
+          <path id="path3506" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linecap="round" stroke-linejoin="round" d=" M135.604,76.605L52.399,193.869l69.647,0.139c5.973,0.014,14.808-6.488,19.619-14.285l58.392-94.604 c2.733-4.43,1.391-7.89-2.925-7.89 M210.231,77.228l-10.848,18.086l-37.148,61.95l-14.819,24.711l-7.236,12.07l77.308,0.154 l15.295-36.84l-43.942-0.062c-6.145-0.008,3.338-17.688,9.374-17.683l32.859,0.035l13.787-31.333l-30.047-0.016 c-5.118-0.003,1.953-12.982,6.881-12.981l36.841,0.012l3.996-9.627c1.906-4.591-0.273-8.478-4.671-8.478L210.231,77.228 L210.231,77.228 M274.247,77.229l-7.026,18.107l-24.077,62.038l-9.607,24.756l-4.692,12.093l26.367,0.053l17.749-54.578 l35.445,0.037l7.157-31.377l-30.12-0.016c-5.13-0.003-0.801-12.999,4.138-12.998l36.927,0.012l2.014-9.909 c0.96-4.724-1.696-8.217-6.061-8.217H274.247L274.247,77.229 M336.413,77.229l-3.311,18.128l-11.346,62.125l-4.528,24.797 l-2.213,12.115l65.825,0.133c5.885,0.012,11.93-5.451,11.907-13.687l-0.063-23.262l-44.182-0.062 c-6.179-0.009-4.068-17.746,2-17.74l32.156-0.479l0.699-31.421l-29.316,0.498c-5.143-0.003-3.481-13.015,1.468-13.014l37.009,0.012 l-0.025-9.808c-0.012-4.092-4.081-8.338-8.5-8.338L336.413,77.229L336.413,77.229 M406.344,77.23c-4.226,0-7.556,3.399-7.454,7.717 l2.229,95.764c0.179,7.641,5.059,13.989,10.924,14.001l16.767,0.034l-6.668-75.413l36.712,75.472l10.021,0.021 c5.878,0.012,9.295-6.329,7.694-13.982l-20.044-95.889c-0.904-4.322-5.03-7.724-9.261-7.724h-9.468l6.759,44.329l-24.313-44.33 H406.344L406.344,77.23 M459.936,77.23l26.516,117.508l70.687,0.143c6.061,0.012,8.189-6.551,4.887-14.419l-40.008-95.297 c-1.87-4.454-6.848-7.934-11.208-7.934L459.936,77.23L459.936,77.23 M523.38,77.231l7.918,18.189l27.159,62.389l10.852,24.924 l5.304,12.184l67.001,0.134c6.459,0.013,7.94-5.633,2.697-14.063l-14.351-23.08l-44.538-0.061 c-6.229-0.01-15.128-17.83-9.014-17.822l33.285,0.035l-18.828-31.553l-30.401-0.017c-5.179-0.003-11.589-13.063-6.604-13.062 l37.259,0.012l-11.32-18.208H523.38L523.38,77.231 M585.635,77.253l36.642,57.159l0.116,0.18l38.886,60.66l29.144,0.059 l-41.045-57.789l63.024,57.834l32.384,0.064l-72.248-60.777l5.326,0.004c5.068,0.006,5.292-4.705,0.639-10.377L632.448,60.1 L585.635,77.253L585.635,77.253 M615.675,94.733l15.513,0.005c3.325,0.001,8.146,2.816,10.874,6.371 c2.787,3.634,2.293,6.601-1.168,6.599L624.75,107.7L615.675,94.733L615.675,94.733 M152.309,95.583l12.113,0.004 c4.572,0.001,5.585,3.921,2.179,8.916l-27.117,39.739c-4.42,6.479-12.479,11.863-17.909,11.855l-14.388-0.02L152.309,95.583 L152.309,95.583"/> <path id="path3588" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M52.399,156.493v37.376l69.647,0.139l-0.082-37.375 L52.399,156.493z"/> <path id="path3590" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M146.802,51.514L118.99,92.205l81.172-14.128 l1.263-23.07L146.802,51.514z"/> <path id="path3592" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M140.079,156.669 l0.101,37.376l77.308,0.154l-0.163-37.375L140.079,156.669z"/> <path id="path3594" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M217.323,156.824l0.163,37.375l15.295-36.84 l-0.14-33.7L217.323,156.824z"/> <path id="path3596" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M230.95,107.716l0.122,31.937l13.787-31.333 l-0.103-28.812L230.95,107.716z"/> <path id="path3598" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M211.354,63.45l-2.646,30.44L263.2,83.044 l-0.201-27.989L211.354,63.45z"/> <path id="path3600" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M228.672,156.846 l0.17,37.377l26.368,0.053l-0.187-37.375L228.672,156.846z"/> <path id="path3602" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M308.245,107.799l0.159,31.936l7.157-31.377 l-0.133-28.812L308.245,107.799z"/> <path id="path3604" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M274.159,51.515l-6.938,43.821l61.299-9.89 l-0.115-26.531L274.159,51.515z"/> <path id="path3606" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M314.804,157.02 l0.211,37.375l77.732-13.553l-0.212-36.014L314.804,157.02z"/> <path id="path3608" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M342.214,57.425l-3.502,30.245l53.81,7.706 l-0.149-36.35L342.214,57.425z"/> <path id="path3610" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M400.908,144.712l11.136,50l16.767,0.034 l-0.223-37.389L400.908,144.712z"/> <path id="path3612" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M458.635,157.418 l0.218,37.389l17.716-13.963l-0.2-35.998L458.635,157.418z"/> <path id="path3614" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M437.683,51.517l0.113,25.713l20.816,16.447 l-11.46-42.16H437.683z"/> <path id="path3616" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M486.242,157.363 l0.21,37.375l76.732-10.689l-0.138-36.193L486.242,157.363z"/> <path id="path3618" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M459.828,51.517l0.108,25.713l63.442,0.001 l-12.661-25.714H459.828z"/> <path id="path3620" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M523.294,51.518l0.086,25.713l51.231,117.685 l-0.167-37.377L523.294,51.518z"/> <path id="path3622" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M574.444,157.539 l0.167,37.377l72.877-5.139l-1.15-38.791L574.444,157.539z"/> <path id="path3624" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M578.822,51.519h-48.461l60.002,104.57 l37.918-31.884L578.822,51.519z"/> <path id="path3626" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M585.719,51.725 l1.037,20.15L659.1,189.654l2.082-31.793L585.719,51.725z"/> <path id="path3628" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M661.182,157.861 l0.095,37.391l29.144,0.059l-0.065-37.392L661.182,157.861z"/> <path id="path3630" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" d="M649.323,105.842l0.052,31.68l60.692,53.015 l2.293-32.572L649.323,105.842z"/> <path id="path3632" fill="#BB2C1B" stroke="#BB2C1B" stroke-width="1.7417" stroke-linejoin="round" d="M712.36,157.963 l0.04,37.393l32.384,0.064v-37.393L712.36,157.963z"/> <path id="rect3247" fill="#F3ED57" stroke="#000000" stroke-width="1.7417" stroke-linecap="round" stroke-linejoin="round" d=" M146.802,51.514L52.399,156.493l69.565,0.14c5.967,0.012,14.8-5.838,19.613-12.855l58.428-85.159 c2.736-3.988,1.396-7.104-2.914-7.104H146.802L146.802,51.514 M210.18,51.514l-10.855,16.283l-37.176,55.765l-14.828,22.245 l-7.242,10.862l77.244,0.155l15.318-33.165l-43.911-0.061c-6.141-0.008,3.351-15.925,9.383-15.918l32.837,0.035l13.808-28.209 L214.73,79.49c-5.114-0.002,1.964-11.688,6.889-11.686l36.818,0.012l4.004-8.667c1.909-4.134-0.267-7.633-4.661-7.633 L210.18,51.514L210.18,51.514 M274.159,51.515l-7.041,16.304l-24.121,55.854l-9.624,22.288l-4.701,10.885l26.353,0.055 l17.791-49.139l35.431,0.038l7.185-28.254l-30.108-0.016c-5.129-0.003-0.789-11.705,4.147-11.703l36.914,0.012l2.021-8.922 c0.964-4.253-1.688-7.399-6.051-7.399L274.159,51.515L274.159,51.515 M336.303,51.516l-3.326,16.324l-11.4,55.942l-4.55,22.33 l-2.223,10.908l65.813,0.131c5.885,0.013,11.936-4.905,11.92-12.321l-0.041-20.949l-44.177-0.061 c-6.177-0.008-4.052-15.981,2.017-15.974l33.025,0.035l0.729-28.297l-30.188-0.017c-5.141-0.002-3.47-11.72,1.479-11.719 l37.006,0.012l-0.019-8.833c-0.007-3.686-4.072-7.51-8.49-7.51H336.303L336.303,51.516 M406.227,51.517 c-4.224,0-7.557,3.061-7.461,6.95l2.142,86.246c0.171,6.881,5.046,12.602,10.91,12.612l16.77,0.032l-6.6-67.919l36.647,67.981 l10.022,0.021c5.879,0.012,9.304-5.698,7.71-12.592l-19.96-86.372c-0.899-3.893-5.023-6.958-9.255-6.958h-9.471l6.719,39.926 l-24.274-39.927H406.227L406.227,51.517 M459.828,51.517l26.414,105.846l70.719,0.141c6.063,0.014,8.201-5.898,4.903-12.988 l-39.94-85.851c-1.866-4.013-6.844-7.146-11.205-7.147L459.828,51.517L459.828,51.517 M523.294,51.518l7.904,16.385l27.116,56.205 l10.835,22.457l5.295,10.976l67.056,0.135c6.464,0.013,7.951-5.073,2.713-12.672l-14.342-20.796l-44.574-0.061 c-6.231-0.009-15.12-16.064-9.001-16.058l33.309,0.036l-18.813-28.429l-30.423-0.017c-5.182-0.003-11.582-11.769-6.598-11.767 l37.284,0.012l-11.313-16.404L523.294,51.518L523.294,51.518 M585.586,51.538l36.616,51.5l0.115,0.162l38.865,54.661l29.172,0.059 l-41.031-52.077l63.037,52.121l32.424,0.065l-72.273-54.78l5.331,0.005c5.072,0.005,5.302-4.24,0.647-9.352l-38.567-42.364H585.586 L585.586,51.538 M615.633,67.287l15.525,0.005c3.328,0.001,8.151,2.538,10.877,5.741c2.786,3.274,2.289,5.947-1.175,5.945 l-16.158-0.008L615.633,67.287L615.633,67.287 M152.289,68.038l12.104,0.004c4.567,0.001,5.577,3.53,2.168,8.026l-27.128,35.77 c-4.423,5.831-12.479,10.678-17.902,10.671l-14.372-0.02L152.289,68.038L152.289,68.038 M484.573,68.146l12.256,0.004 c4.626,0.001,9.749,3.554,11.524,8.081l14.134,36.049c2.307,5.882-0.216,10.772-5.722,10.765l-14.588-0.02L484.573,68.146 L484.573,68.146"/> <g enable-background="new "> <path d="M656.515,42.654c1.199,0,2.35,0.3,3.451,0.899c1.101,0.599,1.968,1.459,2.598,2.579c0.63,1.12,0.945,2.291,0.945,3.515 c0,1.218-0.311,2.379-0.928,3.483s-1.479,1.966-2.584,2.584c-1.104,0.617-2.267,0.927-3.482,0.927s-2.378-0.31-3.482-0.927 c-1.104-0.618-1.967-1.479-2.584-2.584c-0.617-1.104-0.927-2.266-0.927-3.483c0-1.224,0.315-2.395,0.944-3.515 c0.631-1.12,1.496-1.979,2.598-2.579C654.167,42.953,655.316,42.654,656.515,42.654z M656.525,44.023 c-0.963,0-1.885,0.24-2.767,0.722c-0.884,0.48-1.578,1.172-2.087,2.072s-0.763,1.845-0.763,2.83c0,0.98,0.248,1.914,0.744,2.803 c0.496,0.889,1.188,1.583,2.077,2.082c0.888,0.499,1.819,0.749,2.794,0.749c0.979,0,1.912-0.25,2.798-0.749 c0.887-0.499,1.578-1.193,2.077-2.082c0.499-0.889,0.748-1.822,0.748-2.803c0-0.985-0.254-1.93-0.762-2.83 s-1.205-1.592-2.091-2.072C658.41,44.264,657.486,44.023,656.525,44.023z M653.357,53.391v-7.422h1.506 c1.412,0,2.203,0.006,2.374,0.018c0.499,0.043,0.888,0.142,1.164,0.297c0.276,0.155,0.508,0.393,0.694,0.712 c0.186,0.32,0.276,0.675,0.276,1.063c0,0.536-0.175,0.994-0.523,1.374c-0.352,0.381-0.842,0.617-1.476,0.708 c0.227,0.085,0.398,0.178,0.521,0.278c0.121,0.101,0.289,0.291,0.502,0.571c0.055,0.072,0.237,0.374,0.548,0.903l0.876,1.497 h-1.861l-0.62-1.205c-0.421-0.81-0.769-1.319-1.041-1.529c-0.273-0.21-0.621-0.314-1.041-0.314h-0.394v3.049H653.357z M654.863,49.173h0.611c0.871,0,1.411-0.033,1.621-0.101c0.21-0.066,0.375-0.184,0.498-0.352c0.121-0.167,0.182-0.357,0.182-0.57 c0-0.207-0.059-0.391-0.178-0.553c-0.119-0.161-0.287-0.276-0.507-0.347c-0.22-0.069-0.759-0.104-1.616-0.104h-0.611V49.173 L654.863,49.173z"/> </g>
+        </svg>
+          </div>
+          <div class="bezel">
+            <div class="screen">
+              <canvas id="defender-screen" width="236" height="177" aria-hidden="true"></canvas>
+              <div class="glass"></div>
+              <div class="attract">PRESS START</div>
+            </div>
+          </div>
+          <div class="panel" aria-hidden="true">
+            <div class="stick"></div>
+            <div class="btns">
+              <i class="btn red"></i>
+              <i class="btn white"></i>
+              <i class="btn white"></i>
+              <i class="btn white"></i>
+              <i class="btn green"></i>
+            </div>
+          </div>
+          <div class="coin" aria-hidden="true">
+            <div class="slots"><i class="slot"></i><i class="slot"></i></div>
+            <div class="insert">INSERT COIN</div>
+          </div>
+        </a>
+        <div class="pool" aria-hidden="true"></div>
+        <figcaption class="plaque">
+          <h2>DEFENDER</h2>
+          <p class="meta">WILLIAMS ELECTRONICS &middot; 1981</p>
+          <p>Fly the last ship over a scrolling planet, catch falling humanoids, and keep one eye on the scanner.</p>
+          <a class="play" href="./defender.html">PLAY</a>
+        </figcaption>
+      </figure>
+
+      <figure class="machine starforce">
+        <a class="cabinet" href="./starforce.html" aria-label="Play Star Force (1984)">
+          <div class="marquee">
+      <svg class="mark" viewBox="0 0 1090 425" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="STAR FORCE">
+        <defs>
+          <linearGradient id="brand-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ed241c"/>
+            <stop offset=".25" stop-color="#f53620"/>
+            <stop offset=".5" stop-color="#fff35c"/>
+            <stop offset=".75" stop-color="#f53620"/>
+            <stop offset="1" stop-color="#ed241c"/>
+          </linearGradient>
+        </defs>
+        <path fill="#fffef4" stroke="#11110d" stroke-width="3" d="M8 416 57 233 90 288 176 241 83 125 275 15 275 110 358 60 358 100 430 57 430 112 528 57 528 101 690 8 690 112 786 57 786 112 883 57 883 111 980 56 980 111 1079 56 1079 297 966 362 966 304 866 361 866 334 819 361 819 307 773 332 773 305 673 361 673 347 565 408 565 302 462 361 462 308 366 362 366 303 258 365 258 285Z"/>
+        <path fill="url(#brand-fill)" fill-rule="evenodd" stroke="#100c09" stroke-width="7" d="M262 41 115 125Q108 130 114 140L194 242Q200 250 192 255L92 308Q85 312 80 304L61 273 31 386 249 262Q257 257 252 248L171 143Q166 137 173 133L243 93 262 127ZM240 145 341 87 341 135 307 154 307 319 275 337 275 168 240 187ZM335 300 335 166Q335 134 356 122L413 88 413 320 380 337 380 254 370 260 370 281ZM370 220 382 213 382 145Q371 150 371 161ZM430 131 494 94Q511 84 511 106L511 152Q511 170 503 178 511 184 511 202L511 315 477 334 477 212Q477 199 466 197L466 288 430 308ZM466 190Q478 187 478 174L478 156Q478 147 466 155ZM582 88 676 34 676 121 656 94Q654 90 648 94L620 110 620 157 646 142 662 126 662 192 649 184 620 201 620 361 582 383ZM688 334 688 167Q688 134 714 119L771 87 771 265Q771 289 751 301ZM721 277 731 271Q739 267 739 254L739 142 731 147Q721 153 721 167ZM788 132 850 95Q868 85 868 106L868 151Q868 168 861 175 868 181 868 200L868 316 835 335 835 210Q835 198 823 196L823 289 788 308ZM823 188Q835 184 835 171L835 156Q835 146 823 154ZM883 335 883 162Q883 135 908 120L965 86 965 161 930 181 930 148 923 152Q917 155 917 167L917 274 926 269Q931 265 931 254L931 220 965 199 965 261Q965 285 945 299ZM982 131 1064 84 1064 147 1049 134 1016 153 1016 189 1046 172 1046 211 1016 228 1016 274 1049 255 1064 227 1064 289 982 336Z"/>
+      </svg>
+          </div>
+          <div class="bezel">
+            <div class="screen">
+              <canvas id="starforce-screen" width="154" height="176" aria-hidden="true"></canvas>
+              <div class="glass"></div>
+              <div class="attract">PRESS START</div>
+            </div>
+          </div>
+          <div class="panel" aria-hidden="true">
+            <div class="stick"></div>
+            <div class="btns">
+              <i class="btn yellow"></i>
+              <i class="btn blue"></i>
+            </div>
+          </div>
+          <div class="coin" aria-hidden="true">
+            <div class="slots"><i class="slot"></i><i class="slot"></i></div>
+            <div class="insert">INSERT COIN</div>
+          </div>
+        </a>
+        <div class="pool" aria-hidden="true"></div>
+        <figcaption class="plaque">
+          <h2>STAR FORCE</h2>
+          <p class="meta">TEHKAN &middot; 1984</p>
+          <p>Pilot the Final Star straight up through waves of enemy fighters and ground targets.</p>
+          <a class="play" href="./starforce.html">PLAY</a>
+        </figcaption>
+      </figure>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ---- Defender attract mode: scrolling terrain, landers, ship ---- */
+      var dc = document.getElementById("defender-screen");
+      var d = dc.getContext("2d");
+      var W = dc.width, H = dc.height;
+      var stars = [], i;
+      for (i = 0; i < 40; i++) {
+        stars.push({ x: Math.random() * W, y: 26 + Math.random() * (H - 66), s: Math.random() < 0.3 ? 2 : 1, v: 0.15 + Math.random() * 0.45 });
+      }
+      var SEG = 4, N = 140, terrain = [], h = H - 40;
+      for (i = 0; i < N; i++) {
+        h += Math.round((Math.random() - 0.5) * 16);
+        h = Math.max(H - 72, Math.min(H - 16, h));
+        terrain.push(h);
+      }
+      var landers = [];
+      for (i = 0; i < 3; i++) {
+        landers.push({ x: 60 + Math.random() * W, y: 50 + Math.random() * 80, p: Math.random() * 6 });
+      }
+      var scroll = 0, t = 0, laser = 0;
+
+      function drawDefender() {
+        t++;
+        d.fillStyle = "#000";
+        d.fillRect(0, 0, W, H);
+
+        // scanner strip
+        d.fillStyle = "#4646ff";
+        d.fillRect(58, 3, 120, 1);
+        d.fillRect(58, 21, 120, 1);
+        d.fillRect(58, 3, 1, 19);
+        d.fillRect(177, 3, 1, 19);
+        d.fillStyle = "#d0642a";
+        for (i = 0; i < 118; i += 2) {
+          var idx = Math.floor(scroll / SEG + i * N / 118) % N;
+          d.fillRect(60 + i, 4 + Math.round((terrain[idx] - (H - 72)) / 56 * 15), 1, 1);
+        }
+        d.fillStyle = "#fff";
+        d.fillRect(117, 12, 2, 1);
+
+        // stars
+        for (i = 0; i < stars.length; i++) {
+          var s = stars[i];
+          s.x -= s.v;
+          if (s.x < 0) s.x += W;
+          d.fillStyle = s.s === 2 ? "#fff" : "#9a9ab8";
+          d.fillRect(s.x | 0, s.y | 0, s.s, s.s);
+        }
+
+        // terrain
+        scroll = (scroll + 1.4) % (N * SEG);
+        d.strokeStyle = "#d0642a";
+        d.lineWidth = 1;
+        d.beginPath();
+        for (i = 0; i <= W / SEG + 1; i++) {
+          var k = (Math.floor(scroll / SEG) + i) % N;
+          var x = i * SEG - (scroll % SEG);
+          if (i) d.lineTo(x, terrain[k]); else d.moveTo(x, terrain[k]);
+        }
+        d.stroke();
+
+        // landers
+        for (i = 0; i < landers.length; i++) {
+          var l = landers[i];
+          l.x -= 0.55;
+          if (l.x < -10) { l.x = W + 10; l.y = 50 + Math.random() * 80; }
+          var ly = l.y + Math.sin(t / 22 + l.p) * 4;
+          d.fillStyle = "#3dff8a";
+          d.fillRect(l.x | 0, ly | 0, 7, 3);
+          d.fillRect((l.x + 2) | 0, (ly - 2) | 0, 3, 2);
+          d.fillStyle = "#ffe14d";
+          d.fillRect((l.x + 1) | 0, (ly + 3) | 0, 5, 1);
+        }
+
+        // ship
+        var sx = 58, sy = (H / 2 + Math.sin(t / 34) * 20) | 0;
+        d.fillStyle = "#ff4dd2";
+        d.fillRect(sx - 5, sy + 1, 5, 1);
+        d.fillStyle = "#fff";
+        d.fillRect(sx, sy, 15, 3);
+        d.fillRect(sx + 3, sy - 2, 8, 2);
+        d.fillStyle = "#2ee6ff";
+        d.fillRect(sx + 12, sy + 1, 4, 1);
+        if (t % 4 < 2) {
+          d.fillStyle = "#ffe14d";
+          d.fillRect(sx - 9, sy + 1, 4, 1);
+        }
+
+        // laser
+        if (laser > 0) {
+          d.fillStyle = laser > 5 ? "#fff" : "#ff4dd2";
+          d.fillRect(sx + 16, sy + 1, ((W - sx) * (1 - laser / 9)) | 0, 1);
+          laser--;
+        } else if (Math.random() < 0.02) {
+          laser = 9;
+        }
+      }
+
+      /* ---- Star Force attract mode: vertical starfield, fighter, shots ---- */
+      var sc = document.getElementById("starforce-screen");
+      var c = sc.getContext("2d");
+      var SW = sc.width, SH = sc.height;
+      var layers = [[0.5, "#3b3b5a", 32], [1.2, "#8f8fb8", 18], [2.4, "#ffffff", 9]];
+      var field = [], j;
+      for (i = 0; i < layers.length; i++) {
+        for (j = 0; j < layers[i][2]; j++) {
+          field.push({ x: Math.random() * SW, y: Math.random() * SH, v: layers[i][0], col: layers[i][1] });
+        }
+      }
+      var foes = [], shots = [], t2 = 0;
+      for (i = 0; i < 4; i++) {
+        foes.push({ x: 24 + i * 36, y: -Math.random() * 220, p: i * 1.7 });
+      }
+
+      function drawStarForce() {
+        t2++;
+        c.fillStyle = "#000";
+        c.fillRect(0, 0, SW, SH);
+
+        for (i = 0; i < field.length; i++) {
+          var p = field[i];
+          p.y += p.v;
+          if (p.y > SH) { p.y = 0; p.x = Math.random() * SW; }
+          c.fillStyle = p.col;
+          c.fillRect(p.x | 0, p.y | 0, 1, p.v > 2 ? 2 : 1);
+        }
+
+        for (i = 0; i < foes.length; i++) {
+          var f = foes[i];
+          f.y += 0.9;
+          var fx = (f.x + Math.sin(t2 / 26 + f.p) * 22) | 0;
+          if (f.y > SH + 12) f.y = -20 - Math.random() * 120;
+          c.fillStyle = "#ff5a2a";
+          c.fillRect(fx, f.y | 0, 9, 4);
+          c.fillRect(fx + 3, (f.y - 2) | 0, 3, 2);
+          c.fillStyle = "#ffe14d";
+          c.fillRect(fx + 2, (f.y + 4) | 0, 5, 2);
+        }
+
+        var px = (SW / 2 + Math.sin(t2 / 44) * 44) | 0, py = SH - 48;
+        c.fillStyle = "#fff";
+        c.fillRect(px - 1, py - 8, 3, 14);
+        c.fillStyle = "#2ee6ff";
+        c.fillRect(px - 8, py, 17, 3);
+        c.fillRect(px - 6, py + 3, 3, 3);
+        c.fillRect(px + 4, py + 3, 3, 3);
+        c.fillStyle = t2 % 4 < 2 ? "#ffe14d" : "#ff5a2a";
+        c.fillRect(px - 1, py + 6, 3, 3);
+
+        if (t2 % 12 === 0) {
+          shots.push({ x: px - 4, y: py - 8 }, { x: px + 4, y: py - 8 });
+        }
+        c.fillStyle = "#ffe14d";
+        for (i = shots.length - 1; i >= 0; i--) {
+          var q = shots[i];
+          q.y -= 4;
+          if (q.y < -6) shots.splice(i, 1);
+          else c.fillRect(q.x, q.y | 0, 1, 5);
+        }
+      }
+
+      function loop() {
+        drawDefender();
+        drawStarForce();
+        if (!reduce) window.requestAnimationFrame(loop);
+      }
+      loop();
+    })();
+  </script>
+</body>
+</html>
