@@ -1,8 +1,23 @@
 
-See `defender.html`. It is a standalone html file with the classic arcade game Defender (1981).
-See `starforce.html`. It is a standalone html file with the classic arcade game Star Force (1984).
+See `defender.html`. It is a standalone html file that emulates classic arcade game Defender (1981).
+See `starforce.html`. It is a standalone html file that emulates classic arcade game Star Force (1984).
 
-In this directory, create `index.html`. `index.html` represents the arcade, with links to the games.
+See `index.html`. It is an 80's arcade, with two machines (cabinets), Defender and Star Force.
+You created `index.html`, and it looks great.
+
+See `galaxian.html`. It is a standalone html file that emulates classic arcade game Galaxian (1979).
+
+Galaxian is to be added to the arcade.
+Update `index.html` to include Galaxian. Place it first, before Defender.
+Fill in the machine cabinet's properties. Make it look just as great as the others.
+
+
+
+
+
+New to the arcade 
+
+
 It is just a small arcade, with just two games.
 
 Make the arcade look great, in 1980's neon style, with Defender and Star Force as its centerpiece cabinets.
