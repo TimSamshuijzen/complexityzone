@@ -525,6 +525,28 @@
       justify-content: space-between;
       align-items: center;
     }
+    .site {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font: 10px monospace;
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+    .site a {
+      color: #f1ede3;
+      text-decoration: none;
+      transition: text-shadow 0.25s;
+    }
+    .site a:hover {
+      text-shadow: 0 0 10px #8bd8e999;
+    }
+    .site .crumb {
+      color: #a9a49b;
+    }
+    .site .crumb::before {
+      content: "/ ";
+    }
     .edition {
       display: flex;
       align-items: center;
@@ -658,6 +680,10 @@
 <body>
 <div class="ambient"></div>
 <header class="topbar">
+  <nav class="site" aria-label="Site">
+    <a class="home" href="https://complexity.zone/">complexity.zone</a>
+    <a class="crumb" href="https://complexity.zone/arcade/">arcade</a>
+  </nav>
   <div class="edition"><i></i><span>STAR FORCE / TEHKAN / 1984</span></div>
   <nav class="tools" aria-label="Game options">
     <button id="mute" aria-label="Toggle sound, M" title="Sound · M">SOUND OFF</button>
