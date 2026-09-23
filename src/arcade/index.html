@@ -200,6 +200,10 @@
       --glow: #b7e83d;
       --glow-soft: #b7e83d55;
     }
+    .machine.pacman {
+      --glow: var(--yellow);
+      --glow-soft: #ffe14d55;
+    }
     .machine.defender {
       --glow: var(--orange);
       --glow-soft: #ff5a2a55;
@@ -305,6 +309,10 @@
     .galaxian .screen {
       width: 154px;
       height: 176px;
+    }
+    .pacman .screen {
+      width: 150px;
+      height: 180px;
     }
     .defender .screen {
       width: 236px;
@@ -579,6 +587,48 @@
         </figcaption>
       </figure>
 
+      <figure class="machine pacman">
+        <a class="cabinet" href="./pacman.html" aria-label="Play Pac-Man (1980)">
+          <div class="marquee">
+      <svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="PAC-MAN">
+        <path fill="#ffe14d" d="M40 50 L64.6 32.8 A30 30 0 1 0 64.6 67.2 Z"/>
+        <circle cx="44" cy="35" r="3" fill="#0b0b12"/>
+        <text x="218" y="64" text-anchor="middle" font-family="'Press Start 2P', 'Courier New', monospace" font-size="34" fill="#ffe14d" stroke="#e0341f" stroke-width="2" paint-order="stroke">PAC-MAN</text>
+        <path fill="#ff2a2a" d="M358 78 V50 A25 25 0 0 1 408 50 V78 L399 69 L390 78 L381 69 L372 78 L363 69 Z"/>
+        <ellipse cx="374" cy="49" rx="6" ry="7" fill="#fff"/>
+        <ellipse cx="394" cy="49" rx="6" ry="7" fill="#fff"/>
+        <circle cx="372" cy="50" r="3" fill="#2121de"/>
+        <circle cx="392" cy="50" r="3" fill="#2121de"/>
+      </svg>
+          </div>
+          <div class="bezel">
+            <div class="screen">
+              <canvas id="pacman-screen" width="150" height="180" aria-hidden="true"></canvas>
+              <div class="glass"></div>
+              <div class="attract">PRESS START</div>
+            </div>
+          </div>
+          <div class="panel" aria-hidden="true">
+            <div class="stick"></div>
+            <div class="btns">
+              <i class="btn white"></i>
+              <i class="btn white"></i>
+            </div>
+          </div>
+          <div class="coin" aria-hidden="true">
+            <div class="slots"><i class="slot"></i><i class="slot"></i></div>
+            <div class="insert">INSERT COIN</div>
+          </div>
+        </a>
+        <div class="pool" aria-hidden="true"></div>
+        <figcaption class="plaque">
+          <h2>PAC-MAN</h2>
+          <p class="meta">NAMCO / MIDWAY &middot; 1980</p>
+          <p>Clear the maze of dots while four ghosts hunt you down. Grab a power pellet and turn the tables.</p>
+          <a class="play" href="./pacman.html">PLAY</a>
+        </figcaption>
+      </figure>
+
       <figure class="machine defender">
         <a class="cabinet" href="./defender.html" aria-label="Play Defender (1981)">
           <div class="marquee">
@@ -823,6 +873,359 @@
         }
       }
 
+      /* ---- Pac-Man attract mode: mini maze, dots, Pac-Man and four ghosts ---- */
+      var pc = document.getElementById("pacman-screen");
+      var p = pc.getContext("2d");
+      var PW = pc.width, PH = pc.height;
+      var T = 10, MY = 10;
+      var MAZE = [
+        "###############",
+        "#.............#",
+        "#.###.###.###.#",
+        "#o...........o#",
+        "#.#.#######.#.#",
+        "#.#.........#.#",
+        "#.##.##-##.##.#",
+        "#.##.#GGG#.##.#",
+        ".....#####.....",
+        "#.##.#####.##.#",
+        "#.............#",
+        "#.###.#.#.###.#",
+        "#o..#.....#..o#",
+        "##.##.#.#.##.##",
+        "#.............#",
+        "###############"
+      ];
+      var MW = MAZE[0].length, MH = MAZE.length;
+      var DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+      var CORNERS = [[13, 1], [1, 1], [13, 14], [1, 14]];
+      var GCOL = ["#ff0000", "#ffb8ff", "#00ffff", "#ffb852"];
+      var dots = [], dotsLeft = 0, pac, ghosts = [], pt = 0, dying = 0, win = 0, modeT = 0;
+
+      function wrapX(x) {
+        return ((x % MW) + MW) % MW;
+      }
+      function cell(x, y) {
+        if (y < 0 || y >= MH) return "#";
+        return MAZE[y].charAt(wrapX(x));
+      }
+      function isOpen(x, y) {
+        var ch = cell(x, y);
+        return ch === "." || ch === "o";
+      }
+      function resetDots() {
+        dotsLeft = 0;
+        for (var y = 0; y < MH; y++) {
+          dots[y] = [];
+          for (var x = 0; x < MW; x++) {
+            var ch = MAZE[y].charAt(x);
+            dots[y][x] = ch === "." ? 1 : ch === "o" ? 2 : 0;
+            if (dots[y][x]) dotsLeft++;
+          }
+        }
+      }
+      function resetActors() {
+        pac = { x: 7, y: 10, dx: -1, dy: 0, prog: 0, spd: 1 };
+        ghosts = [];
+        for (var i = 0; i < 4; i++) {
+          ghosts.push({ x: 7, y: 5, dx: -1, dy: 0, prog: 0, spd: 0.85, fr: 0, pen: i ? 40 + i * 110 : -1, px: (5 + i) * T + 5, py: 7 * T + 5 });
+        }
+        dying = 0;
+        modeT = 0;
+      }
+      function reverse(a) {
+        a.x = wrapX(a.x + a.dx);
+        a.y += a.dy;
+        a.dx = -a.dx;
+        a.dy = -a.dy;
+        a.prog = 1 - a.prog;
+      }
+      function actorX(a) {
+        return a.x * T + 5 + a.dx * a.prog * T;
+      }
+      function actorY(a) {
+        return a.y * T + 5 + a.dy * a.prog * T + MY;
+      }
+
+      function choosePac() {
+        var best = -1, bestS = -1e9, k, d, s, n, x, y, gi, g, found, tx = -1, ty = -1, td = 1e9;
+        for (y = 0; y < MH; y++) {
+          for (x = 0; x < MW; x++) {
+            if (dots[y][x]) {
+              n = Math.abs(x - pac.x) + Math.abs(y - pac.y);
+              if (n < td) { td = n; tx = x; ty = y; }
+            }
+          }
+        }
+        for (k = 0; k < 4; k++) {
+          d = DIRS[k];
+          if (!isOpen(pac.x + d[0], pac.y + d[1])) continue;
+          s = Math.random() * 3;
+          if (d[0] === -pac.dx && d[1] === -pac.dy) s -= 5;
+          if (tx >= 0) s -= (Math.abs(wrapX(pac.x + d[0]) - tx) + Math.abs(pac.y + d[1] - ty)) * 1.5;
+          x = pac.x;
+          y = pac.y;
+          found = false;
+          for (n = 1; n <= 6 && isOpen(x + d[0], y + d[1]); n++) {
+            x = wrapX(x + d[0]);
+            y += d[1];
+            if (dots[y][x] && !found) { found = true; s += 9 - n; }
+            for (gi = 0; gi < ghosts.length; gi++) {
+              g = ghosts[gi];
+              if (g.pen === -1 && g.x === x && g.y === y) s += g.fr ? 8 : -34 + n * 5;
+            }
+          }
+          if (s > bestS) { bestS = s; best = k; }
+        }
+        if (best >= 0) { pac.dx = DIRS[best][0]; pac.dy = DIRS[best][1]; }
+      }
+
+      function chooseGhost(g, i) {
+        var best = -1, bestS = 1e9, k, d, s, nx, ny, tx, ty;
+        var scatter = modeT % 1200 < 300;
+        if (scatter || i === 3 && Math.abs(g.x - pac.x) + Math.abs(g.y - pac.y) < 6) {
+          tx = CORNERS[i][0];
+          ty = CORNERS[i][1];
+        } else if (i === 1) {
+          tx = pac.x + pac.dx * 4;
+          ty = pac.y + pac.dy * 4;
+        } else if (i === 2) {
+          tx = pac.x + ((Math.random() * 5) | 0) - 2;
+          ty = pac.y + ((Math.random() * 5) | 0) - 2;
+        } else {
+          tx = pac.x;
+          ty = pac.y;
+        }
+        for (k = 0; k < 4; k++) {
+          d = DIRS[k];
+          if (d[0] === -g.dx && d[1] === -g.dy) continue;
+          if (!isOpen(g.x + d[0], g.y + d[1])) continue;
+          nx = wrapX(g.x + d[0]);
+          ny = g.y + d[1];
+          if (g.fr) s = -(Math.abs(nx - pac.x) + Math.abs(ny - pac.y)) + Math.random() * 5;
+          else s = Math.abs(nx - tx) + Math.abs(ny - ty) + Math.random() * 0.5;
+          if (s < bestS) { bestS = s; best = k; }
+        }
+        if (best >= 0) {
+          g.dx = DIRS[best][0];
+          g.dy = DIRS[best][1];
+        } else {
+          g.dx = -g.dx;
+          g.dy = -g.dy;
+        }
+      }
+
+      function stepActor(a, ghostIndex) {
+        a.prog += a.spd / T;
+        while (a.prog >= 1) {
+          a.prog -= 1;
+          a.x = wrapX(a.x + a.dx);
+          a.y += a.dy;
+          if (ghostIndex < 0) choosePac(); else chooseGhost(a, ghostIndex);
+        }
+      }
+
+      function drawMaze(col) {
+        var x, y, ch;
+        p.fillStyle = col;
+        for (y = 0; y < MH; y++) {
+          for (x = 0; x < MW; x++) {
+            if (cell(x, y) !== "#") continue;
+            p.fillRect(x * T + 2, y * T + 2 + MY, 6, 6);
+            if (cell(x + 1, y) === "#" && x < MW - 1) p.fillRect(x * T + 8, y * T + 2 + MY, 4, 6);
+            if (cell(x, y + 1) === "#") p.fillRect(x * T + 2, y * T + 8 + MY, 6, 4);
+          }
+        }
+        p.fillStyle = "#000";
+        for (y = 0; y < MH; y++) {
+          for (x = 0; x < MW; x++) {
+            if (cell(x, y) !== "#") continue;
+            p.fillRect(x * T + 4, y * T + 4 + MY, 2, 2);
+            if (cell(x + 1, y) === "#" && x < MW - 1) p.fillRect(x * T + 6, y * T + 4 + MY, 8, 2);
+            if (cell(x, y + 1) === "#") p.fillRect(x * T + 4, y * T + 6 + MY, 2, 8);
+          }
+        }
+        p.fillStyle = "#ffb8de";
+        p.fillRect(7 * T - 2, 6 * T + 4 + MY, 14, 2);
+        p.fillStyle = "#ffb8ae";
+        for (y = 0; y < MH; y++) {
+          for (x = 0; x < MW; x++) {
+            ch = dots[y][x];
+            if (ch === 1) {
+              p.fillRect(x * T + 4, y * T + 4 + MY, 2, 2);
+            } else if (ch === 2 && (pt >> 3) & 1) {
+              p.beginPath();
+              p.arc(x * T + 5, y * T + 5 + MY, 3.5, 0, Math.PI * 2);
+              p.fill();
+            }
+          }
+        }
+      }
+
+      function drawPac(cx, cy, r, ang, mouth) {
+        p.fillStyle = "#ffe14d";
+        p.beginPath();
+        p.moveTo(cx, cy);
+        p.arc(cx, cy, r, ang + mouth, ang + Math.PI * 2 - mouth);
+        p.closePath();
+        p.fill();
+      }
+
+      function drawGhost(g, i, cx, cy) {
+        var blink = g.fr && g.fr < 90 && (pt >> 3) & 1;
+        cx = Math.round(cx);
+        cy = Math.round(cy);
+        p.fillStyle = g.fr ? (blink ? "#f4f2ff" : "#2121de") : GCOL[i];
+        p.beginPath();
+        p.moveTo(cx - 5, cy + 5);
+        p.lineTo(cx - 5, cy);
+        p.arc(cx, cy, 5, Math.PI, 0);
+        p.lineTo(cx + 5, cy + 5);
+        if ((pt >> 3) & 1) {
+          p.lineTo(cx + 3, cy + 3);
+          p.lineTo(cx + 1, cy + 5);
+          p.lineTo(cx - 1, cy + 3);
+          p.lineTo(cx - 3, cy + 5);
+        } else {
+          p.lineTo(cx + 2, cy + 3);
+          p.lineTo(cx, cy + 5);
+          p.lineTo(cx - 2, cy + 3);
+        }
+        p.closePath();
+        p.fill();
+        if (g.fr) {
+          p.fillStyle = blink ? "#ff0000" : "#ffb8de";
+          p.fillRect(cx - 3, cy - 2, 2, 2);
+          p.fillRect(cx + 1, cy - 2, 2, 2);
+          p.fillRect(cx - 4, cy + 2, 8, 1);
+        } else {
+          p.fillStyle = "#fff";
+          p.fillRect(cx - 4, cy - 3, 3, 3);
+          p.fillRect(cx + 1, cy - 3, 3, 3);
+          p.fillStyle = "#2121de";
+          p.fillRect(cx - 3 + g.dx, cy - 2 + g.dy, 1, 1);
+          p.fillRect(cx + 2 + g.dx, cy - 2 + g.dy, 1, 1);
+        }
+      }
+
+      function drawLives() {
+        drawPac(11, 175, 4, Math.PI, 0.6);
+        drawPac(25, 175, 4, Math.PI, 0.6);
+        p.fillStyle = "#ff2a2a";
+        p.beginPath();
+        p.arc(136, 176, 2.5, 0, Math.PI * 2);
+        p.arc(141, 174, 2.5, 0, Math.PI * 2);
+        p.fill();
+        p.fillStyle = "#3dff8a";
+        p.fillRect(140, 168, 1, 5);
+        p.fillRect(136, 170, 5, 1);
+      }
+
+      resetDots();
+      resetActors();
+
+      function drawPacman() {
+        var i, g, gx, gy, px, py, mouth, ang;
+        pt++;
+        p.fillStyle = "#000";
+        p.fillRect(0, 0, PW, PH);
+
+        px = actorX(pac);
+        py = actorY(pac);
+        ang = Math.atan2(pac.dy, pac.dx);
+
+        // level cleared: flash the maze, then start over
+        if (win > 0) {
+          win--;
+          drawMaze((win >> 4) & 1 ? "#f4f2ff" : "#2121de");
+          drawPac(px, py, 5, ang, 0.05);
+          drawLives();
+          if (!win) { resetDots(); resetActors(); }
+          return;
+        }
+
+        drawMaze("#2121de");
+        drawLives();
+
+        // caught by a ghost: Pac-Man folds away, then everyone resets
+        if (dying > 0) {
+          dying--;
+          mouth = (1 - dying / 70) * Math.PI;
+          drawPac(px, py, 5, -Math.PI / 2, Math.min(mouth, Math.PI));
+          if (!dying) resetActors();
+          return;
+        }
+
+        modeT++;
+        stepActor(pac, -1);
+        if (dots[pac.y][pac.x]) {
+          if (dots[pac.y][pac.x] === 2) {
+            for (i = 0; i < ghosts.length; i++) {
+              if (ghosts[i].pen === -1) { ghosts[i].fr = 300; reverse(ghosts[i]); }
+            }
+          }
+          dots[pac.y][pac.x] = 0;
+          dotsLeft--;
+          if (!dotsLeft) win = 100;
+        }
+        px = actorX(pac);
+        py = actorY(pac);
+        ang = Math.atan2(pac.dy, pac.dx);
+
+        for (i = 0; i < ghosts.length; i++) {
+          g = ghosts[i];
+          if (g.pen > 0) {
+            // waiting in the pen
+            g.pen--;
+            gx = g.px;
+            gy = g.py + Math.sin(pt / 7 + i * 2) * 2 + MY;
+            g.dy = Math.sin(pt / 7 + i * 2) > 0 ? 1 : -1;
+            g.dx = 0;
+          } else if (g.pen === 0) {
+            // leaving the pen through the door
+            if (Math.abs(g.px - (7 * T + 5)) > 0.5) g.px += g.px < 7 * T + 5 ? 0.5 : -0.5;
+            else if (g.py > 5 * T + 5) g.py -= 0.5;
+            else {
+              g.pen = -1;
+              g.x = 7;
+              g.y = 5;
+              g.prog = 0;
+              g.dx = Math.random() < 0.5 ? -1 : 1;
+              g.dy = 0;
+            }
+            gx = g.px;
+            gy = g.py + MY;
+            g.dx = 0;
+            g.dy = -1;
+          } else {
+            g.spd = g.fr ? 0.5 : (g.y === 8 && (g.x < 5 || g.x > 9)) ? 0.45 : 0.85;
+            stepActor(g, i);
+            if (g.fr) g.fr--;
+            gx = actorX(g);
+            gy = actorY(g);
+            if (Math.abs(gx - px) < 6 && Math.abs(gy - py) < 6) {
+              if (g.fr) {
+                // eaten: back to the pen
+                g.fr = 0;
+                g.pen = 150;
+                g.px = 7 * T + 5;
+                g.py = 7 * T + 5;
+                gx = g.px;
+                gy = g.py + MY;
+              } else {
+                dying = 70;
+              }
+            }
+          }
+          drawGhost(g, i, gx, gy);
+        }
+
+        mouth = Math.abs(Math.sin(pt / 5)) * 0.85;
+        drawPac(px, py, 5, ang, mouth);
+        if (px < 6) drawPac(px + MW * T, py, 5, ang, mouth);
+        if (px > MW * T - 6) drawPac(px - MW * T, py, 5, ang, mouth);
+      }
+
       /* ---- Defender attract mode: scrolling terrain, landers, ship ---- */
       var dc = document.getElementById("defender-screen");
       var d = dc.getContext("2d");
@@ -985,6 +1388,7 @@
 
       function loop() {
         drawGalaxian();
+        drawPacman();
         drawDefender();
         drawStarForce();
         if (!reduce) window.requestAnimationFrame(loop);
