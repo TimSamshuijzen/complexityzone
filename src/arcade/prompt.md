@@ -8,5 +8,7 @@ See `index.html`. It is a standalone html file that shows a 1980s arcade, with t
 
 See `spaceinvaders.html`. It is a standalone html file that emulates classic arcade game Space Invaders (1978).
 
-Add Space Invaders to the arcade in `index.html`.
+Add Space Invaders to the arcade in `index.html`. The games are ordered by year.
+
+
 
