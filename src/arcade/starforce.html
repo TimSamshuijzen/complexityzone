@@ -984,6 +984,7 @@
       <nav class="site" aria-label="Site">
         <a href="https://complexity.zone/">complexity.zone</a>
         <a class="crumb" href="https://complexity.zone/arcade/">arcade</a>
+        <span class="crumb">Star Force</span>
       </nav>
       <div class="edition"><i></i><span>STAR FORCE / TEHKAN / 1984</span></div>
       <nav class="tools" aria-label="Game options">
@@ -6270,6 +6271,58 @@
       window.addEventListener("resize", resize);
       window.visualViewport?.addEventListener("resize", resize);
       window.addEventListener("wheel", (event) => event.preventDefault(), { passive: false });
+
+      // DOWNLOADLINKSTART
+      // Download button, shown only when served online. This code is removed in the downloaded html file.
+      if (location.protocol === "https:") {
+        const download = document.createElement("button");
+        download.title =
+          "Download game html file, if you want to play offline.";
+        download.setAttribute("aria-label", "Download html file");
+        download.innerHTML =
+          '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="#ffffff" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>';
+        Object.assign(download.style, {
+          display: "flex",
+          padding: "0",
+          border: "0",
+          background: "none",
+          color: "#80cccc",
+          transition: "filter 0.25s",
+        });
+        download.addEventListener("pointerenter", () => {
+          download.style.filter = "drop-shadow(0 0 5px #80cccc99)";
+        });
+        download.addEventListener("pointerleave", () => {
+          download.style.filter = "";
+        });
+        download.addEventListener(
+          "click",
+          async () => {
+            download.style.visibility = "hidden";
+            focusGame();
+            try {
+              const response = await fetch(location.href);
+              const html = (await response.text()).replace(
+                /\s*\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g,
+                "",
+              );
+              const name = location.pathname
+                .split("/")
+                .pop()
+                .replace(/\.html$/, "");
+              const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+              link.download = `${name}_${date}.html`;
+              link.click();
+              URL.revokeObjectURL(link.href);
+            } catch {}
+          },
+          { once: true },
+        );
+        document.querySelector(".site").append(download);
+      }
+      // DOWNLOADLINKEND
 
       setScreenView(settings.screenView === true);
       updateSoundButton();
