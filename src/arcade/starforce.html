@@ -852,23 +852,16 @@
   <h1>STAR FORCE</h1>
   <div class="rule"></div>
   <p>
-    Launch the Final Star.
-    <br />
-    Break through the enemy fleet.
+    Vertical shooter.
   </p>
   <div class="rule"></div>
   <p>
     Insert a coin, then press
     <br />
-    1 PLAYER to take flight.
+    1 PLAYER.
   </p>
   <div class="rule"></div>
   <p class="spec">
-    TEHKAN · JAPAN
-    <br />
-    VERTICAL SHOOTER
-    <br />
-    8-WAY JOYSTICK · ONE BUTTON
   </p>
 </aside>
 <main class="stage" aria-label="Star Force arcade cabinet">
@@ -5408,7 +5401,7 @@ document.addEventListener("visibilitychange", () => {
 
 window.addEventListener("resize", resize);
 window.addEventListener("wheel", (event) => event.preventDefault(), { passive: false });
-document.querySelector(".stage").addEventListener("contextmenu", (event) => event.preventDefault());
+// for (const id of ["joystick", "fire"]) byId(id).addEventListener("contextmenu", (event) => event.preventDefault());
 
 document.addEventListener("fullscreenchange", () => {
   byId("full").textContent = document.fullscreenElement ? "EXIT FULLSCREEN" : "FULLSCREEN";
