@@ -1,0 +1,10 @@
+{
+  "overrides": [
+    {
+      "files": "src/arcade/*.html",
+      "options": {
+        "printWidth": 100
+      }
+    }
+  ]
+}
