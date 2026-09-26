@@ -28,6 +28,8 @@
         --title: #d9eb9e;
         --button: #cbe078;
         --button-text: #17200c;
+        --nav-button: #eee9d5;
+        --nav-button-active: #cbe078;
         --dialog: #151b12;
         --dialog-border: #5f6d4c;
         --dialog-text: #b9c0aa;
@@ -160,9 +162,10 @@
 
       .tools button {
         padding: 9px 12px;
-        border: 1px solid var(--tool-border);
+        border: 1px solid var(--nav-button);
         border-radius: 3px;
-        background: var(--tool);
+        background: var(--nav-button);
+        color: var(--button-text);
         font: 10px monospace;
         letter-spacing: 1px;
         white-space: nowrap;
@@ -170,7 +173,8 @@
 
       .tools button:hover,
       .tools button[aria-pressed="true"] {
-        background: var(--tool-active);
+        border-color: var(--nav-button-active);
+        background: var(--nav-button-active);
       }
 
       .side-note,
