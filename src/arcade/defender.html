@@ -4227,6 +4227,13 @@ document.getElementById("view-button").addEventListener("click", toggleView);
 document.getElementById("fullscreen-button").addEventListener("click", fullscreen);
 document.getElementById("help-button").addEventListener("click", showHelp);
 document.getElementById("close-help").addEventListener("click", () => help.close());
+help.addEventListener("click", (event) => {
+  if (event.target !== help) return;
+  const box = help.getBoundingClientRect();
+  const inside =
+    event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+  if (!inside) help.close();
+});
 help.addEventListener("close", () => {
   if (resumeAfterHelp && !document.hidden) setPaused(false);
   screen.focus({

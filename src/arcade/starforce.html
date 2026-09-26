@@ -703,23 +703,6 @@
     letter-spacing: 1px;
   }
 
-  .overlay button.secondary {
-    background: transparent;
-    color: #d7bd88;
-    border-color: #685a3b;
-    padding: 8px 14px;
-  }
-
-  .overlay .credits {
-    color: #a0998c;
-    font-size: 9px;
-    line-height: 1.6;
-  }
-
-  .overlay a {
-    color: #d8bd83;
-  }
-
   .screen-only .stage {
     width: min(calc(100vw - 24px), calc(var(--play-height) * 7 / 8));
     height: min(calc((100vw - 24px) * 8 / 7), var(--play-height));
@@ -822,6 +805,142 @@
 
     .tools button {
       padding: 6px 10px;
+    }
+  }
+
+  .help-backdrop {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    padding: 18px;
+    background: #07090ce8;
+    backdrop-filter: blur(8px);
+  }
+
+  .help-backdrop[hidden] {
+    display: none;
+  }
+
+  .help-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(440px, calc(100% - 36px));
+    padding: 30px;
+    border: 1px solid #685a3b;
+    border-radius: 5px;
+    background: #0f161d;
+    box-shadow: 0 20px 70px #0008;
+    transform: translate(-50%, -50%) scale(var(--help-scale, 1));
+  }
+
+  .help-card h2 {
+    margin: 12px 0 16px;
+    color: #f2ca70;
+    font-size: 26px;
+    letter-spacing: 2px;
+  }
+
+  .help-card p {
+    color: #b9b2a4;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .help-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px 0;
+    color: #eee7d4;
+    font: 11px monospace;
+  }
+
+  .help-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .help-actions button {
+    padding: 12px 17px;
+    border: 1px solid #dcb260;
+    border-radius: 2px;
+    background: #e8ba5e;
+    color: #201b12;
+    font: bold 11px monospace;
+    letter-spacing: 1px;
+  }
+
+  .help-actions #reset {
+    background: transparent;
+    color: #d7bd88;
+  }
+
+  .help-card .credits {
+    margin: 20px 0 0;
+    color: #a0998c;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+
+  .help-card a {
+    color: #d8bd83;
+  }
+
+  @media (max-width: 650px) {
+    .help-card {
+      padding: 20px;
+    }
+
+    .help-card h2 {
+      font-size: 22px;
+    }
+
+    .help-card p {
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .help-controls {
+      gap: 10px;
+      font-size: 10px;
+    }
+
+    .help-actions button {
+      padding: 10px 11px;
+      font-size: 10px;
+    }
+
+    .help-card .credits {
+      margin-top: 16px;
+      font-size: 9px;
+    }
+  }
+
+  @media (max-height: 500px) {
+    .help-card {
+      width: min(650px, calc(100% - 36px));
+      padding: 14px 22px;
+    }
+
+    .help-card h2 {
+      margin: 6px 0;
+      font-size: 22px;
+    }
+
+    .help-controls {
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 6px 0;
+      gap: 8px;
+    }
+
+    .help-card p {
+      margin: 6px 0;
+    }
+
+    .help-card .credits {
+      margin-top: 10px;
     }
   }
 </style>
@@ -1070,54 +1189,6 @@
             <p>Your Final Star is standing by.</p>
             <button id="resume">RESUME / P</button>
           </section>
-          <section id="help" class="overlay" hidden aria-label="How to play">
-            <h2>STAR FORCE</h2>
-            <p>
-              Insert coin:
-              <b>C / 5</b>
-              <br />
-              Start:
-              <b>1 / ENTER</b>
-              · Two players:
-              <b>2</b>
-              <br />
-              Move:
-              <b>ARROWS / W A S D</b>
-              <br />
-              Fire:
-              <b>SPACE / X</b>
-              <br />
-              Pause:
-              <b>P</b>
-              · Sound:
-              <b>M</b>
-              <br />
-              Screen:
-              <b>V</b>
-              · Fullscreen:
-              <b>F</b>
-            </p>
-            <p>
-              Blast enemy ships and ground targets.
-              <br />
-              Join with the Purser to power up.
-              <br />
-              Touch: drag the joystick and hold FIRE.
-            </p>
-            <button id="closeHelp">BACK TO CABINET</button>
-            <button id="reset" class="secondary">RESET MACHINE</button>
-            <p class="credits">
-              Original game © Tehkan, 1984.
-              <br />
-              Emulation adapted from
-              <a href="https://github.com/iapx86/JavaScript" target="_blank" rel="noopener">
-                iapx86 / JavaScript
-              </a>
-              .
-              <br />
-              Original ROMs, graphics and sound embedded.
-            </p>
-          </section>
           <section id="error" class="overlay" hidden aria-label="Game error">
             <h2>PLEASE RESET</h2>
             <p id="errorMessage">The machine could not start.</p>
@@ -1183,6 +1254,37 @@
   </div>
   <div class="status" id="status" role="status">INSERT COIN · C / 5 &nbsp; THEN START · 1 / 2</div>
 </main>
+<div id="help" class="help-backdrop" hidden>
+  <section class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="eyebrow">TEHKAN - 1984</div>
+    <h2 id="help-title">STAR FORCE</h2>
+    <p>
+      Insert a coin, then press <b>1</b> or <b>ENTER</b> for one player, or <b>2</b> for two players.
+    </p>
+    <div class="help-controls">
+      <span>C / 5 · Insert coin</span>
+      <span>1 / 2 · Start</span>
+      <span>ARROWS / W A S D · Move</span>
+      <span>SPACE / X · Fire</span>
+      <span>P · Pause</span>
+      <span>M · Sound</span>
+      <span>V · Screen view</span>
+      <span>F · Fullscreen</span>
+    </div>
+    <p>
+      Blast enemy ships and ground targets. Join with the Purser to power up. Touch: drag the joystick and hold FIRE.
+    </p>
+    <div class="help-actions">
+      <button id="closeHelp">BACK TO GAME</button>
+      <button id="reset">RESET MACHINE</button>
+    </div>
+    <p class="credits">
+      Original game © Tehkan, 1984. Emulation adapted from
+      <a href="https://github.com/iapx86/JavaScript" target="_blank" rel="noopener">iapx86 / JavaScript</a>.
+      Original ROMs, graphics and sound embedded.
+    </p>
+  </section>
+</div>
 <aside class="legend">
   <div class="eyebrow">FLIGHT CONTROLS</div>
   <dl>
@@ -5250,6 +5352,7 @@ function setPaused(value) {
 }
 
 function showHelp(value) {
+  if (value === helpOpen) return;
   helpOpen = value;
   byId("help").hidden = !value;
   byId("info").setAttribute("aria-expanded", String(value));
@@ -5257,6 +5360,7 @@ function showHelp(value) {
   stopAudio();
   elapsed = 0;
   lastTime = 0;
+  resize();
   if (value) byId("closeHelp").focus({ preventScroll: true });
   else focusGame();
 }
@@ -5330,6 +5434,10 @@ function resize() {
   document.documentElement.style.setProperty("--scale", scale);
   document.documentElement.style.setProperty("--stage-top", `${top + height / 2}px`);
   document.documentElement.style.setProperty("--play-height", `${height}px`);
+  if (helpOpen) {
+    const helpHeight = document.querySelector(".help-card").offsetHeight;
+    document.documentElement.style.setProperty("--help-scale", Math.min(1, (innerHeight - 30) / helpHeight));
+  }
 }
 
 function moveJoystick(event) {
@@ -5409,7 +5517,16 @@ const gameKeys = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Ke
 window.addEventListener(
   "keydown",
   (event) => {
+    if (helpOpen && event.code === "Tab") {
+      const focusable = [...byId("help").querySelectorAll("button, a")];
+      const current = focusable.indexOf(document.activeElement);
+      const next = (current + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+      event.preventDefault();
+      focusable[next].focus({ preventScroll: true });
+      return;
+    }
     if (!gameKeys.has(event.code) || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (helpOpen && event.code === "Enter" && document.activeElement.closest("#help")) return;
     event.preventDefault();
     event.stopPropagation();
     if (event.repeat) return;
@@ -5467,6 +5584,9 @@ byId("view").onclick = toggleView;
 byId("full").onclick = toggleFullscreen;
 byId("info").onclick = () => showHelp(!helpOpen);
 byId("closeHelp").onclick = () => showHelp(false);
+byId("help").addEventListener("click", (event) => {
+  if (event.target === byId("help")) showHelp(false);
+});
 byId("reload").onclick = () => location.reload();
 canvas.onclick = () => {
   unlockAudio();

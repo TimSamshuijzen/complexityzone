@@ -418,13 +418,6 @@
         border: 0;
         font: bold 11px monospace;
       }
-      .overlay a {
-        color: #ffdc39;
-      }
-      .overlay .credits {
-        font-size: 10px;
-        color: #9ca88e;
-      }
       .screen-only .stage {
         width: min(calc(100vw - 24px), calc((100vh - 110px) * 7 / 9));
         height: min(calc((100vw - 24px) * 9 / 7), calc(100vh - 110px));
@@ -514,6 +507,120 @@
           justify-content: center;
         }
       }
+      .help-backdrop {
+        position: fixed;
+        z-index: 20;
+        inset: 0;
+        padding: 18px;
+        background: #0b0a07e8;
+        backdrop-filter: blur(8px);
+      }
+      .help-backdrop[hidden] {
+        display: none;
+      }
+      .help-card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(440px, calc(100% - 36px));
+        padding: 30px;
+        border: 1px solid #6f6440;
+        border-radius: 5px;
+        background: #1a1812;
+        box-shadow: 0 20px 70px #0008;
+        transform: translate(-50%, -50%) scale(var(--help-scale, 1));
+      }
+      .help-card h2 {
+        margin: 12px 0 16px;
+        color: #ffdc39;
+        font-size: 26px;
+        letter-spacing: 2px;
+      }
+      .help-card p {
+        color: #c4bda6;
+        font-size: 12px;
+        line-height: 1.8;
+      }
+      .help-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 16px 0;
+        color: #eee9d5;
+        font: 11px monospace;
+      }
+      .help-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .help-actions button {
+        padding: 12px 17px;
+        border: 1px solid #ffdc39;
+        border-radius: 2px;
+        background: #ffdc39;
+        color: #17200c;
+        font: bold 11px monospace;
+        letter-spacing: 1px;
+      }
+      .help-actions #reset {
+        background: transparent;
+        color: #e8d9a0;
+      }
+      .help-card .credits {
+        margin: 20px 0 0;
+        color: #9ca88e;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+      .help-card a {
+        color: #ffdc39;
+      }
+      @media (max-width: 650px) {
+        .help-card {
+          padding: 20px;
+        }
+        .help-card h2 {
+          font-size: 22px;
+        }
+        .help-card p {
+          font-size: 11px;
+          line-height: 1.65;
+        }
+        .help-controls {
+          gap: 10px;
+          font-size: 10px;
+        }
+        .help-actions button {
+          padding: 10px 11px;
+          font-size: 10px;
+        }
+        .help-card .credits {
+          margin-top: 16px;
+          font-size: 9px;
+        }
+      }
+      @media (max-height: 500px) {
+        .help-card {
+          width: min(650px, calc(100% - 36px));
+          padding: 14px 22px;
+        }
+        .help-card h2 {
+          margin: 6px 0;
+          font-size: 22px;
+        }
+        .help-controls {
+          grid-template-columns: 1fr 1fr 1fr;
+          padding: 6px 0;
+          gap: 8px;
+        }
+        .help-card p {
+          margin: 6px 0;
+        }
+        .help-card .credits {
+          margin-top: 10px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -528,7 +635,7 @@
         <button id="pause" title="Pause · P" aria-pressed="false">PAUSE</button>
         <button id="view" title="Screen view · V" aria-pressed="false">SCREEN</button>
         <button id="full" title="Fullscreen · F">FULLSCREEN</button>
-        <button id="info" title="Help">HELP</button>
+        <button id="info" title="Help · H" aria-expanded="false">HELP</button>
       </nav>
     </header>
     <aside class="side-note">
@@ -558,28 +665,6 @@
                 <h2>PAUSED</h2>
                 <p>The maze can wait.</p>
                 <button id="resume">RESUME / P</button>
-              </section>
-              <section id="help" class="overlay" hidden>
-                <h2>PAC-MAN</h2>
-                <p>
-                  Insert coin: <b>C / 5</b><br />Start: <b>1 / 2</b><br />Move:
-                  <b>↑ ← ↓ → / W A S D</b><br />Pause: <b>P</b> · Sound: <b>M</b><br />Screen:
-                  <b>V</b> · Fullscreen: <b>F</b>
-                </p>
-                <p>
-                  Eat every dot. Power pellets let you<br />eat ghosts. Two players take turns.<br />Drag
-                  the joystick or tap its arrows.
-                </p>
-                <button id="closeHelp">BACK TO CABINET</button
-                ><button id="reset">RESET MACHINE</button>
-                <p class="credits">
-                  Original game: Namco / Midway, 1980.<br />Z80, video &amp; sound emulation adapted from<br /><a
-                    href="https://github.com/iapx86/JavaScript"
-                    target="_blank"
-                    rel="noopener"
-                    >iapx86 / JavaScript</a
-                  >
-                </p>
               </section>
             </div>
           </div>
@@ -616,6 +701,36 @@
         INSERT COIN · C / 5 &nbsp; THEN START · 1 / 2
       </div>
     </main>
+    <div id="help" class="help-backdrop" hidden>
+      <section class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="eyebrow">NAMCO - MIDWAY - 1980</div>
+        <h2 id="help-title">PAC-MAN</h2>
+        <p>
+          Insert a coin, then press <b>1</b> for one player or <b>2</b> for two players. Two players take turns.
+        </p>
+        <div class="help-controls">
+          <span>C / 5 · Insert coin</span>
+          <span>1 / 2 · Start</span>
+          <span>↑ ← ↓ → / W A S D · Move</span>
+          <span>P · Pause</span>
+          <span>M · Sound</span>
+          <span>V · Screen view</span>
+          <span>F · Fullscreen</span>
+          <span>H · Help</span>
+        </div>
+        <p>
+          Eat every dot. Power pellets let you eat ghosts. Drag the joystick or tap its arrows.
+        </p>
+        <div class="help-actions">
+          <button id="closeHelp">BACK TO GAME</button>
+          <button id="reset">RESET MACHINE</button>
+        </div>
+        <p class="credits">
+          Original game: Namco / Midway, 1980.<br />Z80, video &amp; sound emulation adapted from
+          <a href="https://github.com/iapx86/JavaScript" target="_blank" rel="noopener">iapx86 / JavaScript</a>
+        </p>
+      </section>
+    </div>
     <aside class="legend">
       <div class="eyebrow">KNOW YOUR WAY AROUND</div>
       <dl>
@@ -4357,6 +4472,7 @@
       let muted = true;
       let paused = false;
       let helpOpen = false;
+      let helpFocus = null;
       let lastTime = 0;
       let elapsed = 0;
       let frameCount = 0;
@@ -4509,10 +4625,17 @@
         byId("pause").setAttribute("aria-pressed", String(paused));
       }
       function showHelp(value) {
+        if (value === helpOpen) return;
         helpOpen = value;
         byId("help").hidden = !value;
+        byId("info").setAttribute("aria-expanded", String(value));
         releaseControls();
         stopAudio();
+        resize();
+        if (value) {
+          helpFocus = document.activeElement;
+          byId("closeHelp").focus({ preventScroll: true });
+        } else if (helpFocus) helpFocus.focus({ preventScroll: true });
       }
       function insertCoin() {
         unlockAudio();
@@ -4555,6 +4678,10 @@
           "--scale",
           Math.min(availableHeight / 980, (innerWidth - 20) / 620),
         );
+        if (helpOpen) {
+          const helpHeight = document.querySelector(".help-card").offsetHeight;
+          document.documentElement.style.setProperty("--help-scale", Math.min(1, (innerHeight - 30) / helpHeight));
+        }
       }
       for (const action of ["up", "left", "down", "right"]) {
         const button = byId(action);
@@ -4582,6 +4709,7 @@
         KeyM: toggleSound,
         KeyV: toggleView,
         KeyF: toggleFullscreen,
+        KeyH: () => showHelp(!helpOpen),
         Escape: () => {
           if (helpOpen) showHelp(false);
           else if (paused) setPaused(false);
@@ -4591,7 +4719,16 @@
       window.addEventListener(
         "keydown",
         (event) => {
+          if (helpOpen && event.code === "Tab") {
+            const focusable = [...byId("help").querySelectorAll("button, a")];
+            const current = focusable.indexOf(document.activeElement);
+            const next = (current + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+            event.preventDefault();
+            focusable[next].focus({ preventScroll: true });
+            return;
+          }
           if (!gameKeys.has(event.code)) return;
+          if (helpOpen && event.code === "Enter" && document.activeElement.closest("#help")) return;
           event.preventDefault();
           if (event.repeat) return;
           if (keyActions[event.code]) keyActions[event.code]();
@@ -4643,6 +4780,9 @@
       byId("full").onclick = toggleFullscreen;
       byId("info").onclick = () => showHelp(!helpOpen);
       byId("closeHelp").onclick = () => showHelp(false);
+      byId("help").addEventListener("click", (event) => {
+        if (event.target === byId("help")) showHelp(false);
+      });
       byId("reset").onclick = () => {
         queuedCoins = coinCooldown = pendingStart = 0;
         game = new PacMan();
