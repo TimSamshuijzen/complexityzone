@@ -2,9 +2,7 @@
 
 
 See `defender.html`. It is a self-contained html file with the classic arcade game Defender (1981).
-It has the original ROMs embedded.
-
-The ROMS are programs that run on the simulated CPUs.
+It has ROMS that run on simulated CPUs.
 
 Look at the ROMS, `defend.1` .. `defend.12`, `defend.snd`.
 
