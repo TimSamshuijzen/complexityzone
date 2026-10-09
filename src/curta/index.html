@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curta Calculator 3D</title>
+<style>
+  :root {
+    --bg0: #f2f1ee; --bg1: #c4c8cd;
+    --panel: rgba(22, 24, 28, 0.86); --panel-b: rgba(255,255,255,0.08);
+    --ink: #ecebe7; --ink-dim: #a3a7ad; --accent: #e8c15a; --red: #e0453a;
+    --btn: rgba(255,255,255,0.07); --btn-h: rgba(255,255,255,0.16); --btn-on: #e8c15a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; }
+  body { background: radial-gradient(ellipse at 50% 40%, var(--bg0) 0%, #e2e2df 38%, var(--bg1) 100%); color: var(--ink); }
+  #app { position: fixed; inset: 0; }
+  #app canvas { display: block; outline: none; touch-action: none; }
+  .panel { position: fixed; background: var(--panel); border: 1px solid var(--panel-b); border-radius: 12px;
+           backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+  #title { top: 14px; left: 14px; padding: 12px 16px 12px; min-width: 260px; }
+  #title h1 { margin: 0; font-size: 22px; letter-spacing: 9px; font-weight: 300; font-family: "Century Gothic", Futura, "Avenir Next", "Segoe UI", sans-serif; }
+  #title .sub { color: var(--ink-dim); font-size: 12px; margin-top: 2px; }
+  #title .types { margin-top: 10px; display: flex; gap: 6px; }
+  #side { top: 14px; right: 14px; width: 318px; max-height: calc(100% - 28px); overflow-y: auto; padding: 4px 14px 12px; }
+  #side::-webkit-scrollbar { width: 6px; } #side::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--ink-dim); margin: 14px 0 7px; font-weight: 600; }
+  button { font: inherit; font-size: 12.5px; color: var(--ink); background: var(--btn); border: 1px solid rgba(255,255,255,0.10);
+           border-radius: 7px; padding: 6px 9px; cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap; }
+  button:hover { background: var(--btn-h); }
+  button.on { background: var(--btn-on); color: #1b1b1b; border-color: var(--btn-on); font-weight: 600; }
+  button:disabled { opacity: .4; cursor: default; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+  .row.grid2 > * { flex: 1 1 45%; }
+  .row.grid3 > * { flex: 1 1 30%; }
+  .reg { font-family: "Consolas", "SF Mono", Menlo, monospace; font-size: 15px; letter-spacing: 2px; padding: 5px 8px; border-radius: 6px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: baseline; }
+  .reg span.l { font-family: "Segoe UI", system-ui, sans-serif; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; opacity: .75; }
+  .reg.res { background: #050505; color: #f4f4f0; border: 1px solid #333; }
+  .reg.cnt { background: #e9e8e2; color: #111; }
+  .reg.set { background: #1d1f22; color: #f4f4f0; border: 1px solid #3a3d42; }
+  .status { display: flex; gap: 6px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-dim); margin: 2px 0 4px; }
+  .pill { padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,.07); }
+  .pill.hot { background: var(--red); color: #fff; }
+  .pill.warm { background: var(--accent); color: #1b1b1b; }
+  input[type=text] { font: inherit; font-family: Consolas, Menlo, monospace; font-size: 14px; width: 100%; background: #0d0e10; color: var(--ink);
+           border: 1px solid #3a3d42; border-radius: 7px; padding: 6px 8px; letter-spacing: 1.5px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  label.chk { font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--ink); }
+  .kbd { font-family: Consolas, monospace; font-size: 10.5px; padding: 0 4px; border: 1px solid #555; border-radius: 3px; color: var(--ink-dim); }
+  #demoCaption { font-size: 12.5px; line-height: 1.45; color: var(--ink); background: rgba(232,193,90,.12); border-left: 3px solid var(--accent);
+           padding: 7px 9px; border-radius: 4px; margin-top: 6px; display: none; }
+  #help { left: 14px; bottom: 14px; padding: 9px 13px; font-size: 12px; color: var(--ink-dim); line-height: 1.6; max-width: 480px; }
+  #help b { color: var(--ink); font-weight: 600; }
+  #tip { position: fixed; pointer-events: none; padding: 5px 9px; background: rgba(15,15,17,.92); color: #f1efe9; font-size: 12px;
+         border-radius: 6px; transform: translate(14px, 14px); display: none; max-width: 300px; line-height: 1.35; border: 1px solid rgba(255,255,255,.12); z-index: 10; }
+  #tip i { color: #b9bdc3; font-style: normal; display: block; font-size: 11px; }
+  #toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); background: rgba(190,40,32,.95); color: #fff; padding: 7px 14px; border-radius: 8px;
+           font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 11; }
+  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #333; font-size: 14px; letter-spacing: 2px; }
+  @media (max-width: 760px) {
+    #side { width: auto; left: 10px; right: 10px; top: auto; bottom: 10px; max-height: 42%; }
+    #help { display: none; }
+    #title { min-width: 0; top: 10px; left: 10px; padding: 8px 12px; }
+    #title h1 { font-size: 17px; letter-spacing: 6px; }
+    #title .sub { display: none; }
+    #title .types { margin-top: 6px; }
+    #title .types .sub { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div id="loading">LOADING CURTA…</div>
+<div id="app"></div>
+
+<div id="title" class="panel">
+  <h1>CURTA</h1>
+  <div class="sub" id="subTitle">Mechanical calculator · Curt Herzstark · Contina AG</div>
+  <div class="types">
+    <button id="tI" class="on">Type I</button>
+    <button id="tII">Type II</button>
+    <span class="sub" id="typeInfo" style="align-self:center;margin-left:4px"></span>
+    <button id="bHelp" title="Show help" style="margin-left:auto;padding:2px 9px">?</button>
+  </div>
+</div>
+
+<div id="side" class="panel">
+  <h2>Registers</h2>
+  <div class="reg res"><span class="l">Result</span><span id="rRes"></span></div>
+  <div class="reg cnt"><span class="l">Counter</span><span id="rCnt"></span></div>
+  <div class="reg set"><span class="l">Setting</span><span id="rSet"></span></div>
+  <div class="status">
+    <span class="pill" id="sMode">＋ add</span>
+    <span class="pill" id="sPos">Carriage 1</span>
+    <span class="pill" id="sRev">Lever up</span>
+    <span class="pill" id="sLever">Clear lever A</span>
+  </div>
+
+  <h2>Operate</h2>
+  <div class="row grid2">
+    <button id="bTurn" title="Space">↻ Turn crank <span class="kbd">Space</span></button>
+    <button id="bSub" title="S">⇅ Pull crank up <span class="kbd">S</span></button>
+  </div>
+  <div class="row grid3">
+    <button id="bLeft" title="←">◀ Carriage</button>
+    <button id="bRight" title="→">Carriage ▶</button>
+    <button id="bRev" title="R">Rev. lever <span class="kbd">R</span></button>
+  </div>
+  <div class="row grid3">
+    <button id="bClrAll" title="C">Clear all <span class="kbd">C</span></button>
+    <button id="bClrRes">Clear result</button>
+    <button id="bClrCnt">Clear counter</button>
+  </div>
+  <div class="row" style="flex-wrap:nowrap">
+    <input type="text" id="setInput" placeholder="Number to set" maxlength="11" inputmode="numeric">
+    <button id="bSet">Set</button>
+    <button id="bZero" title="Push all knobs up">0</button>
+  </div>
+  <div class="row" style="flex-wrap:nowrap">
+    <button id="bTurnN" style="flex:1">Turn ×</button>
+    <input type="text" id="turnN" value="3" maxlength="2" style="max-width:52px">
+    <button id="bReset" title="Clear dials, knobs to zero, carriage 1, handle down, lever up" style="flex:1">Reset machine</button>
+  </div>
+
+  <h2>View</h2>
+  <div class="row grid2" id="shellBtns">
+    <button data-m="solid" class="on">Solid</button>
+    <button data-m="xray">X-ray</button>
+    <button data-m="cut">Cutaway</button>
+    <button data-m="hidden">Internals</button>
+  </div>
+  <div class="row" style="justify-content:space-between">
+    <label class="chk"><input type="checkbox" id="cFrame" checked> Frame plates</label>
+    <label class="chk"><input type="checkbox" id="cSpin"> Auto-rotate</label>
+    <label class="chk"><input type="checkbox" id="cSound" checked> Sound</label>
+    <button id="bView">Reset view</button>
+  </div>
+  <div class="row"><span style="font-size:12px;color:var(--ink-dim);width:60px">Explode</span><input type="range" id="rExplode" min="0" max="1" step="0.001" value="0" style="flex:1"></div>
+
+  <h2>Demonstrations <span style="text-transform:none;letter-spacing:0">(from the Contina manual)</span></h2>
+  <div class="row grid2" id="demoBtns"></div>
+  <div class="row"><button id="bStop" disabled>■ Stop demo</button>
+    <span style="font-size:11.5px;color:var(--ink-dim)">Speed</span><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.05" value="1" style="flex:1"></div>
+  <div id="demoCaption"></div>
+</div>
+
+<div id="help" class="panel" style="display:none">
+  <button id="bHelpX" title="Hide help" style="float:right;margin:-3px -6px 0 8px;padding:1px 7px">×</button>
+  <b>Mouse</b> — drag empty space to orbit · wheel to zoom · right-drag to pan<br>
+  <b>Drag</b> setting knobs up/down · the crank knob clockwise · the carriage sideways · the clearing ring around<br>
+  <b>Click</b> crank hub = pull up/push down (subtract) · reversing lever · decimal-marker gaps · lever pivot = fold lever<br>
+  <b>Keys</b> Space turn · S subtract · ←/→ carriage · R reversing lever · C clear · X view mode
+</div>
+<div id="tip"></div>
+<div id="toast"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* =====================================================================
+   Utilities
+   ===================================================================== */
+const DEG = Math.PI / 180, TAU = Math.PI * 2;
+const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, t) => a + (b - a) * t;
+const sstep = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+const easeIO = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const easeIO3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const mod = (a, n) => ((a % n) + n) % n;
+const sleep = ms => tween(ms * speed, () => {}, t => t);   // runs on the animation clock
+const $ = id => document.getElementById(id);
+
+/* =====================================================================
+   Specifications (Curta Type I vs Type II: Ø65 vs Ø53, height 90 vs 85 mm)
+   ===================================================================== */
+const SPECS = {
+  I:  { id: 'I',  title: 'Type I',  nS: 8,  nC: 6, nR: 11, pitch: 20, phi0: 70, sR: 1,       sY: 1,
+        sleeve: 'black', redKnobs: [], pin: 'chrome', serial: '61254', years: '1948–1970',
+        rev: 145, backArrow: true, logo: '#d9c690', tri: '#ec9a5c', rKnob: 18.5, sC: 1, zBand: 49.2, logoH: 2.6, logoP: 6.15,
+        info: '8 × 6 × 11 digits' },
+  II: { id: 'II', title: 'Type II', nS: 11, nC: 8, nR: 15, pitch: 15, phi0: 75, sR: 65 / 53, sY: 1.06,
+        sleeve: 'grey',  redKnobs: [2, 5, 8], pin: 'chrome', serial: '554492', years: '1954–1970',
+        rev: 168, backArrow: false, logo: '#e9e7dd', tri: '#f3f1ea', rKnob: 20.0, sC: 1.08, zBand: 52.2, logoH: 2.85, logoP: 6.4,
+        info: '11 × 8 × 15 digits' },
+};
+function derive(S) {
+  S.R = v => v * S.sR;
+  // vertical map: the Type II has a shorter CURTA band and a taller setting section than the Type I (photos)
+  const zb = S.zBand, k1 = (zb - 16.7) / (49.2 - 16.7), k2 = (60.7 - zb) / (60.7 - 49.2);
+  S.fz = v => v <= 16.7 || v >= 60.7 ? v : v <= 49.2 ? 16.7 + (v - 16.7) * k1 : zb + (v - 49.2) * k2;
+  S.Y = v => S.fz(v) * S.sY;
+  S.phiK = k => S.phi0 - S.pitch * k;                       // body drive position k  /  result digit j (carriage frame)
+  S.phiC0 = S.phi0 - S.pitch * (S.nR - 1) - 1.5 * S.pitch;  // counter units digit (carriage frame) and counter drive (body)
+  S.phiCnt = i => S.phiC0 - S.pitch * i;
+  S.phiA = S.phi0 - S.pitch * (S.nR - 1) - 0.75 * S.pitch;  // clearing stop A (black/white boundary)
+  S.phiB = S.phi0 + 0.75 * S.pitch;                         // clearing stop B
+  S.dB = mod(S.phiA - S.phiB, 360);                          // clockwise distance A -> B
+  S.phiRev = S.rev;                                        // reversing lever: at the back, just below the band
+  S.knobY = d => S.Y(41.3 - 2 * d);
+  S.crankHome = 66;                                         // zero stop: arm points front-right (photos)
+  // timing of a crank revolution (degrees)
+  S.T0 = 12; S.tau = 11.25;   // drum tooth pitch (10 teeth span ~101°)
+  S.tCnt = 300;
+  return S;
+}
+derive(SPECS.I); derive(SPECS.II);
+
+/* =====================================================================
+   Machine logic — exact Curta semantics
+   ===================================================================== */
+class Machine {
+  constructor(S) {
+    this.S = S;
+    this.set = new Array(S.nS).fill(0);
+    this.res = new Array(S.nR).fill(0);
+    this.cnt = new Array(S.nC).fill(0);
+    this.pos = 0;      // carriage position (0 = position 1)
+    this.sub = false;  // crank pulled up (subtraction)
+    this.rev = false;  // reversing lever down
+  }
+  // Plan one revolution of the crank: the stepped drum passes every drive shaft in turn,
+  // then the tens bell performs sequential carries.
+  planTurn() {
+    const S = this.S, p = this.pos, sub = this.sub;
+    const teeth = [];
+    for (let k = 0; k < S.nR; k++) {
+      let n = k < S.nS ? (sub ? 9 - this.set[k] : this.set[k]) : (sub ? 9 : 0);
+      if (sub && k === 0) n += 1; // true (ten's) complement for the units shaft
+      teeth.push(n);
+    }
+    const add = [], tA = [], cin = [], tC = [], fin = [];
+    let c = 0;
+    for (let j = 0; j < S.nR; j++) {
+      const k = j - p;
+      const n = k >= 0 ? teeth[k] : 0;
+      add[j] = n; tA[j] = S.T0 + S.pitch * k; tC[j] = S.T0 + S.pitch * k + 10 * S.tau + 6;
+      const tot = this.res[j] + n + c; cin[j] = c; c = tot >= 10 ? 1 : 0; fin[j] = tot % 10;
+    }
+    const d = (sub ? -1 : 1) * (this.rev ? -1 : 1);
+    const cfin = this.cnt.slice(), cdel = new Array(S.nC).fill(0), ct = new Array(S.nC).fill(0);
+    let cc = d;
+    for (let i = p; i < S.nC && cc !== 0; i++) {
+      cdel[i] = cc; ct[i] = S.tCnt + (i - p) * 7;
+      const v = this.cnt[i] + cc;
+      if (v > 9) { cfin[i] = 0; cc = 1; } else if (v < 0) { cfin[i] = 9; cc = -1; } else { cfin[i] = v; cc = 0; }
+    }
+    return { teeth, add, tA, cin, tC, fin, d, cdel, ct, cfin, overflow: c };
+  }
+  commit(plan) { this.res = plan.fin.slice(); this.cnt = plan.cfin.slice(); }
+  str(a) { return a.slice().reverse().join(''); }
+}
+
+/* =====================================================================
+   Renderer / scene
+   ===================================================================== */
+const app = $('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.localClippingEnabled = true;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+// photographic studio environment: dark room with soft boxes -> crisp highlights on black paint and metal
+function studioEnvironment() {
+  const s = new THREE.Scene();
+  s.add(new THREE.Mesh(new THREE.SphereGeometry(100, 48, 24), new THREE.MeshBasicMaterial({ color: 0x45484e, side: THREE.BackSide })));
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(95, 48), new THREE.MeshBasicMaterial({ color: 0x8a8d92 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = -40; s.add(floor);
+  const box = (w, h, x, y, z, k, col = 0xffffff) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(k), side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.lookAt(0, 0, 0); s.add(m);
+  };
+  box(50, 50, 10, 95, 15, 1.15);           // overhead soft box (dim: black tops stay black)
+  box(22, 130, -88, 15, 35, 3.0);          // left strip light
+  box(22, 130, 80, 15, -50, 2.4, 0xeef3ff); // right/back strip light
+  box(110, 34, 0, 18, 92, 1.3, 0xfff4e6);  // frontal fill
+  box(60, 22, 40, -10, 80, 0.9);           // low kicker
+  const tex = pmrem.fromScene(s, 0.035).texture;
+  s.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); });
+  return tex;
+}
+scene.environment = studioEnvironment();
+
+const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 4000);
+const HOME_CAM = new THREE.Vector3(-58, 140, 222), HOME_TGT = new THREE.Vector3(0, 52, 0);   // front, slightly left: the crank reaches out to the right
+camera.position.copy(HOME_CAM);
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+keyLight.position.set(90, 220, 140);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.left = -90; keyLight.shadow.camera.right = 90;
+keyLight.shadow.camera.top = 90; keyLight.shadow.camera.bottom = -90;
+keyLight.shadow.camera.near = 50; keyLight.shadow.camera.far = 500;
+keyLight.shadow.bias = -0.0004; keyLight.shadow.normalBias = 0.25;
+scene.add(keyLight);
+const rimLight = new THREE.DirectionalLight(0xdfe8ff, 1.1); rimLight.position.set(-160, 120, -140); scene.add(rimLight);
+const fillLight = new THREE.DirectionalLight(0xfff3e0, 0.5); fillLight.position.set(-120, 40, 160); scene.add(fillLight);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f96, 0.35));
+
+/* =====================================================================
+   Textures (canvas generated)
+   ===================================================================== */
+const MAXANI = renderer.capabilities.getMaxAnisotropy();
+function canvasTex(w, h, draw, srgb = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = MAXANI; t.needsUpdate = true;
+  return t;
+}
+const DIGIT_FONT = '"DIN Alternate","DIN Condensed","Bahnschrift","Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif';
+const LOGO_FONT = '"Century Gothic","Futura","Avenir Next","Avenir","Montserrat","Segoe UI",sans-serif';
+
+// Number wheel (radial axle): digits stacked around the rim, each glyph's top pointing toward the machine axis.
+function wheelTexture(bg, fg) {
+  return canvasTex(1280, 160, (g, w, h) => {
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = `600 172px ${DIGIT_FONT}`;
+    for (let i = 0; i < 10; i++) {
+      g.save(); g.translate((i + 0.5) * w / 10, h / 2); g.rotate(Math.PI); g.scale(0.7, 1);
+      g.fillText(String(i), 0, 3); g.restore();
+    }
+  });
+}
+// Setting check wheel (vertical axle): upright digits, decreasing to the right (as on the real wheels)
+function checkTexture() {
+  return canvasTex(1280, 170, (g, w, h) => {
+    g.fillStyle = '#0b0b0c'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#f5f5f0'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = `600 196px ${DIGIT_FONT}`;
+    for (let i = 0; i < 10; i++) {
+      const d = 9 - i;
+      g.save(); g.translate((i + 0.5) * w / 10, h / 2 + 4); g.scale(0.88, 0.9); g.fillText(String(d), 0, 8); g.restore();
+    }
+  });
+}
+// stripes for the lamellar stepped drum
+function lamellaTexture() {
+  const t = canvasTex(64, 256, (g, w, h) => {
+    for (let y = 0; y < h; y++) {
+      const ph = (y % 11) / 11;
+      const v = ph < 0.18 ? 120 : 205 + 25 * Math.sin(ph * Math.PI);
+      g.fillStyle = `rgb(${v},${v},${v + 4})`; g.fillRect(0, y, w, 1);
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 3);
+  return t;
+}
+// crinkle / hammertone normal map for the grey Type II sleeve
+function crinkleNormal() {
+  const N = 512;
+  const c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d');
+  const hgt = new Float32Array(N * N);
+  // sum of random blobs
+  for (let b = 0; b < 2600; b++) {
+    const x = Math.random() * N, y = Math.random() * N, r = 3 + Math.random() * 9, a = (Math.random() - .3);
+    for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) {
+      const d2 = (xx * xx + yy * yy) / (r * r); if (d2 > 1) continue;
+      const ix = mod(Math.floor(x + xx), N), iy = mod(Math.floor(y + yy), N);
+      hgt[iy * N + ix] += a * (1 - d2) * (1 - d2);
+    }
+  }
+  const img = g.createImageData(N, N);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const hx = hgt[y * N + mod(x + 1, N)] - hgt[y * N + mod(x - 1, N)];
+    const hy = hgt[mod(y + 1, N) * N + x] - hgt[mod(y - 1, N) * N + x];
+    let nx = -hx * 1.6, ny = -hy * 1.6, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+    const i = (y * N + x) * 4;
+    img.data[i] = (nx * .5 + .5) * 255; img.data[i + 1] = (ny * .5 + .5) * 255; img.data[i + 2] = (nz * .5 + .5) * 255; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = MAXANI;
+  return t;
+}
+
+// Contina "CM" star mark, traced from the Type I bottom plate: an irregular hand-drawn star around a C and an M.
+// Coordinates are in hundredths of the plate radius, origin at the centre of the C; s = plate radius in px.
+const CM_STAR = [[-0.8, -21.3], [4.5, -21.0], [6.0, -17.5], [4.8, -12.4], [20.5, -7.6], [22.0, -4.0], [14.3, 1.0], [14.1, 17.7], [10.5, 19.0],
+                 [4.5, 13.2], [-10.6, 17.7], [-14.2, 14.7], [-13.7, 10.9], [-10.8, 7.9], [-19.9, -6.3], [-18.5, -10.4], [-10.6, -9.1]];
+const CM_M = [[-4.1, 5.1], [-4.1, -1.8], [-2.4, -3.5], [2.8, -0.2], [8.0, -2.8], [9.8, -1.2], [9.8, 5.1]];
+function drawCM(g, x, y, s, col) {
+  const k = s / 100;
+  g.save(); g.translate(x, y); g.scale(k, k); g.strokeStyle = col; g.lineJoin = 'round'; g.lineCap = 'round';
+  const P = CM_STAR, n = P.length;
+  g.lineWidth = 1.5; g.beginPath();
+  g.moveTo((P[0][0] + P[1][0]) / 2, (P[0][1] + P[1][1]) / 2);
+  for (let i = 1; i <= n; i++) { const p = P[i % n], q = P[(i + 1) % n]; g.arcTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2, 1.2); }
+  g.closePath(); g.stroke();
+  g.lineWidth = 3.5; g.beginPath(); g.arc(0, 0, 9.2, 60 * DEG, 304.5 * DEG); g.stroke();   // C
+  g.lineWidth = 3.4; g.beginPath(); CM_M.forEach(([px, py], i) => i ? g.lineTo(px, py) : g.moveTo(px, py)); g.stroke();   // M
+  g.restore();
+}
+// engraved bottom plate: black anodised disc, white lettering
+function bottomPlate(g, w, h, S) {
+  const cx = w / 2, cy = h / 2, R0 = w / 2;
+  g.fillStyle = S.id === 'II' ? '#0b0c0f' : '#101115'; g.fillRect(0, 0, w, h);
+  // faint concentric turning marks
+  for (let r = 40; r < R0; r += 7) { g.strokeStyle = `rgba(255,255,255,${0.012 + 0.012 * Math.sin(r * 0.37)})`; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.stroke(); }
+  g.strokeStyle = 'rgba(0,0,0,0.65)'; g.lineWidth = 10; g.beginPath(); g.arc(cx, cy, R0 - 6, 0, TAU); g.stroke();
+  const col = S.id === 'II' ? '#dedbd2' : '#ecebe6';
+  g.fillStyle = col; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  const HF = '"Helvetica Neue","Helvetica","Arial",sans-serif';
+  // cap: cap height / plate diameter, wid: line width / plate diameter (0 = natural)
+  const line = (txt, yRel, cap, wid, weight = 600, font = HF, xRel = 0) => {
+    const px = cap * w / 0.716;
+    g.font = `${weight} ${px}px ${font}`;
+    const m = g.measureText(txt).width, sx = wid ? wid * w / m : 1;
+    g.save(); g.translate(cx + xRel * R0, cy + yRel * R0); g.scale(sx, 1); g.fillText(txt, 0, cap * w / 2); g.restore();
+  };
+  // text on a circular baseline, centred on the plate's centre line: yRel = middle of the capitals on the centre line,
+  // rad = baseline radius (/ plate radius), wid = arc length (/ plate diameter); up = arched over the centre, else sagging below it
+  const arcLine = (txt, yRel, rad, cap, wid, up, weight = 700) => {
+    g.font = `${weight} ${cap * w / 0.716}px ${HF}`;
+    const ch = [...txt], ws = ch.map(c => g.measureText(c).width), sx = wid * w / ws.reduce((a, b) => a + b, 0);
+    const Rb = rad * R0, yb = cy + (yRel + cap) * R0, oy = up ? yb + Rb : yb - Rb;
+    let s = -wid * w / 2;
+    ch.forEach((c, i) => {
+      const a = (s + ws[i] * sx / 2) / Rb; s += ws[i] * sx;
+      g.save(); g.translate(cx, oy); g.rotate(up ? a : -a); g.translate(0, up ? -Rb : Rb); g.scale(sx, 1); g.fillText(c, 0, 0); g.restore();
+    });
+  };
+  const NUM = '"DIN Alternate","Bahnschrift","Arial Narrow","Helvetica Neue",Arial,sans-serif';
+  if (S.id === 'II') {
+    line('Type II', -0.38, 0.026, 0.125, 600, HF, -0.03);
+    line('№', -0.255, 0.026, 0, 500, HF, -0.245);
+    line(S.serial.split('').join('\u2009'), -0.255, 0.026, 0.172, 400, NUM, 0.075);
+    line('Made in Liechtenstein', -0.08, 0.04, 0.66, 500);
+    line('(Customs Union with Switzerland)', 0.06, 0.027, 0.65, 500);
+    line('by Contina Ltd Mauren', 0.21, 0.04, 0.65, 500);
+    line('System Curt Herzstark', 0.35, 0.027, 0.455, 500);
+  } else {
+    line('System Curt Herzstark', -0.505, 0.028, 0.564, 700);
+    arcLine('Made in Liechtenstein', -0.278, 2.6, 0.052, 0.705, true);    // arched over the logo
+    drawCM(g, cx - 0.026 * R0, cy + 0.048 * R0, R0, col);
+    arcLine('by Contina AG Mauren', 0.372, 2.6, 0.048, 0.745, false);    // sagging under it
+    line('Type I №', 0.57, 0.028, 0.2, 700, HF, -0.225);
+    line(S.serial.split('').join('\u2009'), 0.57, 0.028, 0.16, 300, NUM, 0.19);
+  }
+}
+// "CURTA" logo as engraved on the band (single-stroke geometric letters, traced from photos)
+const CURTA_GLYPHS = {
+  C: { w: 1.25, d: g => { g.moveTo(1.25, 0); g.lineTo(0.5, 0); g.arc(0.5, 0.5, 0.5, -Math.PI / 2, Math.PI / 2, true); g.lineTo(1.25, 1); } },
+  U: { w: 1.4, d: g => { g.moveTo(0, 0); g.lineTo(0, 0.55); g.arcTo(0, 1, 0.45, 1, 0.45); g.lineTo(0.95, 1); g.arcTo(1.4, 1, 1.4, 0.55, 0.45); g.lineTo(1.4, 0); } },
+  R: { w: 1.5, d: g => { g.moveTo(0, 1); g.lineTo(0, 0); g.lineTo(1.24, 0); g.arc(1.24, 0.26, 0.26, -Math.PI / 2, Math.PI / 2); g.lineTo(0, 0.52); g.moveTo(0.74, 0.52); g.lineTo(1.5, 1); } },
+  T: { w: 1.5, d: g => { g.moveTo(0, 0); g.lineTo(1.5, 0); g.moveTo(0.75, 0); g.lineTo(0.75, 1); } },
+  A: { w: 1.3, d: g => { g.moveTo(0, 1); g.arcTo(0, 0, 1.3, 0, 0.6); g.arcTo(1.3, 0, 1.3, 1, 0.4); g.lineTo(1.3, 1); g.moveTo(0, 0.63); g.lineTo(1.3, 0.63); } },   // big curve top left, smaller one top right
+};
+// draw the logo centred at (x, y) on a canvas with sx/sy px per mm; hgt = letter height (mm), pitch = letter spacing (mm)
+function drawCurtaLogo(g, x, y, sx, sy, hgt, pitch, col) {
+  g.save(); g.strokeStyle = col; g.lineCap = 'round'; g.lineJoin = 'round';
+  'CURTA'.split('').forEach((ch, i) => {
+    const gl = CURTA_GLYPHS[ch];
+    g.save(); g.translate(x + (i - 2) * pitch * sx - gl.w * hgt * sx / 2, y - hgt * sy / 2); g.scale(hgt * sx, hgt * sy);
+    g.lineWidth = 0.105; g.beginPath(); gl.d(g); g.stroke(); g.restore();
+  });
+  g.restore();
+}
+// white engraved arrow pointing up: tip at (x, y), length L, all in canvas px
+function drawArrowUp(g, x, y, L, shaft, headW, headL, col) {
+  g.fillStyle = col; g.beginPath(); g.moveTo(x, y); g.lineTo(x + headW / 2, y + headL); g.lineTo(x + shaft / 2, y + headL * 0.86);
+  g.lineTo(x + shaft / 2, y + L); g.lineTo(x - shaft / 2, y + L); g.lineTo(x - shaft / 2, y + headL * 0.86); g.lineTo(x - headW / 2, y + headL); g.closePath(); g.fill();
+}
+
+/* =====================================================================
+   Geometry helpers
+   ===================================================================== */
+const v3sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const v3cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const v3dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const v3norm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+class GB {
+  constructor() { this.p = []; this.n = []; this.u = []; }
+  v(p, n, u) { this.p.push(p[0], p[1], p[2]); this.n.push(n[0], n[1], n[2]); this.u.push(u ? u[0] : 0, u ? u[1] : 0); }
+  // quad with per-vertex normals N (or null => flat), oriented so the face normal agrees with ref
+  quad(P, N, U, ref) {
+    let fn = v3norm(v3cross(v3sub(P[1], P[0]), v3sub(P[2], P[0])));
+    if (v3dot(fn, ref) < 0) fn = [-fn[0], -fn[1], -fn[2]];
+    const flip = v3dot(v3cross(v3sub(P[1], P[0]), v3sub(P[2], P[0])), ref) < 0;
+    const ord = flip ? [0, 2, 1, 0, 3, 2] : [0, 1, 2, 0, 2, 3];
+    for (const i of ord) this.v(P[i], N ? N[i] : fn, U ? U[i] : null);
+  }
+  tri(P, ref) {
+    let fn = v3norm(v3cross(v3sub(P[1], P[0]), v3sub(P[2], P[0])));
+    let ord = [0, 1, 2];
+    if (v3dot(fn, ref) < 0) { fn = [-fn[0], -fn[1], -fn[2]]; ord = [0, 2, 1]; }
+    for (const i of ord) this.v(P[i], fn, null);
+  }
+  geo() {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(this.u, 2));
+    return g;
+  }
+}
+
+// Thick surface of revolution along a straight profile (r0,y0)->(r1,y1) with rectangular holes.
+// holes: {phi, w (tangential mm), t0, t1}. Thickness goes inward along the profile normal.
+function revolvedShell(o) {
+  const { r0, y0, r1, y1, thick = 1, holes = [], seg = 200, walls = true } = o;
+  const dr = r1 - r0, dy = y1 - y0, L = Math.hypot(dr, dy);
+  const nr = dy / L, ny = -dr / L;
+  const tr = dr / L, ty = dy / L;
+  const rad = (t, off) => r0 + dr * t - nr * off, hgt = (t, off) => y0 + dy * t - ny * off;
+  const P = (phi, t, off) => { const r = rad(t, off), a = phi * DEG; return [r * Math.sin(a), hgt(t, off), r * Math.cos(a)]; };
+  const nO = phi => { const a = phi * DEG; return [nr * Math.sin(a), ny, nr * Math.cos(a)]; };
+  // holes are wrapped into the shell's [-180, 180] range; one that straddles the seam is split in two (no wall at the seam)
+  const H = [];
+  holes.forEach(h => {
+    const rm = rad((h.t0 + h.t1) / 2, 0), half = (h.w / 2) / rm / DEG, c = mod(h.phi + 180, 360) - 180, a0 = c - half, a1 = c + half;
+    if (a0 < -180) H.push({ a0: a0 + 360, a1: 180, t0: h.t0, t1: h.t1, open1: true }, { a0: -180, a1, t0: h.t0, t1: h.t1, open0: true });
+    else if (a1 > 180) H.push({ a0, a1: 180, t0: h.t0, t1: h.t1, open1: true }, { a0: -180, a1: a1 - 360, t0: h.t0, t1: h.t1, open0: true });
+    else H.push({ a0, a1, t0: h.t0, t1: h.t1 });
+  });
+  let ph = []; for (let i = 0; i <= seg; i++) ph.push(-180 + 360 * i / seg);
+  H.forEach(h => { ph.push(h.a0, h.a1); });
+  ph = [...new Set(ph.map(v => Math.round(v * 1e5) / 1e5))].filter(v => v >= -180 && v <= 180).sort((a, b) => a - b);
+  let ts = [0, 1]; H.forEach(h => ts.push(h.t0, h.t1));
+  ts = [...new Set(ts.map(v => Math.round(v * 1e6) / 1e6))].sort((a, b) => a - b);
+  const inHole = (p, t) => H.some(h => p > h.a0 && p < h.a1 && t > h.t0 && t < h.t1);
+  const g = new GB(), gi = new GB();
+  for (let i = 0; i < ph.length - 1; i++) for (let j = 0; j < ts.length - 1; j++) {
+    const pa = ph[i], pb = ph[i + 1], ta = ts[j], tb = ts[j + 1];
+    if (inHole((pa + pb) / 2, (ta + tb) / 2)) continue;
+    const U = [[(pa + 180) / 360, ta], [(pb + 180) / 360, ta], [(pb + 180) / 360, tb], [(pa + 180) / 360, tb]];
+    const na = nO(pa), nb = nO(pb), nm = nO((pa + pb) / 2);
+    g.quad([P(pa, ta, 0), P(pb, ta, 0), P(pb, tb, 0), P(pa, tb, 0)], [na, nb, nb, na], U, nm);
+    if (thick > 0) {
+      const ia = na.map(x => -x), ib = nb.map(x => -x);
+      gi.quad([P(pa, ta, thick), P(pb, ta, thick), P(pb, tb, thick), P(pa, tb, thick)], [ia, ib, ib, ia], U, nm.map(x => -x));
+    }
+  }
+  if (walls && thick > 0) {
+    const tan = phi => { const a = phi * DEG; return [Math.cos(a), 0, -Math.sin(a)]; };
+    const prof = phi => { const a = phi * DEG; return [tr * Math.sin(a), ty, tr * Math.cos(a)]; };
+    for (const h of H) {
+      const tIn = ts.filter(t => t >= h.t0 - 1e-9 && t <= h.t1 + 1e-9);
+      const hu = ((h.a0 + h.a1) / 2 + 180) / 360, WU = [[hu, 0.5], [hu, 0.5], [hu, 0.5], [hu, 0.5]];
+      for (let j = 0; j < tIn.length - 1; j++) {
+        const ta = tIn[j], tb = tIn[j + 1];
+        if (!h.open0) gi.quad([P(h.a0, ta, 0), P(h.a0, tb, 0), P(h.a0, tb, thick), P(h.a0, ta, thick)], null, WU, tan(h.a0));
+        if (!h.open1) gi.quad([P(h.a1, ta, 0), P(h.a1, tb, 0), P(h.a1, tb, thick), P(h.a1, ta, thick)], null, WU, tan(h.a1).map(x => -x));
+      }
+      const pIn = ph.filter(p => p >= h.a0 - 1e-9 && p <= h.a1 + 1e-9);
+      for (let i = 0; i < pIn.length - 1; i++) {
+        const pa = pIn[i], pb = pIn[i + 1];
+        gi.quad([P(pa, h.t0, 0), P(pb, h.t0, 0), P(pb, h.t0, thick), P(pa, h.t0, thick)], null, WU, prof((pa + pb) / 2));
+        gi.quad([P(pa, h.t1, 0), P(pb, h.t1, 0), P(pb, h.t1, thick), P(pa, h.t1, thick)], null, WU, prof((pa + pb) / 2).map(x => -x));
+      }
+    }
+  }
+  const n1 = g.p.length / 3, n2 = gi.p.length / 3;
+  g.p.push(...gi.p); g.n.push(...gi.n); g.u.push(...gi.u);
+  const geo = g.geo(); geo.addGroup(0, n1, 0); geo.addGroup(n1, n2, 1);
+  return geo;
+}
+
+// Knurled band: square pyramid "nubs" (as on the real Curta)
+function knurlBand(r, y0, y1, nA, nRow, depth, flat = 0.28) {
+  const g = new GB(), gt = new GB();
+  const P = (phi, y, rr) => [rr * Math.sin(phi * DEG), y, rr * Math.cos(phi * DEG)];
+  const dA = 360 / nA, dY = (y1 - y0) / nRow;
+  for (let i = 0; i < nA; i++) for (let j = 0; j < nRow; j++) {
+    const pa = i * dA, pb = pa + dA, ya = y0 + j * dY, yb = ya + dY, pm = pa + dA / 2, ym = ya + dY / 2;
+    const hp = dA / 2 * flat, hy = dY / 2 * flat, rt = r + depth;
+    const c00 = P(pa, ya, r), c10 = P(pb, ya, r), c11 = P(pb, yb, r), c01 = P(pa, yb, r);
+    const t00 = P(pm - hp, ym - hy, rt), t10 = P(pm + hp, ym - hy, rt), t11 = P(pm + hp, ym + hy, rt), t01 = P(pm - hp, ym + hy, rt);
+    const out = [Math.sin(pm * DEG), 0, Math.cos(pm * DEG)];
+    g.quad([c00, c10, t10, t00], null, null, out);
+    g.quad([c10, c11, t11, t10], null, null, out);
+    g.quad([c11, c01, t01, t11], null, null, out);
+    g.quad([c01, c00, t00, t01], null, null, out);
+    gt.quad([t00, t10, t11, t01], null, null, out);
+  }
+  const n1 = g.p.length / 3, n2 = gt.p.length / 3;
+  g.p.push(...gt.p); g.n.push(...gt.n); g.u.push(...gt.u);
+  const geo = g.geo(); geo.addGroup(0, n1, 0); geo.addGroup(n1, n2, 1);
+  return geo;
+}
+
+function lathe(pts, seg = 96, phiStart = 0, phiLen = TAU) {
+  return new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), seg, phiStart, phiLen);
+}
+
+const _gearCache = new Map();
+function gearGeo(n, rTip, rRoot, thick, holeR = 0, taper = 0) {
+  const key = [n, rTip, rRoot, thick, holeR, taper].map(v => v.toFixed(3)).join('|');
+  if (_gearCache.has(key)) return _gearCache.get(key);
+  const s = new THREE.Shape();
+  for (let i = 0; i < n; i++) {
+    const a0 = i / n * TAU, w = TAU / n;
+    const pts = [[rRoot, a0], [rRoot, a0 + w * 0.1], [rTip, a0 + w * 0.3], [rTip, a0 + w * 0.52], [rRoot, a0 + w * 0.72]];
+    pts.forEach(([r, a], j) => { const x = r * Math.cos(a), y = r * Math.sin(a); (i === 0 && j === 0) ? s.moveTo(x, y) : s.lineTo(x, y); });
+  }
+  s.closePath();
+  if (holeR > 0) { const h = new THREE.Path(); h.absarc(0, 0, holeR, 0, TAU, true); s.holes.push(h); }
+  let g = new THREE.ExtrudeGeometry(s, { depth: thick, bevelEnabled: false, curveSegments: 6 });
+  g.translate(0, 0, -thick / 2); g.rotateX(-Math.PI / 2);
+  if (taper) {
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const y = p.getY(i); const f = 1 - taper * (y + thick / 2) / thick; p.setX(i, p.getX(i) * f); p.setZ(i, p.getZ(i) * f); }
+    if (g.index) g = g.toNonIndexed();
+    g.computeVertexNormals();
+  }
+  _gearCache.set(key, g);
+  return g;
+}
+
+function twistedBar(w, d, len, turns) {
+  const g = new THREE.BoxGeometry(w, len, d, 1, 60, 1);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i), a = (y / len + 0.5) * turns * TAU, x = p.getX(i), z = p.getZ(i);
+    p.setX(i, x * Math.cos(a) - z * Math.sin(a)); p.setZ(i, x * Math.sin(a) + z * Math.cos(a));
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+/* =====================================================================
+   Materials
+   ===================================================================== */
+function makeMaterials(S) {
+  const M = {};
+  const black = 0x121314;
+  M.black = new THREE.MeshPhysicalMaterial({ color: black, roughness: 0.42, metalness: 0.15, clearcoat: 0.55, clearcoatRoughness: 0.38 });
+  M.blackGloss = new THREE.MeshPhysicalMaterial({ color: 0x0c0c0d, roughness: 0.22, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.12 });
+  M.knurlSide = new THREE.MeshStandardMaterial({ color: 0x141516, roughness: 0.4, metalness: 0.45 });
+  M.knurlTip = S.id === 'II' ? new THREE.MeshStandardMaterial({ color: 0xc9ccd0, roughness: 0.25, metalness: 1 }) : new THREE.MeshStandardMaterial({ color: 0x1b1c1e, roughness: 0.32, metalness: 0.5 });
+  M.knurl = [M.knurlSide, M.knurlTip];
+  M.inner = new THREE.MeshStandardMaterial({ color: 0x2a2b2d, roughness: 0.75, metalness: 0.2 });
+  M.wall = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: 0.85, metalness: 0.1 });
+  M.chrome = new THREE.MeshStandardMaterial({ color: 0xe6e7ea, roughness: 0.08, metalness: 1 });
+  M.steel = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 0.22, metalness: 1, envMapIntensity: 0.9 });
+  M.darkSteel = new THREE.MeshStandardMaterial({ color: 0x5f656d, roughness: 0.3, metalness: 1, envMapIntensity: 0.9 });
+  M.alu = new THREE.MeshStandardMaterial({ color: 0x9da2a9, roughness: 0.38, metalness: 1, envMapIntensity: 0.85 });
+  M.brass = new THREE.MeshStandardMaterial({ color: 0xc9a046, roughness: 0.26, metalness: 1, envMapIntensity: 0.9 });
+  M.copper = new THREE.MeshStandardMaterial({ color: 0xc8845a, roughness: 0.35, metalness: 1 });
+  M.nickelPlain = new THREE.MeshStandardMaterial({ color: 0xd6d4cc, roughness: 0.28, metalness: 1, envMapIntensity: 1.0 });
+  M.nickel = new THREE.MeshStandardMaterial({ color: 0xd8d6ce, roughness: 0.32, metalness: 1, map: lamellaTexture(), envMapIntensity: 1.0 });
+  M.white = new THREE.MeshStandardMaterial({ color: 0xf3f1ea, roughness: 0.35 });
+  M.red = new THREE.MeshStandardMaterial({ color: 0xd2262a, roughness: 0.38, metalness: 0.05 });
+  M.blackPlastic = new THREE.MeshPhysicalMaterial({ color: 0x0c0c0d, roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.35 });
+  M.screw = new THREE.MeshStandardMaterial({ color: 0xd9d9d6, roughness: 0.32, metalness: 0.55 });
+  M.lever = new THREE.MeshPhysicalMaterial({ color: 0x0d0d0f, roughness: 0.5, metalness: 0.2, clearcoat: 0.25, clearcoatRoughness: 0.45 });
+  M.redPlastic = new THREE.MeshPhysicalMaterial({ color: 0xb8141a, roughness: 0.4, clearcoat: 0.35, clearcoatRoughness: 0.35 });
+  M.pin = S.pin === 'chrome' ? M.chrome : new THREE.MeshStandardMaterial({ color: 0xf6f5f0, roughness: 0.25 });
+  M.wheelRes = [new THREE.MeshStandardMaterial({ map: wheelTexture('#0a0a0b', '#f6f6f2'), roughness: 0.45 }), M.inner, M.inner];
+  M.wheelCnt = [new THREE.MeshStandardMaterial({ map: wheelTexture('#f1f0ea', '#0b0b0c'), roughness: 0.45 }), M.inner, M.inner];
+  M.check = [new THREE.MeshStandardMaterial({ map: checkTexture(), roughness: 0.45 }), M.blackPlastic, M.blackPlastic];
+  if (S.sleeve === 'grey') {
+    M.sleeveColor = 0x727360;
+    M.sleeveNormal = crinkleNormal();
+  }
+  M.internal = [M.steel, M.darkSteel, M.alu, M.brass, M.copper, M.nickel, M.nickelPlain];
+  for (const m of M.internal) m.userData.env = m.envMapIntensity;
+  M.xray = new THREE.MeshStandardMaterial({ color: 0x9fb4cc, transparent: true, opacity: 0.13, roughness: 0.2, metalness: 0.2, depthWrite: false, side: THREE.DoubleSide });
+  return M;
+}
+
+/* =====================================================================
+   Model builder
+   ===================================================================== */
+function buildCurta(S) {
+  const R = S.R, Y = S.Y;
+  const M = makeMaterials(S);
+  const root = new THREE.Group();
+  const parts = { M, shell: [], picks: [], sliders: [], checks: [], bars: [], shafts: [], resW: [], cntW: [], resAx: [], cntAx: [],
+                  carrySlides: [], pins: [], frame: [] };
+
+  const D = {
+    rBase: R(26.5), rBot: R(24.5), rSl: R(22.75), rIn: R(21.0), rBand: R(23.75),
+    rCar: R(26.5), rCarIn: R(25.0), rD0: R(24), rD1: R(20.5),
+    rDrum: R(10.3), rT: R(10.3) + 3.2, rB: R(18.1), rW: R(22.3), rCol: R(19.6), rKnob: R(21.4),
+  };
+  parts.D = D;
+
+  const mesh = (geo, mat, o = {}) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = o.cast !== false; m.receiveShadow = o.recv !== false;
+    if (o.label) m.userData.label = o.label;
+    if (o.sub) m.userData.sub = o.sub;
+    if (o.act) { m.userData.act = o.act; parts.picks.push(m); }
+    return m;
+  };
+  const shellMesh = (geo, mat, o = {}) => {
+    const m = mesh(geo, mat, o); m.userData.shell = true; m.userData.baseMat = mat; parts.shell.push(m); return m;
+  };
+  const at = (obj, r, phi, y) => { obj.position.set(r * Math.sin(phi * DEG), y, r * Math.cos(phi * DEG)); return obj; };
+  const pivot = (phi) => { const g = new THREE.Group(); g.rotation.y = phi * DEG; return g; };
+
+  /* ---------------- groups ---------------- */
+  const G = {
+    base: new THREE.Group(), sleeve: new THREE.Group(), mech: new THREE.Group(), drum: new THREE.Group(),
+    carriage: new THREE.Group(), carShell: new THREE.Group(), carMech: new THREE.Group(), cap: new THREE.Group(),
+    lever: new THREE.Group(), crank: new THREE.Group(), sliders: new THREE.Group(), frame: new THREE.Group(),
+  };
+  root.add(G.base, G.sleeve, G.mech, G.drum, G.sliders, G.carriage, G.crank);
+  G.mech.add(G.frame);
+  G.carriage.add(G.carShell, G.carMech, G.cap);
+  G.cap.add(G.lever);
+  parts.G = G;
+
+  /* ---------------- base ring + bottom ---------------- */
+  {
+    const prof = [[0, Y(0.45)], [R(23.0), Y(0.45)], [R(23.2), Y(0.05)], [D.rBot, 0], [D.rBase - 0.35, Y(2.1)], [D.rBase, Y(2.6)],
+                  [D.rBase, Y(2.9)]];
+    G.base.add(shellMesh(lathe(prof, 128), M.black, { label: '' }));
+    G.base.add(shellMesh(knurlBand(D.rBase - 0.05, Y(2.9), Y(12.7), Math.round(TAU * D.rBase / 1.3), Math.round(Y(9.8) / 1.3), 0.5), M.knurl, { label: '', sub: '' }));
+    const prof2 = [[D.rBase, Y(12.7)], [D.rBase, Y(14.2)], [R(26.1), Y(14.8)], [R(25.25), Y(14.8)], [R(25.15), Y(14.5)], [R(24.35), Y(14.5)], [R(24.25), Y(14.8)], [D.rSl + 0.05, Y(14.8)], [D.rIn, Y(14.8)]];   // flat top ring with the marker groove
+    G.base.add(shellMesh(lathe(prof2, 128), M.black, { label: '', sub: '' }));
+    // inner wall of the base ring (visible in cutaway)
+    const inner = shellMesh(new THREE.CylinderGeometry(R(23.2), R(23.2), Y(12.3), 96, 1, true), M.inner, { label: '' });
+    inner.material = M.inner; inner.position.y = Y(0.45) + Y(12.3) / 2; inner.userData.baseMat = M.inner;
+    G.base.add(inner);
+    // bottom plate with engraving (layout traced from photos of s/n 61254 and 554492)
+    const bt = canvasTex(2048, 2048, (g, w, h) => bottomPlate(g, w, h, S));
+    const rPl = R(23.0);
+    const bottom = shellMesh(new THREE.CircleGeometry(rPl, 128).rotateX(Math.PI / 2), new THREE.MeshPhysicalMaterial({ map: bt, emissiveMap: bt, emissive: 0x555555, roughness: S.id === 'II' ? 0.3 : 0.42, metalness: 0.25, clearcoat: S.id === 'II' ? 0.6 : 0.3, clearcoatRoughness: 0.3 }), { label: '', sub: '' });
+    bottom.position.y = Y(0.44);
+    G.base.add(bottom);
+    // two slotted cheese-head screws (Type I: front/back, Type II: left/right)
+    const scr = S.id === 'II' ? [[-0.78, 0.06, 90], [0.78, 0.06, 8]] : [[0, -0.84, 4], [0, 0.84, -6]];
+    for (const [sx, sy, rot] of scr) {
+      const hd = shellMesh(lathe([[0, -0.3], [1.85, -0.27], [2.1, -0.12], [2.15, 0]], 32), M.screw, { label: '', sub: '' });
+      const slot = shellMesh(new THREE.BoxGeometry(3.4, 0.2, 0.42), M.wall, { label: '', sub: '' });
+      slot.position.y = -0.21; const sg = new THREE.Group(); sg.add(hd, slot);
+      sg.position.set(sx * rPl, Y(0.44) - 0.01, -sy * rPl); sg.rotation.y = rot * DEG; G.base.add(sg);
+    }
+  }
+
+  /* ---------------- sleeve (setting section + CURTA band) ---------------- */
+  {
+    const y0 = Y(14.8), y1 = Y(49.2), ySlot0 = Y(19.5), ySlot1 = Y(47.6);
+    const tt = y => (y - y0) / (y1 - y0);
+    const holes = [];
+    for (let k = 0; k < S.nS; k++) holes.push({ phi: S.phiK(k), w: 2.6, t0: tt(ySlot0), t1: tt(ySlot1) });
+    holes.push({ phi: S.phiRev, w: 1.7, t0: tt(Y(39.6)), t1: tt(Y(48.7)) });
+    const grey = S.sleeve === 'grey';
+    const sleeveTex = canvasTex(4096, 1024, (g, w, h) => {
+      g.fillStyle = grey ? '#727360' : '#141516'; g.fillRect(0, 0, w, h);
+      // contact shadow under the overhanging CURTA band
+      const sh = g.createLinearGradient(0, 0, 0, h * 0.045);
+      sh.addColorStop(0, 'rgba(0,0,0,0.75)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = sh; g.fillRect(0, 0, w, h * 0.045);
+      g.fillStyle = '#f2f2ee'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = `500 ${Math.round(h * 0.055)}px ${DIGIT_FONT}`;
+      for (let k = 0; k < S.nS; k++) {
+        const u = mod(S.phiK(k) + 180, 360) / 360, v = tt(Y(18.35));
+        g.save(); g.translate(u * w, (1 - v) * h); g.scale(0.85, 1); g.fillText(String(k + 1), 0, 0); g.restore();
+      }
+      // engraved double arrow beside the reversing lever slot (on the slider side of the slot)
+      const pxmm = w / (TAU * D.rSl), pymm = h / (y1 - y0);
+      const ax = ((S.phiRev + 180) / 360) * w - 2.2 * pxmm, ya = (1 - tt(Y(48.3))) * h, yb = (1 - tt(Y(40.4))) * h;
+      g.fillStyle = '#f2f2ee';
+      drawArrowUp(g, ax, ya, (yb - ya) / 2 + 2, 0.24 * pxmm, 0.85 * pxmm, 1.5 * pymm, '#f2f2ee');
+      g.save(); g.translate(ax, yb); g.scale(1, -1); drawArrowUp(g, 0, 0, (yb - ya) / 2 + 2, 0.24 * pxmm, 0.85 * pxmm, 1.5 * pymm, '#f2f2ee'); g.restore();
+    });
+    const sleeveMat = new THREE.MeshPhysicalMaterial({ map: sleeveTex, roughness: grey ? 0.62 : 0.5, metalness: grey ? 0.25 : 0.2, clearcoat: grey ? 0.15 : 0.35, clearcoatRoughness: 0.5 });
+    if (grey) { sleeveMat.normalMap = M.sleeveNormal; sleeveMat.normalScale.set(0.45, 0.45); M.sleeveNormal.repeat.set(10, 3); }
+    const sl = shellMesh(revolvedShell({ r0: D.rSl, y0, r1: D.rSl, y1, thick: D.rSl - D.rIn, holes, seg: 240 }), [sleeveMat, M.wall], { label: '', sub: '' });
+    G.sleeve.add(sl);
+    // turned lower edge of the band (catches the light, makes the step visible)
+    G.sleeve.add(shellMesh(new THREE.TorusGeometry(D.rBand - 0.13, 0.14, 6, 160).rotateX(Math.PI / 2).translate(0, y1 + 0.13, 0), new THREE.MeshStandardMaterial({ color: grey ? 0x8a8b78 : 0x3b3c40, roughness: 0.35, metalness: 0.6 }), { label: '', sub: '' }));
+    // flat step under the (slightly larger) CURTA band
+    G.sleeve.add(shellMesh(lathe([[D.rSl, y1], [D.rBand, y1]], 128), grey ? new THREE.MeshPhysicalMaterial({ color: 0x5d5e4d, roughness: 0.7, metalness: 0.2 }) : M.black, { label: '', sub: '' }));
+    // band with CURTA logo and carriage indicator
+    const bandTex = canvasTex(8192, 768, (g, w, h) => {
+      g.fillStyle = grey ? '#6a6a55' : '#141516'; g.fillRect(0, 0, w, h);
+      const by0 = Y(49.2), by1 = Y(60.7);
+      const sx = w / (TAU * D.rBand), sy = h / (by1 - by0);           // px per mm
+      const U = phi => (mod(phi + 180, 360)) / 360 * w, V = y => (1 - (y - by0) / (by1 - by0)) * h;
+      // CURTA logo, centred over the sliders
+      drawCurtaLogo(g, U(0), V(grey ? Y(55.9) : 56.8), sx, sy, S.logoH, S.logoP, S.logo);
+      // carriage position arrow above slot 1 (points at the position number on the carriage bevel)
+      drawArrowUp(g, U(S.phi0), V(by1 - 0.3), 0.64 * (by1 - by0) * sy, 0.26 * sx, 1.0 * sx, 1.7 * sy, '#f2f2ee');
+      // extra arrow at the back (Type I): points at the number of the counter digit that is being counted
+      if (S.backArrow) drawArrowUp(g, U(S.phiC0), V(by1 - 0.3), 0.53 * (by1 - by0) * sy, 0.26 * sx, 1.0 * sx, 1.7 * sy, '#f2f2ee');
+    });
+    const bandMat = new THREE.MeshPhysicalMaterial({ map: bandTex, roughness: grey ? 0.62 : 0.5, metalness: grey ? 0.25 : 0.2, clearcoat: grey ? 0.15 : 0.35, clearcoatRoughness: 0.5 });
+    if (grey) { bandMat.normalMap = M.sleeveNormal; bandMat.normalScale.set(0.45, 0.45); }
+    G.sleeve.add(shellMesh(revolvedShell({ r0: D.rBand, y0: Y(49.2), r1: D.rBand, y1: Y(60.7), thick: D.rBand - D.rIn, seg: 200 }), bandMat, { label: '', sub: '' }));
+    G.sleeve.add(shellMesh(lathe([[D.rBand, Y(60.7)], [D.rIn, Y(60.7)]], 128), M.black));
+  }
+
+  /* ---------------- internal frame ---------------- */
+  {
+    const bp = mesh(lathe([[R(3.2), Y(15.0)], [R(21.2), Y(15.0)], [R(21.2), Y(16.7)], [R(3.2), Y(16.7)], [R(3.2), Y(15.0)]], 96), M.alu, { label: '', sub: '' });
+    G.frame.add(bp); parts.frame.push(bp);
+    // brass mounting columns (Befestigungssäulen) in the free sector at the back
+    const colPhis = [S.phi0 + 2.6 * S.pitch, 180 + 14, S.phiC0 + 0.5 * S.pitch];
+    for (const ph of colPhis) {
+      const c = mesh(new THREE.CylinderGeometry(R(1.4), R(1.4), Y(32.9), 20), M.brass, { label: '', sub: '' });
+      at(c, D.rCol, ph, Y(16.7) + Y(32.9) / 2); G.frame.add(c);
+      for (const gy of [Y(30), Y(30.8)]) { const r = mesh(new THREE.TorusGeometry(R(1.4), 0.12, 6, 20).rotateX(Math.PI / 2), M.brass); at(r, D.rCol, ph, gy); G.frame.add(r); }
+    }
+    // top body casting (Maschinenkörper) with radial slots
+    const top = mesh(lathe([[R(4.4), Y(47.6)], [R(20.7), Y(47.6)], [R(20.7), Y(49.4)], [R(4.4), Y(49.4)], [R(4.4), Y(47.6)]], 96), M.alu, { label: '', sub: '' });
+    G.frame.add(top); parts.frame.push(top);
+    // tens-carry cage rings
+    for (const [ya, yb] of [[49.6, 50.7], [57.3, 58.4]]) {
+      const ring = mesh(lathe([[R(9.4), Y(ya)], [R(20.7), Y(ya)], [R(20.7), Y(yb)], [R(9.4), Y(yb)], [R(9.4), Y(ya)]], 96), M.alu, { label: '', sub: '' });
+      G.frame.add(ring); parts.frame.push(ring);
+    }
+  }
+
+  /* ---------------- stepped drum (Staffelwalze) on the main axle ---------------- */
+  {
+    const yb = Y(19.8), yt = Y(43.3);
+    const core = mesh(new THREE.CylinderGeometry(D.rDrum, D.rDrum, yt - yb, 64), M.nickel, { label: '', sub: '' });
+    core.position.y = (yb + yt) / 2; G.drum.add(core);
+    for (const [y, r] of [[Y(19.3), D.rDrum + 0.4], [Y(43.8), D.rDrum + 0.4]]) {
+      const fl = mesh(new THREE.CylinderGeometry(r, r, Y(1.0), 64), M.alu, { label: '', sub: '' }); fl.position.y = y; G.drum.add(fl);
+    }
+    // teeth: tooth i present at add rows y_d (d>=i) and complement rows y_d-1 (d<=9-i)
+    const boxes = [];
+    const rMid = D.rDrum + 0.8;
+    // tooth prism, slightly tapered toward the tip
+    const toothGeo = (h) => {
+      const sh = new THREE.Shape(); sh.moveTo(-0.62, -0.8); sh.lineTo(0.62, -0.8); sh.lineTo(0.42, 0.8); sh.lineTo(-0.42, 0.8); sh.closePath();
+      const g = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false });
+      g.translate(0, 0, -h / 2); g.rotateX(Math.PI / 2); // prism axis vertical, taper outward (+z)
+      return g;
+    };
+    const addTooth = (beta, y, h) => { const g = toothGeo(h); g.translate(0, 0, rMid); g.rotateY(beta * DEG); g.translate(0, y, 0); boxes.push(g); };
+    for (let i = 1; i <= 9; i++) {
+      const beta = S.phi0 + S.T0 + (i - 1) * S.tau;
+      for (let d = 0; d <= 9; d++) {
+        if (d >= i) addTooth(beta, Y(41.3 - 2 * d), Y(0.82));       // addition plate
+        if (d <= 9 - i) addTooth(beta, Y(40.3 - 2 * d), Y(0.82));   // nines-complement plate
+      }
+    }
+    // extra ten's-complement tooth (meets only the units shaft's upper pinion, in subtraction)
+    addTooth(S.phi0 + S.T0 + 9 * S.tau, Y(42.3), Y(0.82));
+    // counter tooth on the bottom section
+    addTooth(S.phiC0 + S.tCnt, Y(18.6), Y(1.5));
+    // lamella rings between the tooth plates
+    for (let y = 22.3; y <= 42.4; y += 1.0) {
+      const ring = new THREE.CylinderGeometry(D.rDrum + 0.05, D.rDrum + 0.05, Y(0.16), 64, 1, true).toNonIndexed(); ring.translate(0, Y(y + 0.5), 0);
+      ring.deleteAttribute('uv'); ring.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(ring.attributes.position.count * 2), 2));
+      boxes.push(ring);
+    }
+    for (const b of boxes) { if (!b.attributes.uv) b.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(b.attributes.position.count * 2), 2)); }
+    const teeth = mesh(mergeGeometries(boxes), M.nickelPlain, { label: '', sub: '' });
+    G.drum.add(teeth);
+    // counter section hub
+    const hub = mesh(new THREE.CylinderGeometry(R(7.2), R(7.2), Y(2.4), 48), M.alu, { label: '', sub: '' }); hub.position.y = Y(18.4); G.drum.add(hub);
+    // main axle
+    const ax = mesh(new THREE.CylinderGeometry(1.5, 1.5, Y(84), 20), M.steel, { label: '', sub: '' }); ax.position.y = Y(4) + Y(84) / 2; G.drum.add(ax);
+    // tens bell (Zehnerglocke) with carry cam
+    const bell = mesh(lathe([[1.6, Y(44.3)], [R(5), Y(44.3)], [R(8.6), Y(49.2)], [R(8.6), Y(58.6)], [R(7.4), Y(58.6)], [R(7.4), Y(50)], [1.6, Y(50)]], 72), M.alu, { label: '', sub: '' });
+    G.drum.add(bell);
+    for (const gy of [Y(52), Y(54.5), Y(57)]) { const gr = mesh(new THREE.TorusGeometry(R(8.6), 0.14, 6, 64).rotateX(Math.PI / 2), M.darkSteel); gr.position.y = gy; G.drum.add(gr); }
+    const cam = mesh(new THREE.BoxGeometry(1.4, Y(1.2), 2.0).translate(0, 0, R(8.6) + 0.6).rotateY((S.phi0 + S.T0 + 10 * S.tau + 6) * DEG).translate(0, Y(58.0), 0), M.brass, { label: '', sub: '' });
+    G.drum.add(cam);
+  }
+
+  /* ---------------- drive shafts (setting shafts, nines drives, counter drive) ---------------- */
+  {
+    const shaftLen = Y(60.0) - Y(16.7);
+    const nShafts = S.nR + 1; // k = 0..nR-1, plus counter shaft at index nR
+    for (let k = 0; k < nShafts; k++) {
+      const isCnt = k === S.nR;
+      const phi = isCnt ? S.phiC0 : S.phiK(k);
+      const g = new THREE.Group(); at(g, D.rT, phi, 0); g.rotation.y = phi * DEG; G.mech.add(g);
+      const rod = mesh(new THREE.CylinderGeometry(0.95, 0.95, shaftLen, 12), M.steel, { label: '', sub: '' });
+      rod.position.y = Y(16.7) + shaftLen / 2; g.add(rod);
+      const spin = new THREE.Group(); g.add(spin);
+      const pr = Math.min(2.2, D.rT * S.pitch * DEG / 2 - 0.12);
+      const pin = mesh(gearGeo(5, pr, pr - 0.9, isCnt ? Y(2.2) : 0.9), M.brass, { label: '', sub: '' });
+      pin.position.y = isCnt ? Y(19.2) : S.knobY(0);
+      spin.add(pin);
+      if (k === 0) { const ex = mesh(gearGeo(5, pr, pr - 0.9, 0.8), M.brass, { label: '', sub: '' }); ex.position.y = Y(43.3); spin.add(ex); }
+      const star = mesh(gearGeo(10, 2.25, 1.55, Y(1.4)), M.brass, { label: '', sub: '' }); star.position.y = Y(59.3); spin.add(star);
+      const coll = mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.2, 12), M.brass); coll.position.y = Y(17.4); g.add(coll);
+      // carry slide in the cage
+      const slide = mesh(new THREE.BoxGeometry(1.6, Y(6.4), 0.6), M.brass, { label: '', sub: '' });
+      const sg = new THREE.Group(); sg.rotation.y = phi * DEG; slide.position.set(0, Y(54.0), R(19.6)); sg.add(slide); G.frame.add(sg);
+      parts.shafts.push({ g, spin, pin, phi, isCnt, slide, nines: !isCnt && k >= S.nS });
+      parts.carrySlides.push(slide);
+    }
+  }
+
+  /* ---------------- setting units: twisted bar, check wheel, slider knob ---------------- */
+  {
+    const barLen = Y(45.0) - Y(16.9);
+    const turns = barLen / ((S.knobY(0) - S.knobY(1)) * 10);
+    const barGeo = twistedBar(1.7, 0.55, barLen, turns);
+    for (let k = 0; k < S.nS; k++) {
+      const phi = S.phiK(k);
+      const red = S.redKnobs.includes(k);
+      // twisted bar + check wheel rotate together about the bar axis
+      const bg = new THREE.Group(); at(bg, D.rB, phi, 0); G.mech.add(bg);
+      const rot = new THREE.Group(); bg.add(rot);
+      const bar = mesh(barGeo, M.steel, { label: ``, sub: '' });
+      bar.position.y = Y(16.9) + barLen / 2; rot.add(bar);
+      const cw = mesh(new THREE.CylinderGeometry(3.25, 3.25, Y(3.0), 48), M.check, { label: ``, sub: '' });
+      cw.position.y = Y(45.8); rot.add(cw);
+      const cwAx = mesh(new THREE.CylinderGeometry(0.6, 0.6, Y(2.5), 8), M.steel); cwAx.position.y = Y(47.8); rot.add(cwAx);
+      parts.checks.push(rot);
+      // slider assembly (moves vertically)
+      const pv = pivot(phi); G.sliders.add(pv);
+      const sg = new THREE.Group(); pv.add(sg);
+      const kMat = red ? M.redPlastic : M.blackPlastic;
+      const lbl = { label: `Setting knob ${k + 1}`, sub: 'Drag up/down', act: { type: 'slider', k } };
+      // block around the twisted bar
+      const blk = mesh(new THREE.BoxGeometry(2.6, 4.2, 3.6), M.blackPlastic, lbl); blk.position.set(0, 0, D.rB - 0.2); sg.add(blk);
+      const neck = mesh(new THREE.BoxGeometry(1.9, 4.2, D.rSl - D.rB + 0.2), M.blackPlastic, lbl); neck.position.set(0, 0, (D.rSl + D.rB) / 2 + 0.7); sg.add(neck);
+      // serrated knob outside the slot
+      const kb = new THREE.Group(); kb.position.z = D.rSl; sg.add(kb);
+      if (!parts.knobGeo) {
+        const bx = [new THREE.BoxGeometry(2.55, Y(6.0), 2.75).translate(0, 0, 1.375)];
+        for (let s = 0; s < 8; s++) bx.push(new THREE.BoxGeometry(3.05, Y(0.42), 3.0).translate(0, Y(-2.79 + s * 0.797), 1.5));
+        parts.knobGeo = mergeGeometries(bx);
+      }
+      const kc = mesh(parts.knobGeo, kMat, lbl); kb.add(kc);
+      // fork reaching the counting pinion on the transmission shaft
+      const armLen = D.rB - 1.8 - (D.rT + 1.2);
+      const arm = mesh(new THREE.BoxGeometry(1.2, 0.8, armLen), M.darkSteel, { label: '', sub: '' });
+      arm.position.set(0, 0.95, D.rT + 1.2 + armLen / 2); sg.add(arm);
+      for (const fy of [-0.95, 0.95]) {
+        const tine = mesh(new THREE.BoxGeometry(2.8, 0.35, 2.4), M.darkSteel); tine.position.set(0, fy, D.rT + 0.2); sg.add(tine);
+      }
+      // invisible track for click-to-set
+      const track = mesh(new THREE.BoxGeometry(3.4, Y(30), 1.0), M.black, { act: { type: 'slider', k }, label: ``, sub: '' });
+      track.visible = false; track.position.set(0, Y(33), D.rSl + 0.6); track.userData.track = true; pv.add(track);
+      parts.sliders.push({ g: sg, k });
+    }
+  }
+
+  /* ---------------- reversing lever (Umschalthebel) ---------------- */
+  {
+    const pv = pivot(S.phiRev); G.sliders.add(pv);
+    const lv = new THREE.Group(); pv.add(lv);
+    const act = { type: 'rev' };
+    const o = { label: 'Counter reversing lever', sub: 'Up: normal · Down: the counter counts minus turns positively (click)', act };
+    const body = mesh(new THREE.BoxGeometry(1.4, Y(4.4), 4.4), M.blackPlastic, o); body.position.z = D.rSl - 0.9; lv.add(body);
+    // ribbed finger knob: a stepped stack of ridges, like the setting knobs
+    const kb = [new THREE.BoxGeometry(2.5, Y(4.6), 1.5).translate(0, 0, 0.75)];
+    for (let s = 0; s < 5; s++) kb.push(new THREE.BoxGeometry(2.8, Y(0.5), 0.55 + 0.12 * s).translate(0, Y(-1.9 + s * 0.95), 1.5 + (0.55 + 0.12 * s) / 2));
+    const knob = mesh(mergeGeometries(kb), M.blackPlastic, o); knob.position.z = D.rSl; lv.add(knob);
+    parts.revLever = lv;
+    const rod = mesh(new THREE.CylinderGeometry(0.8, 0.8, Y(30), 12), M.brass, { label: '' });
+    at(rod, D.rCol - 0.9, S.phiRev, Y(31)); G.mech.add(rod);
+  }
+
+  /* ---------------- decimal markers on the base (setting register) ---------------- */
+  const pinGeo = mergeGeometries([new THREE.CylinderGeometry(0.62, 0.62, 1.7, 14).translate(0, 0.85, 0), new THREE.SphereGeometry(0.66, 16, 10).translate(0, 1.7, 0)]);
+  const addPins = (parent, reg, phis, r, y, tilt, defOn) => {
+    phis.forEach((ph, idx) => {
+      const pv = pivot(ph); parent.add(pv);
+      const p = shellMesh(pinGeo, M.pin, { label: 'Decimal marker', sub: 'Click to remove it', act: { type: 'pin', reg, idx } });
+      p.position.set(0, y, r); p.rotation.x = tilt; pv.add(p); p.userData.pin = true;
+      const hit = mesh(new THREE.SphereGeometry(1.5, 8, 6), M.black, { label: 'Decimal marker position', sub: 'Click to place a decimal marker', act: { type: 'pin', reg, idx } });
+      hit.position.set(0, y + 0.8, r); hit.visible = false; hit.userData.track = true; pv.add(hit);
+      p.userData.on = defOn.includes(idx); p.visible = p.userData.on;
+      parts.pins.push({ reg, idx, mesh: p });
+    });
+  };
+  const parkPins = (parent, phis, r, y, tilt) => phis.forEach(ph => {
+    const pv = pivot(ph); parent.add(pv);
+    const p = shellMesh(pinGeo, M.pin, { label: 'Decimal marker (parked)', sub: 'Click a gap between two digits to place a marker' });
+    p.position.set(0, y, r); p.rotation.x = tilt; pv.add(p);
+  });
+  {
+    const phis = []; for (let k = 1; k < S.nS; k++) phis.push(S.phiK(k) + S.pitch / 2);
+    addPins(G.base, 'set', phis, R(24.75), Y(14.5), 0.75, []);
+    const back = S.phiK(S.nS - 1) - 1.2 * S.pitch;
+    parkPins(G.base, [back, back - 9, S.phi0 + 1.2 * S.pitch], R(24.75), Y(14.5), 0.75);
+  }
+
+  /* ---------------- carriage ---------------- */
+  {
+    // lower chamfer with the position numbers (one per result digit)
+    const chTex = canvasTex(4096, 256, (g, w, h) => {
+      g.fillStyle = '#121314'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#c4c3bd'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = `500 ${Math.round(h * 0.44)}px ${DIGIT_FONT}`;
+      const num = (phi, n) => { const u = mod(phi + 180, 360) / 360; g.save(); g.translate(u * w, h * 0.5); g.scale(0.8, 1); g.fillText(String(n), 0, 0); g.restore(); };
+      for (let j = 0; j < S.nR; j++) num(S.phiK(j), j + 1);
+      if (S.backArrow) for (let i = 0; i < S.nC; i++) num(S.phiCnt(i), i + 1);
+    });
+    const chMat = new THREE.MeshPhysicalMaterial({ map: chTex, roughness: 0.48, metalness: 0.2, clearcoat: 0.4, clearcoatRoughness: 0.4 });
+    const carAct = { type: 'carriage' };
+    const carLbl = { label: 'Carriage', sub: 'Drag sideways: lifts and turns to shift the decimal position', act: carAct };
+    G.carShell.add(shellMesh(revolvedShell({ r0: D.rBand, y0: Y(60.7), r1: D.rCar, y1: Y(63.2), thick: 0.9, seg: 220 }), chMat, { ...carLbl, label: 'Carriage — position numbers' }));
+    G.carShell.add(shellMesh(knurlBand(D.rCar - 0.05, Y(63.4), Y(74.5), Math.round(TAU * D.rCar / 1.3), Math.round(Y(11.1) / 1.28), 0.5), M.knurl, carLbl));
+    G.carShell.add(shellMesh(lathe([[D.rCar, Y(63.2)], [D.rCar, Y(63.4)]], 128), M.knurlSide, carLbl));
+    G.carShell.add(shellMesh(lathe([[D.rCar, Y(74.5)], [D.rCar, Y(74.7)], [R(25.0), Y(75.7)], [D.rD0, Y(76.7)]], 128), M.black, carLbl));
+    const inner = shellMesh(new THREE.CylinderGeometry(D.rCarIn, D.rCarIn, Y(12.0), 96, 1, true), M.inner, { label: 'Carriage' }); inner.position.y = Y(63.2) + Y(6.0); G.carShell.add(inner);
+    // dial ring with digit windows: black (result) and silver/white (counter) sectors
+    const t0 = (D.rD0 - (D.rW + 1.15)) / (D.rD0 - D.rD1), t1 = (D.rD0 - (D.rW - 1.15)) / (D.rD0 - D.rD1);
+    const holes = [];
+    for (let j = 0; j < S.nR; j++) holes.push({ phi: S.phiK(j), w: 1.8, t0, t1 });
+    for (let i = 0; i < S.nC; i++) holes.push({ phi: S.phiCnt(i), w: 1.8, t0, t1 });
+    const dialTex = canvasTex(8192, 128, (g, w, h) => {
+      g.fillStyle = '#0d0d0e'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#c3c5c8';
+      const ua = (S.phiB + 180) / 360, ub = (S.phiA + 360 + 180) / 360;
+      g.fillRect(ua * w, 0, (Math.min(ub, 1) - ua) * w, h);
+      if (ub > 1) g.fillRect(0, 0, (ub - 1) * w, h);
+      // thin frames around the digit windows
+      const hw = (0.9 + 0.3) / (TAU * D.rW) * w;
+      const frame = (phi, col) => {
+        const u = mod(phi + 180, 360) / 360 * w;
+        g.strokeStyle = col; g.lineWidth = 3;
+        for (const du of [-w, 0, w]) g.strokeRect(u + du - hw, (1 - t1 - 0.07) * h, 2 * hw, (t1 - t0 + 0.14) * h);   // also across the seam
+      };
+      for (let j = 0; j < S.nR; j++) frame(S.phiK(j), '#6c6f74');
+      for (let i = 0; i < S.nC; i++) frame(S.phiCnt(i), '#1a1a1b');
+      g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(0, 0, w, 3);
+    });
+    const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, roughness: 0.4, metalness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3 });
+    G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: Y(76.7), r1: D.rD1, y1: Y(77.7), thick: 0.35, holes, seg: 300 }), [dialMat, M.wall], { label: '', sub: '' }));
+    // groove for the decimal markers between the windows and the clearing cap
+    G.carShell.add(shellMesh(lathe([[D.rD1, Y(77.7)], [D.rD1, Y(77.45)], [R(19.25), Y(77.45)], [R(19.25), Y(76.6)]], 160), M.black, { label: '', sub: '' }));
+    // decimal markers on the dials
+    const rp = R(19.88), yp = Y(77.45);
+    const rph = [], cph = [];
+    for (let j = 1; j < S.nR; j++) rph.push(S.phiK(j) + S.pitch / 2);
+    for (let i = 1; i < S.nC; i++) cph.push(S.phiCnt(i) + S.pitch / 2);
+    addPins(G.carriage, 'res', rph, rp, yp, 0.8, []);
+    addPins(G.carriage, 'cnt', cph, rp, yp, 0.8, []);
+    parkPins(G.carriage, [S.phiA - 0.35 * S.pitch, S.phiA - 0.65 * S.pitch, S.phiB + 0.35 * S.pitch, S.phiB + 0.65 * S.pitch], rp, yp, 0.8);
+
+    // ---- carriage internals ----
+    const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(23.6), Y(61.6)], [R(23.6), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
+    G.carMech.add(floor); parts.frame.push(floor);
+    const hub = mesh(lathe([[R(8.0), Y(62.4)], [R(16.2), Y(62.4)], [R(16.2), Y(71.4)], [R(8.0), Y(71.4)]], 96), M.alu, { label: '', sub: '' });
+    G.carMech.add(hub); parts.frame.push(hub);
+    const tilt = Math.atan2(Y(77.7) - Y(76.7), D.rD0 - D.rD1);
+    const yDial = Y(76.7) + (D.rD0 - D.rW) * Math.tan(tilt);         // dial surface above the wheel centre
+    const dn = 3.25 + 0.35 + 0.05;                                     // wheel radius + dial thickness + clearance
+    const yAx = yDial - Math.cos(tilt) * dn, rAx = D.rW - Math.sin(tilt) * dn; // wheel centre: its top touches the window centre
+    const makeWheelUnit = (phi, isCnt, idx) => {
+      const pv = pivot(phi); G.carMech.add(pv);
+      const vert = new THREE.Group(); vert.position.set(0, 0, D.rT); pv.add(vert);
+      const yB = yAx + (D.rW - D.rT - 2.3) * Math.sin(tilt) - 1.25;  // height of the vertical bevel gear
+      const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, yB + 0.6 - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (yB + 0.6 + Y(60.4)) / 2; vert.add(vax);
+      const st = mesh(gearGeo(10, 2.25, 1.55, Y(1.1)), M.brass, { label: '', sub: '' }); st.position.y = Y(60.95); vert.add(st);
+      const bv = mesh(gearGeo(12, 1.9, 1.45, 1.2, 0, 0.35), M.brass, { label: '', sub: '' }); bv.position.y = yB; vert.add(bv);
+      // radial axle with number wheel
+      const rad = new THREE.Group(); rad.position.set(0, yAx, rAx); rad.rotation.x = tilt; pv.add(rad);
+      const spin = new THREE.Group(); rad.add(spin);
+      const rax = mesh(new THREE.CylinderGeometry(0.6, 0.6, D.rW + 1.6 - (D.rT + 1.6), 10).rotateX(Math.PI / 2), M.steel, { label: '', sub: '' });
+      rax.position.z = (D.rW + 1.6 + D.rT + 1.6) / 2 - D.rW; spin.add(rax);
+      const rb = mesh(gearGeo(12, 1.9, 1.45, 1.2, 0, 0.35).clone().rotateX(-Math.PI / 2), M.brass, { label: '', sub: '' }); rb.position.z = D.rT + 2.3 - D.rW; spin.add(rb);
+      const pn = mesh(gearGeo(10, 1.8, 1.3, 1.1).clone().rotateX(Math.PI / 2), M.blackPlastic, { label: '', sub: '' }); pn.position.z = -3.6; spin.add(pn);
+      const wh = mesh(new THREE.CylinderGeometry(3.25, 3.25, 2.4, 48).rotateX(Math.PI / 2), M.wheelRes,
+        { label: '', sub: '' });
+      wh.position.z = 0; spin.add(wh);
+      return { vert, spin, wheel: wh };
+    };
+    for (let j = 0; j < S.nR; j++) parts.resW.push(makeWheelUnit(S.phiK(j), false, j));
+    for (let i = 0; i < S.nC; i++) parts.cntW.push(makeWheelUnit(S.phiCnt(i), true, i));
+
+    // ---- clearing plate (rotates with the clearing lever) + carriage collar ----
+    const yPl = Y(79.3);                                                  // top of the flat clearing plate
+    G.cap.add(shellMesh(lathe([[R(19.25), Y(77.45)], [R(19.25), yPl - 0.75], [R(18.55), yPl], [R(13.7), yPl], [R(13.7), yPl + 0.95], [R(13.35), yPl + 1.3], [R(10.3), yPl + 1.3], [R(10.3), Y(76.0)], [R(19.25), Y(76.0)], [R(19.25), Y(77.45)]], 160), M.black, { label: '', sub: '' }));
+    // clearing lever: flat black blade + hinged wire ring, pivoting on the plate (swings out to working position)
+    const lv = G.lever;
+    lv.position.set(0, 0, R(16.0));
+    const lvAct = { type: 'lever' };
+    const lvO = { label: 'Clearing lever', sub: 'Drag the ring around the dials to clear them (carriage lifts automatically) · click: clear both dials', act: lvAct };
+    const armShape = new THREE.Shape();
+    armShape.moveTo(-2.7, -2.1); armShape.lineTo(2.5, -2.1); armShape.lineTo(3.1, 1.4); armShape.lineTo(1.9, 10.6); armShape.lineTo(-1.9, 10.6);
+    armShape.lineTo(-2.6, 4.6); armShape.lineTo(-4.3, 3.0); armShape.lineTo(-4.3, -0.4); armShape.closePath(); // hooked nose at the stop
+    const armG = new THREE.ExtrudeGeometry(armShape, { depth: 0.75, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.15, bevelSegments: 2, curveSegments: 12 });
+    armG.rotateX(Math.PI / 2); // shape y -> +z (outward), extrusion -> down
+    const arm = shellMesh(armG, M.lever, lvO); arm.position.set(0, yPl + 0.95, 0); lv.add(arm);
+    const ring = shellMesh(new THREE.TorusGeometry(6.3, 0.55, 12, 72).rotateX(Math.PI / 2), M.lever, lvO);
+    ring.position.set(0, yPl + 0.55, 10.25 + 6.3); lv.add(ring);
+    const eye = shellMesh(new THREE.TorusGeometry(1.15, 0.42, 8, 20).rotateY(Math.PI / 2), M.lever, lvO); eye.position.set(0, yPl + 0.75, 10.25); lv.add(eye);
+    for (const [rz, rr] of [[3.4, 1.0], [7.6, 0.85]]) {
+      const rv = shellMesh(lathe([[rr, 0], [rr, 0.15], [rr * 0.7, 0.45], [0, 0.55]], 20), M.lever, lvO); rv.position.set(0, yPl + 1.07, rz); lv.add(rv);
+    }
+    const rel = shellMesh(lathe([[1.1, 0], [1.05, 0.55], [0.75, 1.0], [0, 1.15]], 24), M.blackGloss, { label: 'Release button (lever pivot)', sub: 'Click: swing the clearing lever in for storage / out for work', act: { type: 'leverStore' } });
+    rel.position.set(0, yPl + 1.07, 0); lv.add(rel);
+    lv.userData.store = 112 * DEG;
+    // collar (main-shaft sleeve) around the crank hub
+    G.carShell.add(shellMesh(lathe([[R(10.3), Y(76.0)], [R(10.3), yPl + 1.55], [R(9.9), yPl + 1.8], [R(9.55), yPl + 1.8], [R(8.1), Y(81.4)], [6.55 * S.sC - 0.25, Y(81.4)], [6.55 * S.sC - 0.25, Y(76.0)]], 128), M.black, { label: '' }));
+  }
+
+  /* ---------------- crank (operating handle): late plastic type with wedge head ---------------- */
+  {
+    const c = G.crank, sC = S.sC;
+    const crO = { label: 'Operating handle (crank)', sub: 'Drag the knob clockwise for one full turn', act: { type: 'crank' } };
+    const hubO = { label: 'Crank hub', sub: 'Click: pull up for subtraction (red ring) / push down for addition', act: { type: 'crankHub' } };
+    const rHub = 6.55 * sC, yHub0 = Y(81.4), yHub1 = Y(84.5), yTop = Y(91.4), armT = 3.6 * sC;
+    const sleeve = mesh(new THREE.CylinderGeometry(rHub - 0.12, rHub - 0.12, Y(3.0), 40), M.red, { label: '' });
+    sleeve.position.y = yHub0 - Y(1.5) - 0.02; c.add(sleeve); parts.redRing = sleeve;
+    const hub = mesh(lathe([[0, yHub0], [rHub, yHub0], [rHub, yHub1], [0, yHub1]], 48), M.black, hubO); c.add(hub);
+    // chrome cross pin on the hub (faces the front in the zero stop) and the hole of the opposite side
+    const pinAng = -S.crankHome * DEG;
+    const cp = mesh(lathe([[0, 0], [0.55, 0], [0.55, 0.6], [0.42, 0.85], [0, 0.92]], 12), M.chrome, hubO);
+    cp.rotation.x = Math.PI / 2; const cpg = new THREE.Group(); cpg.rotation.y = pinAng; cp.position.set(0, (yHub0 + yHub1) / 2 + 0.2, rHub - 0.05); cpg.add(cp); c.add(cpg);
+    const hl = mesh(new THREE.CircleGeometry(0.5, 16), M.wall); const hlg = new THREE.Group(); hlg.rotation.y = pinAng + Math.PI; hl.position.set(0, (yHub0 + yHub1) / 2 + 0.2, rHub + 0.02); hlg.add(hl); c.add(hlg);
+    // wedge head over the hub (drafted sides) ...
+    c.add(mesh(lathe([[0, yHub1], [rHub, yHub1], [7.7 * sC, yHub1 + 0.35], [7.75 * sC, yHub1 + 0.75], [5.95 * sC, yTop - armT + 0.6], [5.9 * sC, yTop - armT + 0.6], [0, yTop - armT + 0.6]], 56), M.blackGloss, crO));
+    // ... continuing into the flat arm (top flush with the head)
+    const rK = S.rKnob, r1 = 5.4 * sC, r2 = 4.25 * sC;
+    const sh = new THREE.Shape();
+    const ang = Math.asin((r1 - r2) / rK);
+    sh.absarc(0, 0, r1, Math.PI / 2 - ang, Math.PI * 1.5 + ang, false);
+    sh.absarc(rK, 0, r2, -Math.PI / 2 + ang, Math.PI / 2 - ang, false);
+    sh.closePath();
+    const bev = 0.5;
+    const armG = new THREE.ExtrudeGeometry(sh, { depth: armT - 2 * bev, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 3, curveSegments: 28 });
+    armG.rotateX(-Math.PI / 2); // extrude along +y
+    armG.rotateY(-Math.PI / 2); // shape +x -> +z
+    const arm = mesh(armG, M.blackGloss, crO); arm.position.y = yTop - armT + bev; c.add(arm);
+    // foot under the knob end
+    const foot = mesh(lathe([[0, -1.1], [r2 - 0.9, -1.1], [r2 - 0.2, 0], [0, 0]], 32), M.blackGloss, crO); foot.position.set(0, yTop - armT + 0.05, rK); c.add(foot);
+    // triangle mark on the head, pointing across the arm (orange on Type I, white on Type II)
+    const tri = new THREE.Shape(); tri.moveTo(-1.25, 0); tri.lineTo(1.25, 0); tri.lineTo(0, 3.4); tri.closePath();
+    const triG = new THREE.ShapeGeometry(tri).rotateX(-Math.PI / 2).rotateY(-Math.PI / 2);   // apex -> local +x
+    const arrow = mesh(triG, new THREE.MeshStandardMaterial({ color: S.tri, roughness: 0.5 }), crO);
+    arrow.position.set(-1.1 * sC, yTop + 0.02, 1.5 * sC); arrow.scale.setScalar(sC); c.add(arrow);
+    // knob: knurled cylinder with a smooth rounded cap, spins freely on its pin
+    const knobG = new THREE.Group(); knobG.position.set(0, 0, rK); c.add(knobG);
+    const rk = 3.78 * sC, yk0 = yTop + 0.25, yk1 = Y(105.2) + (sC - 1) * 6;
+    knobG.add(mesh(lathe([[0, yTop - 0.02], [rk - 0.3, yTop - 0.02], [rk, yk0], [rk, yk0 + 0.4]], 32), M.blackGloss, crO));
+    knobG.add(mesh(knurlBand(rk, yk0 + 0.4, yk1, 22, 14, 0.42, 0.28), [M.knurlSide, M.knurlSide], crO));
+    const kCore = mesh(new THREE.CylinderGeometry(rk - 0.01, rk - 0.01, yk1 - yk0 - 0.4, 22), M.knurlSide, crO); kCore.position.y = (yk0 + 0.4 + yk1) / 2; knobG.add(kCore);
+    knobG.add(mesh(lathe([[rk, yk1], [rk + 0.38, yk1 + 0.25], [rk + 0.3, yk1 + 0.75], [rk - 0.25, yk1 + 1.15], [rk - 1.4, yk1 + 1.35], [0, yk1 + 1.45]], 40), M.blackGloss, crO));
+    parts.crankKnob = knobG;
+  }
+
+  // shadows for everything; collect meshes
+  root.traverse(o => { if (o.isMesh && o.userData.track) { o.castShadow = false; o.receiveShadow = false; } });
+  return { root, ...parts };
+}
+
+/* =====================================================================
+   World state & animation
+   ===================================================================== */
+let S, mach, model;
+const V = {
+  sliders: [], sliderTarget: [], theta: 0, turning: false, plan: null,
+  shaftBase: [], subLift: 0, carPos: 0, carLift: 0, lever: 0, leverOut: 1, revPos: 0,
+  resPos: [], cntPos: [], clearing: null, explode: 0, shellMode: 'solid', frame: true,
+};
+let busy = 0;
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.copy(HOME_TGT);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minDistance = 45; controls.maxDistance = 900;
+// orbit and zoom about the main axle: panning only slides the centre up or down the axle
+let axisLock = true;
+controls.addEventListener('change', () => {
+  const t = controls.target; if (!axisLock || (!t.x && !t.z)) return;
+  camera.position.x -= t.x; camera.position.z -= t.z; t.x = 0; t.z = 0;
+});
+controls.update();
+
+function buildType(id) {
+  if (model) { scene.remove(model.root); model.root.traverse(o => { if (o.isMesh) { o.geometry.dispose?.(); } }); }
+  S = SPECS[id]; mach = new Machine(S); model = buildCurta(S);
+  scene.add(model.root);
+  V.sliders = new Array(S.nS).fill(0); V.shaftBase = new Array(S.nR + 1).fill(0);
+  V.resPos = new Array(S.nR).fill(0); V.cntPos = new Array(S.nC).fill(0);
+  V.theta = 0; V.turning = false; V.plan = null; V.subLift = 0; V.carPos = 0; V.carLift = 0; V.lever = 0; V.leverOut = 1; V.revPos = 0; V.clearing = null;
+  applyShellMode(); applyFrame();
+  $('tI').classList.toggle('on', id === 'I'); $('tII').classList.toggle('on', id === 'II');
+  $('typeInfo').textContent = S.info;
+  $('setInput').maxLength = S.nS;
+  updatePanel(); updateScene();
+}
+
+function applyShellMode() {
+  const m = V.shellMode;
+  const planes = [new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0), new THREE.Plane(new THREE.Vector3(0, 0, -1), 0)];
+  for (const s of model.shell) {
+    s.visible = m !== 'hidden' && !(s.userData.pin && !s.userData.on);
+    const bm = s.userData.baseMat;
+    if (m === 'xray') { s.material = model.M.xray; s.castShadow = false; }
+    else {
+      s.material = bm; s.castShadow = true;
+      const cut = m === 'cut';
+      for (const mm of Array.isArray(bm) ? bm : [bm]) {
+        mm.clippingPlanes = cut ? planes : null; mm.clipIntersection = cut; mm.side = cut ? THREE.DoubleSide : THREE.FrontSide;
+        mm.needsUpdate = true;
+      }
+    }
+  }
+  applyEnvDim();
+  document.querySelectorAll('#shellBtns button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+}
+function applyEnvDim() {
+  const closed = V.shellMode === 'solid' && V.explode < 0.04;
+  for (const mm of model.M.internal) mm.envMapIntensity = mm.userData.env * (closed ? 0.28 : 1);
+}
+function applyFrame() { for (const f of model.frame) f.visible = V.frame; }
+
+/* -------- turn evaluation -------- */
+function teethProg(x, n) { let s = 0; for (let i = 0; i < n; i++) s += sstep((x - i * S.tau) / S.tau); return s; }
+function evalTurn(th) {
+  const P = V.plan;
+  for (let j = 0; j < S.nR; j++) V.resPos[j] = mach.res[j] + teethProg(th - P.tA[j], P.add[j]) + P.cin[j] * sstep((th - P.tC[j]) / 8);
+  for (let i = 0; i < S.nC; i++) V.cntPos[i] = mach.cnt[i] + P.cdel[i] * sstep((th - P.ct[i]) / 8);
+}
+function startTurn() {
+  if (V.turning) return true;
+  if (V.carLift > 0.02 || V.clearing) { toast('Lower the carriage first'); return false; }
+  if (V.lever !== 0 && Math.abs(V.lever - S.dB) > 0.5) { toast('Clearing lever must rest in stop A or B'); return false; }
+  V.plan = mach.planTurn(); V.turning = true; V.theta = 0;
+  return true;
+}
+function setTheta(th) { V.theta = clamp(th, 0, 360); evalTurn(V.theta); if (V.theta >= 360) finishTurn(); }
+function finishTurn() {
+  const P = V.plan;
+  for (let k = 0; k < S.nR; k++) V.shaftBase[k] += P.teeth[k] * 36;
+  V.shaftBase[S.nR] += P.d * 36;
+  mach.commit(P); V.turning = false; V.theta = 0; V.plan = null;
+  for (let j = 0; j < S.nR; j++) V.resPos[j] = mach.res[j];
+  for (let i = 0; i < S.nC; i++) V.cntPos[i] = mach.cnt[i];
+  updatePanel();
+}
+
+/* -------- tween system / action queue -------- */
+const tweens = [];
+let speed = 1, clkOff = 0;
+const clk = () => performance.now() + clkOff;
+function tween(dur, fn, ease = easeIO) {
+  return new Promise(res => tweens.push({ t0: clk(), dur: dur / speed, fn, ease, res }));
+}
+// test helper: advance the animation clock without relying on requestAnimationFrame
+async function fastForward(ms) {
+  for (let t = 0; t < ms; t += 16) { clkOff += 16; stepTweens(clk()); for (let i = 0; i < 8; i++) await null; }
+  updateScene();
+}
+function stepTweens(now) {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const tw = tweens[i]; const t = Math.min(1, (now - tw.t0) / tw.dur);
+    tw.fn(tw.ease(t)); if (t >= 1) { tweens.splice(i, 1); tw.res(); }
+  }
+}
+let chain = Promise.resolve();
+function queue(fn) { if (!demo.running && $('bStop').disabled) $('demoCaption').style.display = 'none'; busy++; const p = chain.then(fn).catch(e => console.error(e)).finally(() => { busy--; updatePanel(); }); chain = p; return p; }
+
+/* -------- operations -------- */
+async function opTurn() {
+  if (!V.turning && !startTurn()) return;
+  const th0 = V.theta;
+  await tween(950 * (360 - th0) / 360 + 120, t => setTheta(lerp(th0, 360, t)), t => 0.5 - 0.5 * Math.cos(Math.PI * t));
+  if (V.turning) setTheta(360);
+}
+async function opSub(on) {
+  if (V.turning) { toast('Finish the turn first'); return; }
+  if (on === undefined) on = !mach.sub;
+  if (on === mach.sub) return;
+  mach.sub = on; updatePanel();
+  const a = V.subLift, b = on ? 1 : 0;
+  await tween(260, t => { V.subLift = lerp(a, b, t); });
+}
+async function opRev(on) {
+  if (V.turning) { toast('Finish the turn first'); return; }
+  if (on === undefined) on = !mach.rev;
+  mach.rev = on; updatePanel();
+  const a = V.revPos, b = on ? 1 : 0;
+  await tween(220, t => { V.revPos = lerp(a, b, t); });
+}
+async function opCarriage(p) {
+  p = clamp(p, 0, S.nC - 1);
+  if (p === mach.pos && V.carLift === 0 && V.carPos === p) return;
+  if (V.turning) { toast('The carriage can only be lifted with the handle in its zero stop'); return; }
+  const a = V.carPos;
+  await tween(170, t => { V.carLift = t; });
+  await tween(170 + 90 * Math.abs(p - a), t => { V.carPos = lerp(a, p, t); });
+  mach.pos = p; updatePanel();
+  await tween(150, t => { V.carLift = 1 - t; }, t => t * t);
+}
+async function opSetDigit(k, d) {
+  if (V.turning) return;
+  const a = V.sliders[k];
+  V.sliderTarget[k] = d; mach.set[k] = d; updatePanel();
+  await tween(140 + 25 * Math.abs(d - a), t => { V.sliders[k] = lerp(a, d, t); });
+}
+async function opSetNumber(str) {
+  str = String(str).replace(/\D/g, '').slice(-S.nS);
+  const digits = str.split('').reverse().map(Number);
+  for (let k = 0; k < S.nS; k++) {
+    const d = digits[k] ?? 0;
+    if (mach.set[k] !== d || Math.abs(V.sliders[k] - d) > 0.01) await opSetDigit(k, d);
+  }
+}
+// clearing sweep: lever angle measured clockwise from stop A, in the carriage frame
+function wheelDelta(isCnt, i) { return mod(S.phiA - (isCnt ? S.phiCnt(i) : S.phiK(i)), 360); }
+function beginClear() {
+  V.clearing = { res0: mach.res.slice(), cnt0: mach.cnt.slice(), lam0: V.lever, done: new Set() };
+}
+function evalClear(lam) {
+  const C = V.clearing; if (!C) return;
+  const dir = lam >= C.lam0 ? 1 : -1, win = 8;
+  const prog = (key, dl) => {
+    if (C.done.has(key)) return 1;
+    let best = 0;
+    for (const off of [-720, -360, 0, 360, 720]) {
+      const x = dl + off;
+      if (dir * (x - C.lam0) < -win * 0.5) continue;          // behind the starting stop
+      best = Math.max(best, clamp((dir * (lam - x) + win) / (2 * win), 0, 1));
+    }
+    if (best >= 1) C.done.add(key);
+    return best;
+  };
+  for (let j = 0; j < S.nR; j++) { const p = sstep(prog('r' + j, wheelDelta(false, j))); const v = C.res0[j]; V.resPos[j] = v === 0 ? 0 : lerp(v, 10, p); }
+  for (let i = 0; i < S.nC; i++) { const p = sstep(prog('c' + i, wheelDelta(true, i))); const v = C.cnt0[i]; V.cntPos[i] = v === 0 ? 0 : lerp(v, 10, p); }
+  V.lever = lam;
+}
+function endClear() {
+  const C = V.clearing; if (!C) return;
+  for (let j = 0; j < S.nR; j++) if (C.done.has('r' + j)) mach.res[j] = 0;
+  for (let i = 0; i < S.nC; i++) if (C.done.has('c' + i)) mach.cnt[i] = 0;
+  for (let j = 0; j < S.nR; j++) V.resPos[j] = mach.res[j];
+  for (let i = 0; i < S.nC; i++) V.cntPos[i] = mach.cnt[i];
+  V.lever = mod(V.lever, 360); if (V.lever > 359.5) V.lever = 0;
+  V.clearing = null; updatePanel();
+}
+async function opClear(which) {
+  if (V.turning) { toast('Finish the turn first'); return; }
+  const atA = Math.abs(V.lever) < 1;
+  let l0 = V.lever, l1;
+  if (which === 'all') l1 = l0 + 360;
+  else if (which === 'cnt') l1 = atA ? S.dB : 0;         // A -> B clockwise, or B -> A counter-clockwise
+  else l1 = atA ? -(360 - S.dB) : 360;                   // result: A -> B counter-clockwise, or B -> A clockwise
+  if (V.leverOut < 1) { const a = V.leverOut; await tween(300, t => { V.leverOut = lerp(a, 1, t); }); }
+  await tween(170, t => { V.carLift = Math.max(V.carLift, t); });
+  beginClear();
+  await tween(Math.abs(l1 - l0) * 3.2 + 150, t => evalClear(lerp(l0, l1, t)), easeIO);
+  V.lever = mod(l1, 360);
+  endClear();
+  await tween(150, t => { V.carLift = 1 - t; }, t => t * t);
+}
+
+/* -------- per-frame scene update -------- */
+function updateScene() {
+  const G = model.G, D = model.D, ex = V.explode;
+  // explode: mechanism rises out of the sleeve, carriage and crank above it
+  const exM = ex * 46;
+  G.mech.position.y = exM; G.sliders.position.y = exM;
+  G.crank.position.y = Math.max(S.Y(3.0) * V.subLift, S.Y(2.6) * V.carLift) + ex * 112;
+  G.carriage.position.y = S.Y(2.6) * V.carLift + ex * 88;
+  G.carriage.rotation.y = V.carPos * S.pitch * DEG;
+  // crank rotation
+  G.crank.rotation.y = (S.crankHome - V.theta) * DEG;
+  model.crankKnob.rotation.y = V.theta * DEG;
+  model.redRing.visible = V.subLift > 0.01 || V.shellMode === 'solid' || V.shellMode === 'cut';
+  // drum
+  G.drum.rotation.y = -V.theta * DEG;
+  G.drum.position.y = (S.Y(41.3) - S.Y(40.3)) * V.subLift + exM;
+  // sliders
+  for (const sl of model.sliders) sl.g.position.y = S.knobY(V.sliders[sl.k]);
+  model.checks.forEach((c, k) => { c.rotation.y = (S.phiK(k) - 36 * (9.5 - V.sliders[k])) * DEG; });
+  // shafts
+  const P = V.plan;
+  model.shafts.forEach((sh, k) => {
+    let a = V.shaftBase[k];
+    if (V.turning && P) {
+      if (sh.isCnt) a += P.d * 36 * sstep((V.theta - S.tCnt) / 8);
+      else a += teethProg(V.theta - (S.T0 + S.pitch * k), P.teeth[k]) * 36;
+    }
+    sh.spin.rotation.y = a * DEG;
+    if (!sh.isCnt && !sh.nines) sh.pin.position.y = S.knobY(V.sliders[k]);
+    // carry slide: dips while a carry is pending for the digit above this position
+    let dip = 0;
+    if (V.turning && P && !sh.isCnt) {
+      const j = k + mach.pos;
+      if (j < S.nR && P.cin[j]) { const tc = P.tC[j]; dip = sstep((V.theta - (tc - 40)) / 6) * (1 - sstep((V.theta - tc) / 6)); }
+    }
+    sh.slide.position.y = S.Y(54.0) - dip * 1.2;
+  });
+  // number wheels
+  const wa = pos => (180 - 36 * (pos + 0.5)) * DEG;
+  model.resW.forEach((w, j) => { w.spin.rotation.z = wa(V.resPos[j]); w.vert.rotation.y = V.resPos[j] * 36 * DEG; });
+  model.cntW.forEach((w, i) => { w.spin.rotation.z = wa(V.cntPos[i]); w.vert.rotation.y = V.cntPos[i] * 36 * DEG; });
+  // clearing lever / cap
+  G.cap.rotation.y = (S.phiA - V.lever) * DEG;
+  G.lever.rotation.y = (1 - V.leverOut) * G.lever.userData.store;
+  // reversing lever
+  model.revLever.position.y = lerp(S.Y(46.35), S.Y(41.95), V.revPos);
+}
+
+/* =====================================================================
+   Sound: tiny procedural mechanical clicks (Web Audio, created on first user gesture)
+   ===================================================================== */
+const audio = { ctx: null, out: null, on: true, last: {}, prev: null };
+function audioInit() {
+  if (audio.ctx || !audio.on) return;
+  try {
+    const ac = audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // master bus: +18 dB (the loudest click then peaks near 0.4, so there is no need for a limiter)
+    audio.out = ac.createGain(); audio.out.gain.value = 8;
+    audio.out.connect(ac.destination);
+  } catch (e) { audio.ctx = null; }
+}
+const SFX = { tooth: [5600, 0.010, 0.035, 14], slide: [3600, 0.016, 0.05, 30], tick: [2600, 0.02, 0.07, 30],
+              clack: [1500, 0.05, 0.22, 60], clunk: [520, 0.08, 0.3, 90] };
+function sfx(kind) {
+  if (!audio.on || !audio.ctx) return;
+  const [f, dur, gain, gap] = SFX[kind], now = performance.now();
+  if (now - (audio.last[kind] || 0) < gap) return; audio.last[kind] = now;
+  const ac = audio.ctx; if (ac.state === 'suspended') ac.resume();
+  const n = Math.max(1, Math.floor(ac.sampleRate * dur)), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * (0.88 + Math.random() * 0.24); bp.Q.value = 4;
+  const g = ac.createGain(); g.gain.value = gain;
+  src.connect(bp); bp.connect(g); g.connect(audio.out); src.start();
+}
+// derive sounds from state changes between frames
+function soundWatch() {
+  const snap = {
+    wheels: V.resPos.map(v => Math.round(v)).join() + '|' + V.cntPos.map(v => Math.round(v)).join(),
+    sliders: V.sliders.map(v => Math.round(v)).join(), turning: V.turning, lift: V.carLift > 0.001,
+    car: Math.round(V.carPos), sub: V.subLift > 0.5, rev: V.revPos > 0.5,
+  };
+  const q = audio.prev; audio.prev = snap;
+  if (!q || !audio.ctx) return;
+  if (snap.wheels !== q.wheels) sfx('tooth');
+  if (snap.sliders !== q.sliders) sfx('slide');
+  if (q.turning && !snap.turning) sfx('clack');
+  if (q.lift && !snap.lift) sfx('clunk');
+  if (snap.car !== q.car) sfx('tick');
+  if (snap.sub !== q.sub) sfx('clack');
+  if (snap.rev !== q.rev) sfx('tick');
+}
+
+/* =====================================================================
+   Interaction
+   ===================================================================== */
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+let drag = null;
+const tip = $('tip');
+
+function setNdc(e) { const r = renderer.domElement.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); }
+function visibleChain(o) { while (o) { if (!o.visible && !o.userData.track) return false; o = o.parent; } return true; }
+function pick(e) {
+  setNdc(e); ray.setFromCamera(ndc, camera);
+  const hits = ray.intersectObject(model.root, true);
+  for (const h of hits) {
+    const o = h.object;
+    if (o.userData.track) { if (!o.userData.act) continue; }
+    else if (!visibleChain(o)) continue;
+    if (o.userData.shell) {
+      if (V.shellMode === 'xray' || V.shellMode === 'hidden') continue;
+      if (V.shellMode === 'cut' && h.point.x > 0 && h.point.z > 0) continue;
+    }
+    if (o.userData.track && o.userData.act?.type === 'pin') { /* only when close */ }
+    return h;
+  }
+  return null;
+}
+function angleOnPlane(e, y) {
+  setNdc(e); ray.setFromCamera(ndc, camera);
+  const pl = new THREE.Plane(new THREE.Vector3(0, 1, 0), -y); const p = new THREE.Vector3();
+  if (!ray.ray.intersectPlane(pl, p)) return null;
+  return Math.atan2(p.x, p.z) / DEG;
+}
+function yOnSlider(e, phi) {
+  setNdc(e); ray.setFromCamera(ndc, camera);
+  const n = new THREE.Vector3(Math.sin(phi * DEG), 0, Math.cos(phi * DEG));
+  const pl = new THREE.Plane(n, -(model.D.rSl + 1.5)); const p = new THREE.Vector3();
+  if (!ray.ray.intersectPlane(pl, p)) return null;
+  return p.y - model.G.sliders.position.y;
+}
+const dAng = (a, b) => mod(b - a + 180, 360) - 180;
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  audioInit();
+  if (e.button !== 0 || !model) return;
+  const h = pick(e);
+  const act = h?.object.userData.act;
+  if (!act) return;
+  if (demo.running) { toast('A demonstration is running — press Stop first'); return; }
+  controls.enabled = false;
+  renderer.domElement.setPointerCapture(e.pointerId);
+  drag = { act, x0: e.clientX, y0: e.clientY, moved: false };
+  if (act.type === 'slider') {
+    if (V.turning) { toast('Setting knobs are locked during a turn'); drag = null; return; }
+    drag.phi = S.phiK(act.k);
+  } else if (act.type === 'crank') {
+    if (busy) { drag = null; return; }
+    drag.a = angleOnPlane(e, S.Y(92) + model.G.crank.position.y);
+  } else if (act.type === 'carriage') {
+    if (busy || V.turning) { if (V.turning) toast('The carriage can only be lifted with the handle in its zero stop'); drag = null; return; }
+    drag.a = angleOnPlane(e, S.Y(70)); drag.p0 = V.carPos;
+  } else if (act.type === 'lever') {
+    if (busy || V.turning) { drag = null; return; }
+    drag.a = angleOnPlane(e, S.Y(81)); drag.l0 = V.lever;
+  }
+}, true);
+
+renderer.domElement.addEventListener('pointermove', e => {
+  if (!model) return;
+  if (drag) {
+    if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 3) drag.moved = true;
+    const act = drag.act;
+    if (act.type === 'slider' && drag.moved) {
+      const y = yOnSlider(e, drag.phi); if (y == null) return;
+      const d = clamp((S.knobY(0) - y) / (S.knobY(0) - S.knobY(1)), 0, 9);
+      V.sliders[act.k] = d; const di = Math.round(d);
+      if (mach.set[act.k] !== di) { mach.set[act.k] = di; updatePanel(); }
+    } else if (act.type === 'crank' && drag.moved) {
+      const a = angleOnPlane(e, S.Y(92) + model.G.crank.position.y); if (a == null || drag.a == null) return;
+      const da = -dAng(drag.a, a); drag.a = a;
+      if (da > 0) {
+        if (!V.turning && !startTurn()) { drag = null; return; }
+        let th = V.theta + Math.min(da, 40);
+        if (th >= 360) { setTheta(360); }
+        else setTheta(th);
+      }
+    } else if (act.type === 'carriage' && drag.moved) {
+      const a = angleOnPlane(e, S.Y(70)); if (a == null || drag.a == null) return;
+      V.carLift = Math.min(1, V.carLift + 0.25);
+      const da = dAng(drag.a, a);
+      V.carPos = clamp(drag.p0 + da / S.pitch, -0.3, S.nC - 0.7);
+    } else if (act.type === 'lever' && drag.moved) {
+      const a = angleOnPlane(e, S.Y(81)); if (a == null || drag.a == null) return;
+      if (!V.clearing) { beginClear(); V.carLift = 1; if (V.leverOut < 1) V.leverOut = 1; }
+      const da = -dAng(drag.a, a); drag.a = a;
+      evalClear(clamp(V.lever + da, drag.l0 - 360, drag.l0 + 360));
+    }
+    return;
+  }
+  hover(e);
+});
+
+renderer.domElement.addEventListener('pointerup', e => {
+  controls.enabled = true;
+  if (!drag) return;
+  const d = drag; drag = null;
+  const act = d.act;
+  if (act.type === 'slider') {
+    if (!d.moved) {
+      const y = yOnSlider(e, d.phi);
+      if (y != null) { const di = clamp(Math.round((S.knobY(0) - y) / (S.knobY(0) - S.knobY(1))), 0, 9); queue(() => opSetDigit(act.k, di)); }
+    } else queue(() => opSetDigit(act.k, Math.round(V.sliders[act.k])));
+  } else if (act.type === 'crank') {
+    // a click turns once; a drag released part-way round finishes the turn to the zero stop
+    if (!d.moved || V.turning) queue(opTurn);
+  } else if (act.type === 'crankHub') {
+    queue(() => opSub());
+  } else if (act.type === 'rev') {
+    queue(() => opRev());
+  } else if (act.type === 'carriage') {
+    if (!d.moved) return;
+    const p = clamp(Math.round(V.carPos), 0, S.nC - 1); const a = V.carPos, l = V.carLift;
+    queue(async () => {
+      await tween(160, t => { V.carPos = lerp(a, p, t); V.carLift = Math.max(l, 1); });
+      mach.pos = p; updatePanel();
+      await tween(140, t => { V.carLift = 1 - t; }, t => t * t);
+    });
+  } else if (act.type === 'lever') {
+    if (!d.moved) { queue(() => opClear('all')); return; }
+    // snap to the nearest stop (A = 0/360, B = dB)
+    const lam = V.lever;
+    let best = 0;
+    for (let n = -2; n <= 2; n++) for (const a of [0, S.dB]) { const c = a + 360 * n; if (Math.abs(c - lam) < Math.abs(best - lam)) best = c; }
+    queue(async () => {
+      const l0 = V.lever;
+      await tween(Math.abs(best - l0) * 3 + 80, t => evalClear(lerp(l0, best, t)));
+      V.lever = mod(best, 360); endClear();
+      await tween(140, t => { V.carLift = 1 - t; }, t => t * t);
+    });
+  } else if (act.type === 'leverStore') {
+    if (V.turning || V.clearing) return;
+    queue(async () => { const a = V.leverOut, b = a > 0.5 ? 0 : 1; await tween(380, t => { V.leverOut = lerp(a, b, t); }); });
+  } else if (act.type === 'pin') {
+    const p = model.pins.find(q => q.reg === act.reg && q.idx === act.idx);
+    if (p) { p.mesh.userData.on = !p.mesh.userData.on; p.mesh.visible = p.mesh.userData.on && V.shellMode !== 'hidden'; updatePanel(); }
+  }
+});
+
+function hover(e) {
+  const h = pick(e);
+  const o = h?.object;
+  if (o && (o.userData.label)) {
+    tip.style.display = 'block'; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px';
+    tip.innerHTML = `${o.userData.label}${o.userData.sub ? `<i>${o.userData.sub}</i>` : ''}`;
+  } else tip.style.display = 'none';
+  const act = o?.userData.act;
+  renderer.domElement.style.cursor = act ? (act.type === 'slider' ? 'ns-resize' : act.type === 'crank' || act.type === 'carriage' || act.type === 'lever' ? 'grab' : 'pointer') : 'default';
+}
+renderer.domElement.addEventListener('pointerleave', () => { tip.style.display = 'none'; });
+
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => t.style.opacity = 0, 1800); }
+
+/* =====================================================================
+   Panel
+   ===================================================================== */
+function fmt(arr, pins, reg) {
+  let s = '';
+  for (let i = arr.length - 1; i >= 0; i--) {
+    s += arr[i];
+    if (i > 0 && pins.some(p => p.reg === reg && p.idx === i - 1 && p.mesh.userData.on)) s += '.';
+    else if (i > 0 && i % 3 === 0) s += ' ';
+  }
+  return s;
+}
+function updatePanel() {
+  if (!mach) return;
+  $('rRes').textContent = fmt(mach.res, model.pins, 'res');
+  $('rCnt').textContent = fmt(mach.cnt, model.pins, 'cnt');
+  $('rSet').textContent = fmt(mach.set, model.pins, 'set');
+  const sm = $('sMode'); sm.textContent = mach.sub ? '− subtract (crank up)' : '＋ add'; sm.classList.toggle('hot', mach.sub);
+  $('sPos').textContent = `Carriage ${mach.pos + 1}`;
+  const sr = $('sRev'); sr.textContent = mach.rev ? 'Rev. lever down' : 'Rev. lever up'; sr.classList.toggle('warm', mach.rev);
+  $('sLever').textContent = `Clear lever ${Math.abs(V.lever - S.dB) < 1 ? 'B' : 'A'}`;
+  $('bSub').innerHTML = (mach.sub ? '⇅ Push crank down' : '⇅ Pull crank up') + ' <span class="kbd">S</span>';
+}
+
+/* =====================================================================
+   Demonstrations (sequences from "Your CURTA Calculator")
+   ===================================================================== */
+const demo = { running: false, stop: false };
+const say = t => { const c = $('demoCaption'); c.style.display = 'block'; c.innerHTML = t; };
+async function step(text, fn) { if (demo.stop) throw new Error('stop'); say(text); await sleep(450 / speed); if (demo.stop) throw new Error('stop'); if (fn) await fn(); await sleep(350 / speed); }
+const turns = async n => { for (let i = 0; i < n; i++) { if (demo.stop) throw new Error('stop'); await opTurn(); await sleep(90 / speed); } };
+async function ready() {
+  if (mach.sub) await opSub(false);
+  if (mach.rev) await opRev(false);
+  if (mach.pos !== 0) await opCarriage(0);
+  if (mach.res.some(x => x) || mach.cnt.some(x => x)) await opClear('all');
+  await opSetNumber('0');
+}
+const DEMOS = [
+  { name: '237 + 419', run: async () => {
+    await step('<b>Addition 237 + 419.</b> Machine ready: dials cleared, knobs at zero, carriage in position 1.', ready);
+    await step('Set <b>237</b> with knobs 1–3. The setting dial shows the number.', () => opSetNumber('237'));
+    await step('<b>1 plus turn</b> of the handle transfers 237 into the black (result) dial.', () => turns(1));
+    await step('Set <b>419</b> — just adjust each knob, no need to clear the knobs first.', () => opSetNumber('419'));
+    await step('<b>1 plus turn.</b>', () => turns(1));
+    await step('Answer in the black dial: <b>656</b>. The white dial shows 2 items added.');
+  } },
+  { name: '139 − 78', run: async () => {
+    await step('<b>Subtraction 139 − 78.</b> Machine ready.', ready);
+    await step('Set <b>139</b> and make 1 plus turn.', async () => { await opSetNumber('139'); await turns(1); });
+    await step('Set <b>78</b> (knob 3 back to zero).', () => opSetNumber('78'));
+    await step('<b>Pull the handle up</b> — the red ring appears: subtractive turns. The drum shifts to its nines-complement teeth.', () => opSub(true));
+    await step('<b>1 minus turn.</b> The drum adds the complement 99…922; the overflow carry falls off the top.', () => turns(1));
+    await step('Push the handle back down. Answer in the black dial: <b>61</b>.', () => opSub(false));
+  } },
+  { name: '647 × 125', run: async () => {
+    await step('<b>Multiplication 647 × 125.</b> Machine ready.', ready);
+    await step('Set <b>647</b>.', () => opSetNumber('647'));
+    await step('<b>5 plus turns</b> in carriage position 1 — the white dial shows the lowest multiplier digit 5.', () => turns(5));
+    await step('Lift and turn the carriage to <b>position 2</b>: each turn now adds 6470.', () => opCarriage(1));
+    await step('<b>2 plus turns.</b> White dial: 25.', () => turns(2));
+    await step('Carriage to <b>position 3</b> (hundreds).', () => opCarriage(2));
+    await step('<b>1 plus turn.</b>', () => turns(1));
+    await step('Answer in the black dial: <b>80 875</b> · white dial 125 · setting 647.', () => opCarriage(0));
+  } },
+  { name: '457 × 89 (short-cut)', run: async () => {
+    await step('<b>Short-cut multiplication 457 × 89 = 457 × (−1 −10 +100).</b> Machine ready.', ready);
+    await step('Set <b>457</b>.', () => opSetNumber('457'));
+    await step('Handle up, <b>1 minus turn</b> (−1). The white dial counts −1.', async () => { await opSub(true); await turns(1); });
+    await step('Carriage to position 2, <b>1 minus turn</b> (−10).', async () => { await opCarriage(1); await turns(1); });
+    await step('Carriage to position 3, handle down, <b>1 plus turn</b> (+100).', async () => { await opCarriage(2); await opSub(false); await turns(1); });
+    await step('Answer: black dial <b>40 673</b> with only 3 turns instead of 17. White dial: 89.', () => opCarriage(0));
+  } },
+  { name: '1728 ÷ 12', run: async () => {
+    await step('<b>Division 1728 ÷ 12</b> by building up the dividend. Machine ready (reversing lever up).', ready);
+    await step('Set the divisor <b>12</b>. Carriage to its highest position.', async () => { await opSetNumber('12'); await opCarriage(S.nC - 1); });
+    const target = 1728;
+    const val = () => parseInt(mach.str(mach.res), 10);
+    for (let p = S.nC - 1; p >= 0; p--) {
+      const inc = 12 * Math.pow(10, p);
+      let n = 0; while (val() + (n + 1) * inc <= target) n++;
+      if (!n) continue;
+      if (mach.pos !== p) await step(`Carriage to position ${p + 1}.`, () => opCarriage(p));
+      await step(`<b>${n} plus turn${n > 1 ? 's' : ''}</b> — the black dial approaches 1728 without overstepping it.`, () => turns(n));
+      if (val() === target) break;
+    }
+    await step('The dividend <b>1728</b> is built up in the black dial; the white dial shows the quotient <b>144</b>.', () => opCarriage(0));
+  } },
+  { name: '100 ÷ 7 (subtractive)', run: async () => {
+    await step('<b>Division by the subtractive method: 100 ÷ 7.</b> Machine ready.', ready);
+    const hp = S.nC - 1;
+    await step(`Put the dividend into the left part of the black dial: set 100, carriage to position ${hp}, 1 plus turn.`, async () => { await opSetNumber('100'); await opCarriage(hp - 1); await turns(1); });
+    await step('Clear only the white dial (counter) with the clearing lever.', () => opClear('cnt'));
+    await step('Set the divisor <b>7</b>. <b>Reversing lever down</b> so that minus turns count positively. Pull the handle up.', async () => { await opSetNumber('7'); await opRev(true); await opSub(true); });
+    const vR = () => BigInt(mach.str(mach.res));
+    for (let p = hp; p >= 0; p--) {
+      if (mach.pos !== p) { say(`Carriage to position ${p + 1}.`); await opCarriage(p); }
+      say(`Position ${p + 1}: <b>minus turns</b> until the black dial is overdrawn…`);
+      for (let guard = 0; guard < 11; guard++) {
+        if (demo.stop) throw new Error('stop');
+        const before = vR();
+        await opTurn(); await sleep(80 / speed);
+        if (vR() > before) {
+          say('Overdrawn — the black dial runs into nines. <b>1 plus turn</b> restores it.');
+          await sleep(500 / speed); await opSub(false); await opTurn(); await opSub(true); await sleep(200 / speed);
+          break;
+        }
+      }
+    }
+    await opSub(false);
+    await step('Quotient in the white dial: <b>' + mach.str(mach.cnt) + '</b> → 100 ÷ 7 = 14.2857… Remainder in the black dial. Reversing lever back up.', () => opRev(false));
+  } },
+];
+function buildDemoButtons() {
+  const box = $('demoBtns'); box.innerHTML = '';
+  for (const d of DEMOS) {
+    const b = document.createElement('button'); b.textContent = d.name;
+    b.onclick = () => runDemo(d); box.appendChild(b);
+  }
+}
+async function runDemo(d) {
+  if (demo.running) return;
+  demo.running = true; demo.stop = false; $('bStop').disabled = false;
+  document.querySelectorAll('#demoBtns button').forEach(b => b.disabled = true);
+  try { await queue(d.run); } catch (e) { if (e.message !== 'stop') console.error(e); }
+  demo.running = false; $('bStop').disabled = true;
+  document.querySelectorAll('#demoBtns button').forEach(b => b.disabled = false);
+}
+
+/* =====================================================================
+   Wiring
+   ===================================================================== */
+$('tI').onclick = () => { if (!demo.running && !busy) buildType('I'); };
+$('tII').onclick = () => { if (!demo.running && !busy) buildType('II'); };
+$('bTurn').onclick = () => queue(opTurn);
+$('bSub').onclick = () => queue(() => opSub());
+$('bRev').onclick = () => queue(() => opRev());
+$('bLeft').onclick = () => queue(() => opCarriage(mach.pos - 1));
+$('bRight').onclick = () => queue(() => opCarriage(mach.pos + 1));
+$('bClrAll').onclick = () => queue(() => opClear('all'));
+$('bClrRes').onclick = () => queue(() => opClear('res'));
+$('bClrCnt').onclick = () => queue(() => opClear('cnt'));
+$('bSet').onclick = () => queue(() => opSetNumber($('setInput').value || '0'));
+$('setInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); queue(() => opSetNumber($('setInput').value || '0')); } e.stopPropagation(); });
+$('turnN').addEventListener('keydown', e => e.stopPropagation());
+$('bZero').onclick = () => queue(() => opSetNumber('0'));
+$('bReset').onclick = () => { if (!demo.running) queue(ready); };
+$('bHelpX').onclick = () => { $('help').style.display = 'none'; };
+$('bHelp').onclick = () => { $('help').style.display = $('help').style.display === 'none' ? '' : 'none'; };
+$('bTurnN').onclick = () => { const n = clamp(parseInt($('turnN').value, 10) || 1, 1, 99); queue(async () => { for (let i = 0; i < n; i++) await opTurn(); }); };
+document.querySelectorAll('#shellBtns button').forEach(b => b.onclick = () => { V.shellMode = b.dataset.m; applyShellMode(); });
+$('cFrame').onchange = e => { V.frame = e.target.checked; applyFrame(); };
+$('cSpin').onchange = e => { controls.autoRotate = e.target.checked; controls.autoRotateSpeed = 1.2; };
+$('rExplode').oninput = e => {
+  const nx = parseFloat(e.target.value), dy = (nx - V.explode) * 62;
+  V.explode = nx; camera.position.y += dy; controls.target.y += dy; applyEnvDim();
+};
+$('bView').onclick = () => { const p0 = camera.position.clone(), t0 = controls.target.clone(); tween(700, t => { camera.position.lerpVectors(p0, HOME_CAM, t); controls.target.lerpVectors(t0, HOME_TGT, t); }); };
+$('bStop').onclick = () => { demo.stop = true; };
+$('rSpeed').oninput = e => { speed = parseFloat(e.target.value); };
+window.addEventListener('keydown', e => {
+  audioInit();
+  if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+  if (demo.running) return;
+  if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); queue(opTurn); }
+  else if (e.key === 's' || e.key === 'S') queue(() => opSub());
+  else if (e.key === 'r' || e.key === 'R') queue(() => opRev());
+  else if (e.key === 'ArrowLeft') queue(() => opCarriage(mach.pos - 1));
+  else if (e.key === 'ArrowRight') queue(() => opCarriage(mach.pos + 1));
+  else if (e.key === 'c' || e.key === 'C') queue(() => opClear('all'));
+  else if (e.key === 'x' || e.key === 'X') { const m = ['solid', 'xray', 'cut', 'hidden']; V.shellMode = m[(m.indexOf(V.shellMode) + 1) % 4]; applyShellMode(); }
+});
+function frameView() {
+  const asp = innerWidth / innerHeight;
+  camera.aspect = asp;
+  const side = $('side'), wide = innerWidth > 760;
+  // keep the machine centred in the area not covered by the panels
+  const offX = wide && side.style.display !== 'none' ? (side.offsetWidth + 14) / 2 : 0;
+  const offY = !wide && side.style.display !== 'none' ? (side.offsetHeight - $('title').offsetHeight) / 2 : 0;
+  // portrait screens: widen the vertical field of view so the machine still fits horizontally
+  camera.fov = asp < 1 ? clamp(2 * Math.atan(Math.tan(12.5 * DEG) / asp) / DEG, 30, 66) : 30;
+  if (offX || offY) camera.setViewOffset(innerWidth, innerHeight, offX, offY, innerWidth, innerHeight); else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', frameView);
+frameView();
+
+buildDemoButtons();
+document.addEventListener('click', e => { audioInit(); if (e.target.closest('button')) e.target.closest('button').blur(); });
+$('cSound').onchange = e => { audio.on = e.target.checked; if (audio.on) audioInit(); };
+buildType('I');
+$('loading').remove();
+
+renderer.setAnimationLoop(() => {
+  stepTweens(clk());
+  controls.update();
+  updateScene();
+  soundWatch();
+  renderer.render(scene, camera);
+});
+window.__curta = { get S() { return S; }, get mach() { return mach; }, get model() { return model; }, V, camera, controls, scene, renderer, opTurn, opSetNumber, opCarriage, opSub, opRev, opClear, queue, buildType, fastForward, render: () => renderer.render(scene, camera), THREE, pick, yOnSlider, angleOnPlane,
+  view(p, t, ui = false) { for (const id of ['side', 'help', 'title']) $(id).style.display = ui ? '' : 'none'; if (ui) frameView(); else { camera.clearViewOffset(); camera.updateProjectionMatrix(); } camera.position.set(...p); controls.target.set(...t); axisLock = false; controls.update(); axisLock = true; } };
+</script>
+</body>
+</html>
