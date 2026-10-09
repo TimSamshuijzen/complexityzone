@@ -1414,8 +1414,8 @@ function audioInit() {
   if (audio.ctx || !audio.on) return;
   try {
     const ac = audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // master bus: +18 dB (the loudest click then peaks near 0.4, so there is no need for a limiter)
-    audio.out = ac.createGain(); audio.out.gain.value = 8;
+    // master bus: +23 dB (the loudest click, clack, then peaks near 0.6; about 1 in 300 clips a few samples, inaudible on a noise burst)
+    audio.out = ac.createGain(); audio.out.gain.value = 14;
     audio.out.connect(ac.destination);
   } catch (e) { audio.ctx = null; }
 }
