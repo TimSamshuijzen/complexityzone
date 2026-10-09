@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Curta Calculator 3D</title>
+<title>Curta Calculator</title>
 <style>
   :root {
     --bg0: #f2f1ee; --bg1: #c4c8cd;
@@ -14,15 +14,17 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; font-family: "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif; }
   body { background: radial-gradient(ellipse at 50% 40%, var(--bg0) 0%, #e2e2df 38%, var(--bg1) 100%); color: var(--ink); }
-  #app { position: fixed; inset: 0; }
+  .banner { height: 40px; display: flex; align-items: center; padding: 0 14px; background: #333333; }
+  .banner a { color: #80cccc; text-decoration: none; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; letter-spacing: .04em; }
+  #app { position: fixed; inset: 40px 0 0 0; }
   #app canvas { display: block; outline: none; touch-action: none; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--panel-b); border-radius: 12px;
            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 30px rgba(0,0,0,.25); }
-  #title { top: 14px; left: 14px; padding: 12px 16px 12px; min-width: 260px; }
+  #title { top: 54px; left: 14px; padding: 12px 16px 12px; min-width: 260px; }
   #title h1 { margin: 0; font-size: 22px; letter-spacing: 9px; font-weight: 300; font-family: "Century Gothic", Futura, "Avenir Next", "Segoe UI", sans-serif; }
   #title .sub { color: var(--ink-dim); font-size: 12px; margin-top: 2px; }
   #title .types { margin-top: 10px; display: flex; gap: 6px; }
-  #side { top: 14px; right: 14px; width: 318px; max-height: calc(100% - 28px); overflow-y: auto; padding: 4px 14px 12px; }
+  #side { top: 54px; right: 14px; width: 318px; max-height: calc(100% - 68px); overflow-y: auto; padding: 4px 14px 12px; }
   #side::-webkit-scrollbar { width: 6px; } #side::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
   h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--ink-dim); margin: 14px 0 7px; font-weight: 600; }
   button { font: inherit; font-size: 12.5px; color: var(--ink); background: var(--btn); border: 1px solid rgba(255,255,255,0.10);
@@ -54,13 +56,13 @@
   #tip { position: fixed; pointer-events: none; padding: 5px 9px; background: rgba(15,15,17,.92); color: #f1efe9; font-size: 12px;
          border-radius: 6px; transform: translate(14px, 14px); display: none; max-width: 300px; line-height: 1.35; border: 1px solid rgba(255,255,255,.12); z-index: 10; }
   #tip i { color: #b9bdc3; font-style: normal; display: block; font-size: 11px; }
-  #toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); background: rgba(190,40,32,.95); color: #fff; padding: 7px 14px; border-radius: 8px;
+  #toast { position: fixed; left: 50%; top: 58px; transform: translateX(-50%); background: rgba(190,40,32,.95); color: #fff; padding: 7px 14px; border-radius: 8px;
            font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 11; }
-  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #333; font-size: 14px; letter-spacing: 2px; }
+  #loading { position: fixed; inset: 40px 0 0 0; display: flex; align-items: center; justify-content: center; color: #333; font-size: 14px; letter-spacing: 2px; }
   @media (max-width: 760px) {
     #side { width: auto; left: 10px; right: 10px; top: auto; bottom: 10px; max-height: 42%; }
     #help { display: none; }
-    #title { min-width: 0; top: 10px; left: 10px; padding: 8px 12px; }
+    #title { min-width: 0; top: 50px; left: 10px; padding: 8px 12px; }
     #title h1 { font-size: 17px; letter-spacing: 6px; }
     #title .sub { display: none; }
     #title .types { margin-top: 6px; }
@@ -69,6 +71,10 @@
 </style>
 </head>
 <body>
+<div id="banner" class="banner">
+  <div style="display: inline-block;"><a href="https://complexity.zone">complexity.zone</a></div>
+  <div style="display: inline-block; margin-left: 60px; font-size: 12px;">Curta Calculator</div>
+</div>
 <div id="loading">LOADING CURTA…</div>
 <div id="app"></div>
 
@@ -263,7 +269,7 @@ class Machine {
 const app = $('app');
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
+renderer.setSize(app.clientWidth, app.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -295,7 +301,7 @@ function studioEnvironment() {
 }
 scene.environment = studioEnvironment();
 
-const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 4000);
+const camera = new THREE.PerspectiveCamera(30, app.clientWidth / app.clientHeight, 1, 4000);
 const HOME_CAM = new THREE.Vector3(-58, 140, 222), HOME_TGT = new THREE.Vector3(0, 52, 0);   // front, slightly left: the crank reaches out to the right
 camera.position.copy(HOME_CAM);
 
@@ -1779,7 +1785,7 @@ window.addEventListener('keydown', e => {
   else if (e.key === 'x' || e.key === 'X') { const m = ['solid', 'xray', 'cut', 'hidden']; V.shellMode = m[(m.indexOf(V.shellMode) + 1) % 4]; applyShellMode(); }
 });
 function frameView() {
-  const asp = innerWidth / innerHeight;
+  const w = app.clientWidth, h = app.clientHeight, asp = w / h;
   camera.aspect = asp;
   const side = $('side'), wide = innerWidth > 760;
   // keep the machine centred in the area not covered by the panels
@@ -1787,9 +1793,9 @@ function frameView() {
   const offY = !wide && side.style.display !== 'none' ? (side.offsetHeight - $('title').offsetHeight) / 2 : 0;
   // portrait screens: widen the vertical field of view so the machine still fits horizontally
   camera.fov = asp < 1 ? clamp(2 * Math.atan(Math.tan(12.5 * DEG) / asp) / DEG, 30, 66) : 30;
-  if (offX || offY) camera.setViewOffset(innerWidth, innerHeight, offX, offY, innerWidth, innerHeight); else camera.clearViewOffset();
+  if (offX || offY) camera.setViewOffset(w, h, offX, offY, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(w, h);
 }
 addEventListener('resize', frameView);
 frameView();
@@ -1809,6 +1815,72 @@ renderer.setAnimationLoop(() => {
 });
 window.__curta = { get S() { return S; }, get mach() { return mach; }, get model() { return model; }, V, camera, controls, scene, renderer, opTurn, opSetNumber, opCarriage, opSub, opRev, opClear, queue, buildType, fastForward, render: () => renderer.render(scene, camera), THREE, pick, yOnSlider, angleOnPlane,
   view(p, t, ui = false) { for (const id of ['side', 'help', 'title']) $(id).style.display = ui ? '' : 'none'; if (ui) frameView(); else { camera.clearViewOffset(); camera.updateProjectionMatrix(); } camera.position.set(...p); controls.target.set(...t); axisLock = false; controls.update(); axisLock = true; } };
+
+// DOWNLOADLINKSTART
+// This code is removed in the downloaded html file.
+if (window.location.protocol === 'https:') {
+  const bannerpanel = document.getElementById('banner');
+  const bannerpaneldownloadlink = document.createElement('div');
+  Object.assign(bannerpaneldownloadlink.style, {
+    display: 'inline-block',
+    position: 'relative',
+    marginLeft: '60px',
+    width: '40px',
+    height: '40px'
+  });
+  bannerpanel.appendChild(bannerpaneldownloadlink);
+  const downloadlink = document.createElement('div');
+  downloadlink.title = 'Download html file with all the code, if you want to run it offline and tinker with the code.';
+  Object.assign(downloadlink.style, {
+    position: 'absolute',
+    left: '8px',
+    top: '8px',
+    width: '24px',
+    height: '24px',
+    cursor: 'pointer'
+  });
+  bannerpaneldownloadlink.appendChild(downloadlink);
+  const downloadlink_svg = document.createElement('div');
+  Object.assign(downloadlink_svg.style, {
+    position: 'absolute',
+    left: '0px',
+    top: '0px',
+    width: '24px',
+    height: '24px',
+    cursor: 'pointer'
+  });
+  downloadlink_svg.innerHTML = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="position: absolute; left: 0px; top: 0px; width: 24px; height: 24px;">
+    <path fill="#ffffff" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+  </svg>
+`;
+  downloadlink.appendChild(downloadlink_svg);
+  let downloaded = false;
+  downloadlink.addEventListener('click', async () => {
+    if (downloaded) {
+      return;
+    }
+    downloaded = true;
+    downloadlink.title = '';
+    downloadlink.style.cursor = 'default';
+    downloadlink_svg.style.display = 'none';
+    try {
+      const response = await fetch(window.location.href);
+      let html = await response.text();
+      html = html.replace(/\/\/ DOWNLOADLINKSTART[\s\S]*?\/\/ DOWNLOADLINKEND/g, '');
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateYYYYMMDD = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      a.href = url;
+      a.download = `curta_${dateYYYYMMDD}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+    }
+  });
+}
+// DOWNLOADLINKEND
 </script>
 </body>
 </html>
