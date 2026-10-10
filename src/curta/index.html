@@ -1044,7 +1044,7 @@ function buildCurta(S) {
     const pv = pivot(S.phiRev); G.sliders.add(pv);
     const lv = new THREE.Group(); pv.add(lv);
     const act = { type: 'rev' };
-    const o = { label: 'Counter reversing lever', sub: 'Up: normal · Down: the counter counts minus turns positively (click)', act };
+    const o = { label: 'Counter reversing lever', sub: 'Click to toggle. Up: normal · Down: the counter counts minus turns positively', act };
     const body = mesh(new THREE.BoxGeometry(1.4, Y(4.4), 4.4), M.blackPlastic, o); body.position.z = D.rSl - 0.9; lv.add(body);
     // ribbed finger knob: a stepped stack of ridges, like the setting knobs
     const kb = [new THREE.BoxGeometry(2.5, Y(4.6), 1.5).translate(0, 0, 0.75)];
@@ -1181,7 +1181,7 @@ function buildCurta(S) {
     const onBlade = ([x, z]) => new THREE.Vector3(x, 0, z).multiplyScalar(L.scale).applyAxisAngle(new THREE.Vector3(0, 1, 0), L.turn * DEG);
     lv.position.set(L.pivot[0], yPl, L.pivot[1]);
     const lvAct = { type: 'lever' };
-    const lvO = { label: 'Clearing lever', sub: 'Drag the ring around the dials to clear them (carriage lifts automatically) · click: clear both dials', act: lvAct };
+    const lvO = { label: 'Clearing lever', sub: 'Click to clear', act: lvAct };
     const bladeG = new THREE.ExtrudeGeometry(new THREE.Shape(LEVER_BLADE.map(([x, z]) => new THREE.Vector2(x, z))),
       { depth: 0.7, bevelEnabled: true, bevelThickness: 0.15, bevelSize: 0.15, bevelOffset: -0.15, bevelSegments: 2 });
     bladeG.rotateX(Math.PI / 2); // shape y -> +z, extrusion -> down
@@ -1203,7 +1203,7 @@ function buildCurta(S) {
   /* ---------------- crank (operating handle), drawn pushed down (addition) ---------------- */
   {
     const c = G.crank, K = CRANK, yPl = Y(81.95), y = h => yPl + h;
-    const crO = { label: 'Operating handle (crank)', sub: 'Drag the knob clockwise for one full turn', act: { type: 'crank' } };
+    const crO = { label: 'Operating handle (crank)', sub: 'Click for one full turn', act: { type: 'crank' } };
     const hubO = { label: 'Crank hub', sub: 'Click: pull up for subtraction (red ring) / push down for addition', act: { type: 'crankHub' } };
     // sleeve in the collar's bore: guiding land, red groove (shows above the collar only when pulled up), hub
     const disc = (r, h0, h1) => latheSharp([[0, y(h0)], [r, y(h0)], [r, y(h1)], [0, y(h1)]], 48);
