@@ -884,7 +884,8 @@ function buildCurta(S) {
 
   /* ---------------- drive shafts (setting shafts, nines drives, counter drive) ---------------- */
   {
-    const shaftLen = Y(60.0) - Y(16.7);
+    const starY = Y(59.3), starH = Y(1.4);
+    const shaftLen = starY + starH / 2 + 0.03 - Y(16.7); // pokes just through the star gear
     const nShafts = S.nR + 1; // k = 0..nR-1, plus counter shaft at index nR
     for (let k = 0; k < nShafts; k++) {
       const isCnt = k === S.nR;
@@ -898,7 +899,7 @@ function buildCurta(S) {
       pin.position.y = isCnt ? Y(19.2) : S.knobY(0);
       spin.add(pin);
       if (k === 0) { const ex = mesh(gearGeo(5, pr, pr - 0.9, 0.8), M.brass, { label: '', sub: '' }); ex.position.y = Y(43.3); spin.add(ex); }
-      const star = mesh(gearGeo(10, 2.25, 1.55, Y(1.4)), M.brass, { label: '', sub: '' }); star.position.y = Y(59.3); spin.add(star);
+      const star = mesh(gearGeo(10, 2.25, 1.55, starH), M.brass, { label: '', sub: '' }); star.position.y = starY; spin.add(star);
       const coll = mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.2, 12), M.brass); coll.position.y = Y(17.4); g.add(coll);
       // carry slide in the cage
       const slide = mesh(new THREE.BoxGeometry(1.6, Y(6.4), 0.6), M.brass, { label: '', sub: '' });
@@ -1063,7 +1064,8 @@ function buildCurta(S) {
       const pv = pivot(phi); G.carMech.add(pv);
       const vert = new THREE.Group(); vert.position.set(0, 0, D.rT); pv.add(vert);
       const yB = yAx + (D.rW - D.rT - 2.3) * Math.sin(tilt) - 1.25;  // height of the vertical bevel gear
-      const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, yB + 0.6 - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (yB + 0.6 + Y(60.4)) / 2; vert.add(vax);
+      const vTop = yB + 0.6 + 0.03;                                      // pokes just through the bevel gear
+      const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, vTop - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (vTop + Y(60.4)) / 2; vert.add(vax);
       const st = mesh(gearGeo(10, 2.25, 1.55, Y(1.1)), M.brass, { label: '', sub: '' }); st.position.y = Y(60.95); vert.add(st);
       const bv = mesh(gearGeo(12, 1.9, 1.45, 1.2, 0, 0.35), M.brass, { label: '', sub: '' }); bv.position.y = yB; vert.add(bv);
       // radial axle with number wheel
