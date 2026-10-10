@@ -729,7 +729,7 @@ function makeMaterials(S) {
   M.blackPlastic = new THREE.MeshPhysicalMaterial({ color: 0x0c0c0d, roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.35 });
   M.screw = new THREE.MeshStandardMaterial({ color: 0xd9d9d6, roughness: 0.32, metalness: 0.55 });
   M.lever = new THREE.MeshPhysicalMaterial({ color: 0x0d0d0f, roughness: 0.5, metalness: 0.2, clearcoat: 0.25, clearcoatRoughness: 0.45 });
-  M.redPlastic = new THREE.MeshPhysicalMaterial({ color: 0xb8141a, roughness: 0.4, clearcoat: 0.35, clearcoatRoughness: 0.35 });
+  M.redAnodised = new THREE.MeshPhysicalMaterial({ color: 0xdc3c48, metalness: 1, roughness: 0.4, clearcoat: 0.2, clearcoatRoughness: 0.35, envMapIntensity: 1.8 });
   M.pin = S.pin === 'chrome' ? M.chrome : new THREE.MeshStandardMaterial({ color: 0xf6f5f0, roughness: 0.25 });
   M.wheelRes = [new THREE.MeshStandardMaterial({ map: wheelTexture('#0a0a0b', '#f6f6f2'), roughness: 0.45 }), M.inner, M.inner];
   M.wheelCnt = [new THREE.MeshStandardMaterial({ map: wheelTexture('#f1f0ea', '#0b0b0c'), roughness: 0.45 }), M.inner, M.inner];
@@ -1012,7 +1012,7 @@ function buildCurta(S) {
       // slider assembly (moves vertically)
       const pv = pivot(phi); G.sliders.add(pv);
       const sg = new THREE.Group(); pv.add(sg);
-      const kMat = red ? M.redPlastic : M.blackPlastic;
+      const kMat = red ? M.redAnodised : M.blackPlastic;
       const lbl = { label: `Setting knob ${k + 1}`, sub: 'Drag up/down', act: { type: 'slider', k } };
       // block around the twisted bar
       const blk = mesh(new THREE.BoxGeometry(2.6, 4.2, 3.6), M.blackPlastic, lbl); blk.position.set(0, 0, D.rB - 0.2); sg.add(blk);
