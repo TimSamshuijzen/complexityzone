@@ -708,8 +708,10 @@ function buildCurta(S) {
     if (o.act) { m.userData.act = o.act; parts.picks.push(m); }
     return m;
   };
+  const shellMats = new Map();
+  const shellMat = (mat) => Array.isArray(mat) ? mat.map(shellMat) : shellMats.get(mat) || shellMats.set(mat, mat.clone()).get(mat);
   const shellMesh = (geo, mat, o = {}) => {
-    const m = mesh(geo, mat, o); m.userData.shell = true; m.userData.baseMat = mat; parts.shell.push(m); return m;
+    const m = mesh(geo, shellMat(mat), o); m.userData.shell = true; m.userData.baseMat = m.material; parts.shell.push(m); return m;
   };
   const at = (obj, r, phi, y) => { obj.position.set(r * Math.sin(phi * DEG), y, r * Math.cos(phi * DEG)); return obj; };
   const pivot = (phi) => { const g = new THREE.Group(); g.rotation.y = phi * DEG; return g; };
@@ -736,9 +738,9 @@ function buildCurta(S) {
     G.base.add(shellMesh(lathe(prof2, 128), M.black, { label: '', sub: '' }));
     // inner wall of the base ring (visible in cutaway)
     const inner = shellMesh(new THREE.CylinderGeometry(R(23.2), R(23.2), Y(12.3), 96, 1, true), M.inner, { label: '' });
-    inner.material = M.inner; inner.position.y = Y(0.45) + Y(12.3) / 2; inner.userData.baseMat = M.inner;
+    inner.position.y = Y(0.45) + Y(12.3) / 2;
     G.base.add(inner);
-    // bottom plate with engraving (layout traced from photos of s/n 61254 and 554492)
+    // bottom plate with engraving
     const bt = canvasTex(2048, 2048, (g, w, h) => bottomPlate(g, w, h, S));
     const rPl = R(23.0);
     const bottom = shellMesh(new THREE.CircleGeometry(rPl, 128).rotateX(Math.PI / 2), new THREE.MeshPhysicalMaterial({ map: bt, emissiveMap: bt, emissive: 0x555555, roughness: S.id === 'II' ? 0.3 : 0.42, metalness: 0.25, clearcoat: S.id === 'II' ? 0.6 : 0.3, clearcoatRoughness: 0.3 }), { label: '', sub: '' });
@@ -797,7 +799,7 @@ function buildCurta(S) {
       const U = phi => (mod(phi + 180, 360)) / 360 * w, V = y => (1 - (y - by0) / (by1 - by0)) * h;
       // CURTA logo, centred over the sliders
       drawCurtaLogo(g, U(0), V(grey ? Y(55.9) : 56.8), sx, sy, S.logoH, S.logoP, S.logo);
-      // carriage position arrow above slot 1 (points at the position number on the carriage bevel)
+      // carriage position arrow above slot 1
       drawArrowUp(g, U(S.phi0), V(by1 - 0.3), 0.64 * (by1 - by0) * sy, 0.26 * sx, 1.0 * sx, 1.7 * sy, '#f2f2ee');
       // extra arrow at the back (Type I): points at the number of the counter digit that is being counted
       if (S.backArrow) drawArrowUp(g, U(S.phiC0), V(by1 - 0.3), 0.53 * (by1 - by0) * sy, 0.26 * sx, 1.0 * sx, 1.7 * sy, '#f2f2ee');
