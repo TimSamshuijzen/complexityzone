@@ -686,15 +686,19 @@ function makeMaterials(S) {
 /* =====================================================================
    Model builder
    ===================================================================== */
-// Clearing lever blade (Type II), traced from a photo of the loose part and fitted to a top view of the lever in place.
-// Millimetres; origin at the pivot screw, x/z as on the clearing plate with the lever out at stop A (+z towards the ring).
-// The first points lie on the centre line of the wire ring; the slot in the hooked end catches the stud on the plate.
+// Clearing lever blade.
 const LEVER_BLADE = [[3.4, 9.6], [1.2, 9.7], [0.3, 9.9], [-0.7, 10.2], [-1.2, 7.6], [-1.5, 5.1], [-1.9, 4.1], [-2.6, 3.5], [-4.0, 3.1],
                      [-5.9, 2.9], [-8.5, 2.2], [-10.9, 1.0], [-13.0, -0.4], [-13.6, -1.6], [-13.7, -3.7], [-13.1, -4.8], [-11.2, -7.2],
                      [-10.6, -7.4], [-10.1, -7.4], [-9.7, -7.1], [-9.55, -6.2], [-10.7, -2.6], [-10.65, -1.9], [-10.4, -1.4], [-9.95, -1.25],
                      [-9.55, -1.5], [-9.25, -2.0], [-9.4, -3.2], [-8.55, -5.2], [-7.8, -5.5], [-5.5, -4.6], [-3.7, -4.2], [-0.2, -3.9],
                      [1.0, -3.2], [1.6, -2.4], [2.0, -1.2], [3.05, 6.3]];
-const LEVER_PIVOT = [-0.95, 20.69], LEVER_RING = [2.45, 17.15], LEVER_STUD = [-10.23, -2.1];  // pivot on the plate; ring, stud from the pivot
+const LEVER_RING = [2.45, 17.15], LEVER_STUD = [-10.23, -2.1];  // ring centre and stud, from the pivot
+// Per type, fitted to top views: pivot on the plate (as above), the blade's scale and turn (degrees, anticlockwise from
+// above) relative to LEVER_BLADE, and the stowing swing. The Type I blade has the same shape, 7% smaller; same wire ring.
+const LEVER_FIT = {
+  I:  { pivot: [0.47, 14.09], scale: 0.93, turn: -5.6, store: 105 },
+  II: { pivot: [-0.95, 20.69], scale: 1, turn: 0, store: 116 },
+};
 
 function buildCurta(S) {
   const R = S.R, Y = S.Y;
@@ -1096,52 +1100,32 @@ function buildCurta(S) {
 
     // ---- clearing plate (rotates with the clearing lever) + carriage collar ----
     const yPl = Y(79.3);                                                  // top of the flat clearing plate
-    const lv = G.lever;
+    // flat right up to the collar (r ≈ 9.9 mm on the Type I, 9 mm on the Type II), so the stowed ring can lie on it
+    const rCol = S.id === 'II' ? R(7.25) : R(9.9);
+    G.cap.add(shellMesh(lathe([[R(19.25), Y(77.45)], [R(19.25), yPl - 0.75], [R(18.55), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)], [R(19.25), Y(76.0)], [R(19.25), Y(77.45)]], 160), M.black, { label: '', sub: '' }));
+    // clearing lever (photos): flat stamped blade ending in a wire ring, pivoting on a domed screw near the plate edge.
+    // Working position: a headed stud on the plate sits in the slot of the hooked end. Stowing swings the lever about the
+    // screw, sliding the slot off the stud: the ring then lies beside the collar and the hook reaches out over the dials.
+    const L = LEVER_FIT[S.id], lv = G.lever;
+    const onBlade = ([x, z]) => new THREE.Vector3(x, 0, z).multiplyScalar(L.scale).applyAxisAngle(new THREE.Vector3(0, 1, 0), L.turn * DEG);
+    lv.position.set(L.pivot[0], yPl, L.pivot[1]);
     const lvAct = { type: 'lever' };
     const lvO = { label: 'Clearing lever', sub: 'Drag the ring around the dials to clear them (carriage lifts automatically) · click: clear both dials', act: lvAct };
-    if (S.id === 'II') {
-      // Type II (photos): the plate is flat right up to a short bevelled collar (r ≈ 9 mm), so the stowed ring can lie on it.
-      // The lever is a flat stamped blade ending in a wire ring, pivoting on a domed screw near the plate edge. Working position:
-      // a headed stud on the plate sits in the slot of the hooked end. Stowing swings the lever 116° about the screw, sliding
-      // the slot off the stud: the ring then lies beside the collar and the hook reaches out over the dials.
-      G.cap.add(shellMesh(lathe([[R(19.25), Y(77.45)], [R(19.25), yPl - 0.75], [R(18.55), yPl], [R(7.3), yPl], [R(7.3), Y(76.0)], [R(19.25), Y(76.0)], [R(19.25), Y(77.45)]], 160), M.black, { label: '', sub: '' }));
-      lv.position.set(LEVER_PIVOT[0], yPl, LEVER_PIVOT[1]);
-      const bladeG = new THREE.ExtrudeGeometry(new THREE.Shape(LEVER_BLADE.map(([x, z]) => new THREE.Vector2(x, z))),
-        { depth: 0.7, bevelEnabled: true, bevelThickness: 0.15, bevelSize: 0.15, bevelOffset: -0.15, bevelSegments: 2 });
-      bladeG.rotateX(Math.PI / 2); // shape y -> +z, extrusion -> down
-      const arm = shellMesh(bladeG, M.lever, lvO); arm.position.y = 0.9; lv.add(arm);   // 1 mm thick, just clear of the plate
-      const ring = shellMesh(new THREE.TorusGeometry(7.6, 0.7, 12, 96).rotateX(Math.PI / 2), M.lever, lvO);
-      ring.position.set(LEVER_RING[0], 0.75, LEVER_RING[1]); lv.add(ring);
-      const screw = shellMesh(lathe([[1.9, 0], [1.85, 0.4], [1.45, 0.8], [0.8, 1.0], [0, 1.05]], 24), M.blackGloss, { label: 'Lever pivot', sub: 'Click: swing the clearing lever in for storage / out for work', act: { type: 'leverStore' } });
-      screw.position.y = 1.05; lv.add(screw);
-      const stud = shellMesh(lathe([[0.5, 0], [0.5, 1.1], [1.3, 1.1], [1.3, 1.55], [1.1, 1.85], [0, 1.95]], 20), M.blackGloss, { label: '' });
-      stud.position.set(LEVER_PIVOT[0] + LEVER_STUD[0], yPl, LEVER_PIVOT[1] + LEVER_STUD[1]); G.cap.add(stud);
-      lv.userData.store = 116 * DEG;
-      // collar (main-shaft sleeve) around the crank hub
-      G.carShell.add(shellMesh(lathe([[R(7.25), Y(76.0)], [R(7.25), yPl + 0.35], [R(7.0), yPl + 1.2], [6.55 * S.sC + 0.35, Y(81.4)], [6.55 * S.sC - 0.25, Y(81.4)], [6.55 * S.sC - 0.25, Y(76.0)]], 128), M.black, { label: '' }));
-    } else {
-      // Type I: stepped plate (raised ring around the collar, as in a side photo); its lever is not measured yet
-      G.cap.add(shellMesh(lathe([[R(19.25), Y(77.45)], [R(19.25), yPl - 0.75], [R(18.55), yPl], [R(13.7), yPl], [R(13.7), yPl + 0.95], [R(13.35), yPl + 1.3], [R(10.3), yPl + 1.3], [R(10.3), Y(76.0)], [R(19.25), Y(76.0)], [R(19.25), Y(77.45)]], 160), M.black, { label: '', sub: '' }));
-      // clearing lever: flat black blade + hinged wire ring, pivoting on the plate (swings out to working position)
-      lv.position.set(0, 0, R(16.0));
-      const armShape = new THREE.Shape();
-      armShape.moveTo(-2.7, -2.1); armShape.lineTo(2.5, -2.1); armShape.lineTo(3.1, 1.4); armShape.lineTo(1.9, 10.6); armShape.lineTo(-1.9, 10.6);
-      armShape.lineTo(-2.6, 4.6); armShape.lineTo(-4.3, 3.0); armShape.lineTo(-4.3, -0.4); armShape.closePath(); // hooked nose at the stop
-      const armG = new THREE.ExtrudeGeometry(armShape, { depth: 0.75, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.15, bevelSegments: 2, curveSegments: 12 });
-      armG.rotateX(Math.PI / 2); // shape y -> +z (outward), extrusion -> down
-      const arm = shellMesh(armG, M.lever, lvO); arm.position.set(0, yPl + 0.95, 0); lv.add(arm);
-      const ring = shellMesh(new THREE.TorusGeometry(6.3, 0.55, 12, 72).rotateX(Math.PI / 2), M.lever, lvO);
-      ring.position.set(0, yPl + 0.55, 10.25 + 6.3); lv.add(ring);
-      const eye = shellMesh(new THREE.TorusGeometry(1.15, 0.42, 8, 20).rotateY(Math.PI / 2), M.lever, lvO); eye.position.set(0, yPl + 0.75, 10.25); lv.add(eye);
-      for (const [rz, rr] of [[3.4, 1.0], [7.6, 0.85]]) {
-        const rv = shellMesh(lathe([[rr, 0], [rr, 0.15], [rr * 0.7, 0.45], [0, 0.55]], 20), M.lever, lvO); rv.position.set(0, yPl + 1.07, rz); lv.add(rv);
-      }
-      const rel = shellMesh(lathe([[1.1, 0], [1.05, 0.55], [0.75, 1.0], [0, 1.15]], 24), M.blackGloss, { label: 'Release button (lever pivot)', sub: 'Click: swing the clearing lever in for storage / out for work', act: { type: 'leverStore' } });
-      rel.position.set(0, yPl + 1.07, 0); lv.add(rel);
-      lv.userData.store = 112 * DEG;
-      // collar (main-shaft sleeve) around the crank hub
-      G.carShell.add(shellMesh(lathe([[R(10.3), Y(76.0)], [R(10.3), yPl + 1.55], [R(9.9), yPl + 1.8], [R(9.55), yPl + 1.8], [R(8.1), Y(81.4)], [6.55 * S.sC - 0.25, Y(81.4)], [6.55 * S.sC - 0.25, Y(76.0)]], 128), M.black, { label: '' }));
-    }
+    const bladeG = new THREE.ExtrudeGeometry(new THREE.Shape(LEVER_BLADE.map(([x, z]) => new THREE.Vector2(x, z))),
+      { depth: 0.7, bevelEnabled: true, bevelThickness: 0.15, bevelSize: 0.15, bevelOffset: -0.15, bevelSegments: 2 });
+    bladeG.rotateX(Math.PI / 2); // shape y -> +z, extrusion -> down
+    const arm = shellMesh(bladeG, M.lever, lvO); arm.scale.setScalar(L.scale); arm.rotation.y = L.turn * DEG;
+    arm.position.y = 0.05 + 0.85 * L.scale; lv.add(arm);                 // just clear of the plate
+    const ring = shellMesh(new THREE.TorusGeometry(7.6, 0.7, 12, 96).rotateX(Math.PI / 2), M.lever, lvO);
+    ring.position.copy(onBlade(LEVER_RING)).setY(0.75); lv.add(ring);
+    const screw = shellMesh(lathe([[1.9, 0], [1.85, 0.4], [1.45, 0.8], [0.8, 1.0], [0, 1.05]], 24), M.blackGloss, { label: 'Lever pivot', sub: 'Click: swing the clearing lever in for storage / out for work', act: { type: 'leverStore' } });
+    screw.position.y = 0.05 + L.scale; lv.add(screw);                   // on top of the blade
+    const stud = shellMesh(lathe([[0.5, 0], [0.5, 1.1], [1.3, 1.1], [1.3, 1.55], [1.1, 1.85], [0, 1.95]], 20), M.blackGloss, { label: '' });
+    stud.position.copy(onBlade(LEVER_STUD)).add(lv.position); G.cap.add(stud);
+    lv.userData.store = L.store * DEG;
+    // collar (main-shaft sleeve) around the crank hub: a short bevelled skirt on the Type II, a shouldered sleeve on the Type I
+    G.carShell.add(shellMesh(lathe([...(S.id === 'II' ? [[rCol, Y(76.0)], [rCol, yPl + 0.35], [R(7.0), yPl + 1.2], [6.55 * S.sC + 0.35, Y(81.4)]]
+      : [[rCol, Y(76.0)], [rCol, yPl + 1.55], [R(9.55), yPl + 1.8], [R(8.1), Y(81.4)]]), [6.55 * S.sC - 0.25, Y(81.4)], [6.55 * S.sC - 0.25, Y(76.0)]], 128), M.black, { label: '' }));
   }
 
   /* ---------------- crank (operating handle): late plastic type with wedge head ---------------- */
@@ -1463,7 +1447,7 @@ function audioInit() {
     src.connect(bp); bp.connect(audio.rasp); audio.rasp.connect(audio.out); src.start();
   } catch (e) { audio.ctx = null; }
 }
-const SFX = { tooth: [5600, 0.010, 0.035, 14], slide: [3600, 0.016, 0.05, 30], tick: [2600, 0.02, 0.07, 30],
+const SFX = { tooth: [5600, 0.010, 0.035, 14], slide: [3600, 0.016, 0.02, 30], tick: [2600, 0.02, 0.07, 30],
               clack: [1500, 0.05, 0.10, 60], clunk: [520, 0.08, 0.1, 90], ratchet: [6600, 0.004, 0.01, 0] };
 function sfx(kind, when = 0) {
   if (!audio.on || !audio.ctx) return;
