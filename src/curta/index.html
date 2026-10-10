@@ -914,6 +914,7 @@ function buildCurta(S) {
     const barLen = Y(45.0) - Y(16.9);
     const turns = barLen / ((S.knobY(0) - S.knobY(1)) * 10);
     const barGeo = twistedBar(1.7, 0.55, barLen, turns);
+    const cwR = D.rB * Math.sin(S.pitch / 2 * DEG) - 0.15; // half the bar spacing, less a small gap to the next check wheel
     for (let k = 0; k < S.nS; k++) {
       const phi = S.phiK(k);
       const red = S.redKnobs.includes(k);
@@ -922,7 +923,7 @@ function buildCurta(S) {
       const rot = new THREE.Group(); bg.add(rot);
       const bar = mesh(barGeo, M.steel, { label: ``, sub: '' });
       bar.position.y = Y(16.9) + barLen / 2; rot.add(bar);
-      const cw = mesh(new THREE.CylinderGeometry(3.25, 3.25, Y(3.0), 48), M.check, { label: ``, sub: '' });
+      const cw = mesh(new THREE.CylinderGeometry(cwR, cwR, Y(3.0), 48), M.check, { label: ``, sub: '' });
       cw.position.y = Y(45.8); rot.add(cw);
       const cwAx = mesh(new THREE.CylinderGeometry(0.6, 0.6, Y(2.5), 8), M.steel); cwAx.position.y = Y(47.8); rot.add(cwAx);
       parts.checks.push(rot);
