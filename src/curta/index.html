@@ -1419,13 +1419,12 @@ function audioInit() {
   if (audio.ctx || !audio.on) return;
   try {
     const ac = audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // master bus: +23 dB (the loudest click, clack, then peaks near 0.6; about 1 in 300 clips a few samples, inaudible on a noise burst)
     audio.out = ac.createGain(); audio.out.gain.value = 14;
     audio.out.connect(ac.destination);
   } catch (e) { audio.ctx = null; }
 }
 const SFX = { tooth: [5600, 0.010, 0.035, 14], slide: [3600, 0.016, 0.05, 30], tick: [2600, 0.02, 0.07, 30],
-              clack: [1500, 0.05, 0.22, 60], clunk: [520, 0.08, 0.3, 90] };
+              clack: [1500, 0.05, 0.10, 60], clunk: [520, 0.08, 0.1, 90] };
 function sfx(kind) {
   if (!audio.on || !audio.ctx) return;
   const [f, dur, gain, gap] = SFX[kind], now = performance.now();
