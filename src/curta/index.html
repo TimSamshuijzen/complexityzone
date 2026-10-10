@@ -607,17 +607,19 @@ function lathe(pts, seg = 96, phiStart = 0, phiLen = TAU) {
   return new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), seg, phiStart, phiLen);
 }
 
-// Decimal marker: chrome pin of radius a with a domed head, along +y from -foot to tip
-function markerGeo(a, foot, tip) {
-  const pts = [[0, -foot], [a - 0.15, -foot], [a, -foot + 0.15], [a, tip - 0.75 * a]];
-  for (let i = 1; i <= 8; i++) { const t = i / 8 * Math.PI / 2; pts.push([a * Math.cos(t), tip - 0.75 * a + 0.75 * a * Math.sin(t)]); }
+// Decimal marker, along +y from its flat base (y = 0) to the tip (y = L): a foot that widens (outward cone) from a
+// neck of radius n (y = hf..hn) to the base of radius b, then a shoulder (up to hs) to the pin of radius a and its domed head.
+function markerGeo({ a, b, n, hf, hn, hs, L }) {
+  const pts = [[0, 0], [b, 0], [n, hf], [n, hn], [a, hs], [a, L - 0.75 * a]];
+  for (let i = 1; i <= 8; i++) { const t = i / 8 * Math.PI / 2; pts.push([a * Math.cos(t), L - 0.75 * a + 0.75 * a * Math.sin(t)]); }
   return lathe(pts, 24);
 }
-// Axis of a pin of radius a wedged between an upper edge P and a lower edge Q ([r, y]): it passes through their
-// midpoint and leans outward by tilt (radians from the vertical), so that both edges touch its side.
-function wedge(P, Q, a) {
-  const dr = P[0] - Q[0], dy = P[1] - Q[1];
-  return { r: (P[0] + Q[0]) / 2, y: (P[1] + Q[1]) / 2, tilt: Math.atan2(dr, dy) + Math.asin(2 * a / Math.hypot(dr, dy)) };
+// Seat of a marker m in a wedge-shaped groove g ([r, y] points): the base lies flat on the groove's cone, from the
+// apex A out to E, so the axis is the cone's normal; the overhang's sharp edge K sits in the marker's neck.
+function seat(g, m) {
+  const { A, E, K } = g, l = Math.hypot(E[0] - A[0], E[1] - A[1]), t = [(E[0] - A[0]) / l, (E[1] - A[1]) / l], n = [-t[1], t[0]];
+  const s = (K[0] - A[0]) * t[0] + (K[1] - A[1]) * t[1] + m.n;
+  return { r: A[0] + s * t[0], y: A[1] + s * t[1], tilt: Math.atan2(n[0], n[1]) };
 }
 
 const _gearCache = new Map();
@@ -722,10 +724,15 @@ function buildCurta(S) {
 
   const D = {
     rBase: R(26.5), rBot: R(24.5), rSl: R(22.75), rIn: R(21.0), rBand: R(23.75),
-    rCar: R(26.5), rCarIn: R(25.0), rD0: R(24), rD1: R(20.5),
+    rCar: R(26.5), rCarIn: R(25.0), rD0: R(24.4), rD1: R(20.5), yD: Y(77.2),   // flat dial ring with the digit windows
     rDrum: R(10.3), rT: R(10.3) + 3.2, rB: R(18.1), rW: R(22.3), rCol: R(19.6), rKnob: R(21.4),
-    ySl0: Y(16.62),   // lower edge of the setting sleeve: it stands clear of the base ring over the marker groove
+    ySl0: Y(16.62),   // lower edge of the setting sleeve, on top of its flared foot
   };
+  // the two wedge-shaped marker grooves (Type I CAD side profiles, checked against the photos): a sharp edge K
+  // overhangs a 45° cone that rises from E to the apex A; under the sleeve's flared foot, and under the clearing plate
+  const ry = (r, y) => [R(r), Y(y)];
+  D.baseGroove = { A: ry(23.52, 14.85), E: ry(24.57, 13.8), K: ry(24.3, 15.18) };
+  D.carGroove = { A: ry(17.56, 80.18), E: ry(18.55, 79.19), K: ry(18.33, 80.49) };
   parts.D = D;
 
   const mesh = (geo, mat, o = {}) => {
@@ -762,8 +769,10 @@ function buildCurta(S) {
                   [D.rBase, Y(2.9)]];
     G.base.add(shellMesh(lathe(prof, 128), M.black, { label: '' }));
     G.base.add(shellMesh(knurlBand(D.rBase - 0.05, Y(2.9), Y(12.7), Math.round(TAU * D.rBase / 1.3), Math.round(Y(9.8) / 1.3), 0.5), M.knurl, { label: '', sub: '' }));
-    // flat top ring; the marker groove runs at the foot of the sleeve, under the sleeve's lower edge
-    const prof2 = [[D.rBase, Y(12.7)], [D.rBase, Y(14.2)], [R(26.1), Y(14.8)], [R(23.05), Y(14.8)], [R(23.05), Y(13.9)], [D.rIn, Y(13.9)], [D.rIn, D.ySl0]];
+    // top: 45° chamfer, flat ring, then the marker groove: its cone rises to the apex under the sleeve's flared foot,
+    // whose sharp edge overhangs it
+    const { A, E, K } = D.baseGroove;
+    const prof2 = [[D.rBase, Y(12.7)], [D.rBase, Y(12.97)], [R(25.73), E[1]], E, A, K, [D.rSl, D.ySl0]];
     G.base.add(shellMesh(lathe(prof2, 128), M.black, { label: '', sub: '' }));
     // inner wall of the base ring (visible in cutaway)
     const inner = shellMesh(new THREE.CylinderGeometry(R(23.2), R(23.2), Y(12.3), 96, 1, true), M.inner, { label: '' });
@@ -1004,7 +1013,9 @@ function buildCurta(S) {
   }
 
   /* ---------------- decimal markers on the base (setting register) ---------------- */
-  const aPin = 0.85 * S.sY, pinGeo = markerGeo(aPin, 0.9 * S.sY, 2.8 * S.sY);
+  const pin = { a: 0.85, b: 0.58, n: 0.45, hf: 0.3, hn: 0.9, hs: 1.1, L: 3.5 };
+  for (const key in pin) pin[key] *= S.sY;
+  const pinGeo = markerGeo(pin);
   const addPins = (parent, reg, phis, w, defOn) => {
     phis.forEach((ph, idx) => {
       const pv = pivot(ph); parent.add(pv);
@@ -1022,8 +1033,8 @@ function buildCurta(S) {
     p.position.set(0, w.y, w.r); p.rotation.x = w.tilt; pv.add(p);
   });
   {
-    // between the lower edge of the sleeve and the inner edge of the base ring's top
-    const w = wedge([D.rSl, D.ySl0], [R(23.05), Y(14.8)], aPin);
+    // in the groove under the sleeve's flared foot
+    const w = seat(D.baseGroove, pin);
     const phis = []; for (let k = 1; k < S.nS; k++) phis.push(S.phiK(k) + S.pitch / 2);
     addPins(G.base, 'set', phis, w, []);
     const back = S.phiK(S.nS - 1) - 1.2 * S.pitch;
@@ -1047,7 +1058,9 @@ function buildCurta(S) {
     G.carShell.add(shellMesh(revolvedShell({ r0: D.rBand, y0: Y(60.7), r1: D.rCar, y1: Y(63.2), thick: 0.9, seg: 220 }), chMat, { ...carLbl, label: 'Carriage — position numbers' }));
     G.carShell.add(shellMesh(knurlBand(D.rCar - 0.05, Y(63.4), Y(74.5), Math.round(TAU * D.rCar / 1.3), Math.round(Y(11.1) / 1.28), 0.5), M.knurl, carLbl));
     G.carShell.add(shellMesh(lathe([[D.rCar, Y(63.2)], [D.rCar, Y(63.4)]], 128), M.knurlSide, carLbl));
-    G.carShell.add(shellMesh(lathe([[D.rCar, Y(74.5)], [D.rCar, Y(74.7)], [R(25.0), Y(75.7)], [D.rD0, Y(76.7)]], 128), M.black, carLbl));
+    // 45° chamfer and rounded shoulder up to the dial ring (Type I CAD side profile)
+    G.carShell.add(shellMesh(lathe([[D.rCar, Y(74.5)], [D.rCar, Y(75.13)], [R(25.46), Y(76.17)], [R(25.24), Y(76.25)], [R(25.1), Y(76.5)],
+      [R(24.9), Y(76.8)], [R(24.7), Y(77.02)], [R(24.5), Y(77.16)], [D.rD0, D.yD]], 128), M.black, carLbl));
     const inner = shellMesh(new THREE.CylinderGeometry(D.rCarIn, D.rCarIn, Y(12.0), 96, 1, true), M.inner, { label: 'Carriage' }); inner.position.y = Y(63.2) + Y(6.0); G.carShell.add(inner);
     // dial ring with digit windows: black (result) and silver/white (counter) sectors
     const t0 = (D.rD0 - (D.rW + 1.15)) / (D.rD0 - D.rD1), t1 = (D.rD0 - (D.rW - 1.15)) / (D.rD0 - D.rD1);
@@ -1072,13 +1085,14 @@ function buildCurta(S) {
       g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(0, 0, w, 3);
     });
     const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, roughness: 0.4, metalness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3 });
-    G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: Y(76.7), r1: D.rD1, y1: Y(77.7), thick: 0.35, holes, seg: 300 }), [dialMat, M.wall], { label: '', sub: '' }));
-    // lip ring inside the windows and the marker groove
-    // behind it, which runs on under the bevelled rim of the clearing plate
-    G.carShell.add(shellMesh(lathe([[D.rD1, Y(77.7)], [R(20.45), Y(78.95)], [R(20.3), Y(79.25)], [R(20.0), Y(79.3)], [R(19.4), Y(79.05)],
-      [R(18.7), Y(78.75)], [R(18.32), Y(78.57)], [R(18.32), Y(77.6)], [R(16.3), Y(77.6)]], 160), M.black, { label: '', sub: '' }));
-    // decimal markers on the dials: wedged between the plate's rim and the lip's inner edge
-    const wp = wedge([R(18.02), Y(80.39)], [R(18.32), Y(78.57)], aPin);
+    G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: D.yD, r1: D.rD1, y1: D.yD, thick: 0.35, holes, seg: 300 }), [dialMat, M.wall], { label: '', sub: '' }));
+    // ring inside the windows: a step and a 45° chamfer up to a flat top, then the marker groove: its cone rises to
+    // the apex under the clearing plate, whose sharp rim overhangs it
+    const { A, E } = D.carGroove;
+    G.carShell.add(shellMesh(lathe([[R(20.76), D.yD], [R(20.76), Y(78.17)], [R(19.71), E[1]], E, A, [A[0], Y(77.6)], [R(16.3), Y(77.6)]], 160),
+      M.black, { label: '', sub: '' }));
+    // decimal markers on the dials, in that groove
+    const wp = seat(D.carGroove, pin);
     const rph = [], cph = [];
     for (let j = 1; j < S.nR; j++) rph.push(S.phiK(j) + S.pitch / 2);
     for (let i = 1; i < S.nC; i++) cph.push(S.phiCnt(i) + S.pitch / 2);
@@ -1091,20 +1105,18 @@ function buildCurta(S) {
     G.carMech.add(floor); parts.frame.push(floor);
     const hub = mesh(lathe([[R(8.0), Y(62.4)], [R(16.2), Y(62.4)], [R(16.2), Y(71.4)], [R(8.0), Y(71.4)]], 96), M.alu, { label: '', sub: '' });
     G.carMech.add(hub); parts.frame.push(hub);
-    const tilt = Math.atan2(Y(77.7) - Y(76.7), D.rD0 - D.rD1);
-    const yDial = Y(76.7) + (D.rD0 - D.rW) * Math.tan(tilt);         // dial surface above the wheel centre
     const dn = 3.25 + 0.35 + 0.05;                                     // wheel radius + dial thickness + clearance
-    const yAx = yDial - Math.cos(tilt) * dn, rAx = D.rW - Math.sin(tilt) * dn; // wheel centre: its top touches the window centre
+    const yAx = D.yD - dn, rAx = D.rW;                                 // wheel centre: its top touches the window centre
     const makeWheelUnit = (phi, isCnt, idx) => {
       const pv = pivot(phi); G.carMech.add(pv);
       const vert = new THREE.Group(); vert.position.set(0, 0, D.rT); pv.add(vert);
-      const yB = yAx + (D.rW - D.rT - 2.3) * Math.sin(tilt) - 1.25;  // height of the vertical bevel gear
+      const yB = yAx - 1.25;                                             // height of the vertical bevel gear
       const vTop = yB + 0.6 + 0.03;                                      // pokes just through the bevel gear
       const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, vTop - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (vTop + Y(60.4)) / 2; vert.add(vax);
       const st = mesh(gearGeo(10, 2.25, 1.55, Y(1.1)), M.brass, { label: '', sub: '' }); st.position.y = Y(60.95); vert.add(st);
       const bv = mesh(gearGeo(12, 1.9, 1.45, 1.2, 0, 0.35), M.brass, { label: '', sub: '' }); bv.position.y = yB; vert.add(bv);
       // radial axle with number wheel
-      const rad = new THREE.Group(); rad.position.set(0, yAx, rAx); rad.rotation.x = tilt; pv.add(rad);
+      const rad = new THREE.Group(); rad.position.set(0, yAx, rAx); pv.add(rad);
       const spin = new THREE.Group(); rad.add(spin);
       const rax = mesh(new THREE.CylinderGeometry(0.6, 0.6, D.rW + 1.6 - (D.rT + 1.6), 10).rotateX(Math.PI / 2), M.steel, { label: '', sub: '' });
       rax.position.z = (D.rW + 1.6 + D.rT + 1.6) / 2 - D.rW; spin.add(rax);
@@ -1121,10 +1133,10 @@ function buildCurta(S) {
     // ---- clearing plate (rotates with the clearing lever) + carriage collar ----
     const yPl = Y(81.95);                                                 // top of the flat clearing plate
     // flat right up to the collar (r ≈ 9.9 mm on the Type I, 9 mm on the Type II), so the stowed ring can lie on it;
-    // its rim is a 32° bevel above a short upright edge, which overhangs the marker groove
+    // its rim is a 45° bevel down to a sharp edge, which overhangs the marker groove
     const rCol = S.id === 'II' ? R(7.25) : R(9.9);
-    G.cap.add(shellMesh(lathe([[R(16.3), Y(76.0)], [R(16.3), Y(80.35)], [R(18.02), Y(80.35)], [R(18.02), Y(81.1)], [R(17.9), Y(81.35)], [R(17.1), yPl - 0.06],
-      [R(16.95), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)], [R(16.3), Y(76.0)]], 160), M.black, { label: '', sub: '' }));
+    G.cap.add(shellMesh(lathe([[R(16.3), Y(76.0)], [R(16.3), A[1]], A, D.carGroove.K, [R(16.95), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)],
+      [R(16.3), Y(76.0)]], 160), M.black, { label: '', sub: '' }));
     // clearing lever
     const L = LEVER_FIT[S.id], lv = G.lever;
     const onBlade = ([x, z]) => new THREE.Vector3(x, 0, z).multiplyScalar(L.scale).applyAxisAngle(new THREE.Vector3(0, 1, 0), L.turn * DEG);
