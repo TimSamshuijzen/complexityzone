@@ -478,7 +478,7 @@ const CURTA_GLYPHS = {
   U: { w: 1.4, d: g => { g.moveTo(0, 0); g.lineTo(0, 0.55); g.arcTo(0, 1, 0.45, 1, 0.45); g.lineTo(0.95, 1); g.arcTo(1.4, 1, 1.4, 0.55, 0.45); g.lineTo(1.4, 0); } },
   R: { w: 1.5, d: g => { g.moveTo(0, 1); g.lineTo(0, 0); g.lineTo(1.24, 0); g.arc(1.24, 0.26, 0.26, -Math.PI / 2, Math.PI / 2); g.lineTo(0, 0.52); g.moveTo(0.74, 0.52); g.lineTo(1.5, 1); } },
   T: { w: 1.5, d: g => { g.moveTo(0, 0); g.lineTo(1.5, 0); g.moveTo(0.75, 0); g.lineTo(0.75, 1); } },
-  A: { w: 1.3, d: g => { g.moveTo(0, 1); g.arcTo(0, 0, 1.3, 0, 0.6); g.arcTo(1.3, 0, 1.3, 1, 0.4); g.lineTo(1.3, 1); g.moveTo(0, 0.63); g.lineTo(1.3, 0.63); } },   // big curve top left, smaller one top right
+  A: { w: 1.3, d: g => { g.moveTo(0, 1); g.arcTo(0, 0, 1.3, 0, 0.4); g.arcTo(1.3, 0, 1.3, 1, 0.4); g.lineTo(1.3, 1); g.moveTo(0, 0.63); g.lineTo(1.3, 0.63); } },
 };
 // draw the logo centred at (x, y) on a canvas with sx/sy px per mm; hgt = letter height (mm), pitch = letter spacing (mm)
 function drawCurtaLogo(g, x, y, sx, sy, hgt, pitch, col) {
