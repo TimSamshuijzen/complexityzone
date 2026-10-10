@@ -1127,9 +1127,9 @@ function buildCurta(S) {
     });
     const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, roughness: 0.4, metalness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3 });
     G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: D.yD, r1: D.rD1, y1: D.yD, thick: 0.35, holes, seg: 300 }), [dialMat, M.wall], { label: '', sub: '' }));
-    // ring inside the windows
+    // ring inside the windows (machined edges, sharp normals)
     const { A, E } = D.carGroove, f = (Y(79.19) - E[1]) / (Y(79.19) - Y(78.17));
-    G.carShell.add(shellMesh(lathe([[R(20.76), D.yD], [R(20.76), Y(78.17)], [R(19.71) + f * (R(20.76) - R(19.71)), E[1]], E, A, [A[0], Y(77.6)],
+    G.carShell.add(shellMesh(latheSharp([[R(20.76), D.yD], [R(20.76), Y(78.17)], [R(19.71) + f * (R(20.76) - R(19.71)), E[1]], E, A, [A[0], Y(77.6)],
       [R(16.3), Y(77.6)]], 160), M.black, { label: '', sub: '' }));
     // decimal markers on the dials
     const wp = D.carGroove.seat;
@@ -1172,9 +1172,9 @@ function buildCurta(S) {
 
     // ---- clearing plate (rotates with the clearing lever) + carriage collar ----
     const yPl = Y(81.95);                                                 // top of the flat clearing plate
-    // flat right up to the collar
+    // flat right up to the collar; machined edges, so sharp normals (the rim reads as a crisp edge, as on the real plate)
     const rCol = CRANK.rCol;
-    G.cap.add(shellMesh(lathe([[R(16.3), Y(76.0)], [R(16.3), A[1]], A, D.carGroove.K, [R(16.95), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)],
+    G.cap.add(shellMesh(latheSharp([[R(16.3), Y(76.0)], [R(16.3), A[1]], A, D.carGroove.K, [R(16.95), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)],
       [R(16.3), Y(76.0)]], 160), M.black, { label: '', sub: '' }));
     // clearing lever
     const L = LEVER_FIT[S.id], lv = G.lever;
