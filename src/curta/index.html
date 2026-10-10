@@ -889,7 +889,11 @@ function buildCurta(S) {
     const bandMat = new THREE.MeshPhysicalMaterial({ map: bandTex, roughness: grey ? 0.62 : 0.5, metalness: grey ? 0.25 : 0.2, clearcoat: grey ? 0.15 : 0.35, clearcoatRoughness: 0.5 });
     if (grey) { bandMat.normalMap = M.sleeveNormal; bandMat.normalScale.set(0.45, 0.45); }
     G.sleeve.add(shellMesh(revolvedShell({ r0: D.rBand, y0: Y(49.2), r1: D.rBand, y1: Y(60.7), thick: D.rBand - D.rIn, seg: 200 }), bandMat, { label: '', sub: '' }));
-    G.sleeve.add(shellMesh(lathe([[D.rBand, Y(60.7)], [D.rIn, Y(60.7)]], 128), M.black));
+    G.sleeve.add(shellMesh(lathe([[D.rBand, Y(60.7)], [D.rSl, Y(60.7)]], 128), M.black));
+    // collar rising inside the carriage
+    const yCol = Y(60.7) + Y(2.6) + 1.0;
+    G.sleeve.add(shellMesh(revolvedShell({ r0: D.rSl, y0: Y(60.7), r1: D.rSl, y1: yCol, thick: D.rSl - D.rIn, seg: 160 }), M.black, { label: '', sub: '' }));
+    G.sleeve.add(shellMesh(lathe([[D.rSl, yCol], [D.rIn, yCol]], 128), M.black));
   }
 
   /* ---------------- internal frame ---------------- */
@@ -1141,7 +1145,7 @@ function buildCurta(S) {
     parkPins(G.carriage, [S.phiA - 0.35 * S.pitch, S.phiA - 0.65 * S.pitch, S.phiB + 0.35 * S.pitch, S.phiB + 0.65 * S.pitch], wp);
 
     // ---- carriage internals ----
-    const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(23.6), Y(61.6)], [R(23.6), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
+    const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(20.7), Y(61.6)], [R(20.7), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
     G.carMech.add(floor); parts.frame.push(floor);
     const hub = mesh(lathe([[R(8.0), Y(62.4)], [R(16.2), Y(62.4)], [R(16.2), Y(71.4)], [R(8.0), Y(71.4)]], 96), M.alu, { label: '', sub: '' });
     G.carMech.add(hub); parts.frame.push(hub);
