@@ -1414,18 +1414,25 @@ function updateScene() {
 /* =====================================================================
    Sound: tiny procedural mechanical clicks (Web Audio, created on first user gesture)
    ===================================================================== */
-const audio = { ctx: null, out: null, on: true, last: {}, prev: null };
+const audio = { ctx: null, out: null, on: true, last: {}, prev: null, t: 0, rasp: null };
 function audioInit() {
   if (audio.ctx || !audio.on) return;
   try {
     const ac = audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
     audio.out = ac.createGain(); audio.out.gain.value = 14;
     audio.out.connect(ac.destination);
+    // crank friction: looped noise whose level follows the crank speed (see crankSound)
+    const n = ac.sampleRate, buf = ac.createBuffer(1, n, n), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 0.8;
+    audio.rasp = ac.createGain(); audio.rasp.gain.value = 0;
+    src.connect(bp); bp.connect(audio.rasp); audio.rasp.connect(audio.out); src.start();
   } catch (e) { audio.ctx = null; }
 }
 const SFX = { tooth: [5600, 0.010, 0.035, 14], slide: [3600, 0.016, 0.05, 30], tick: [2600, 0.02, 0.07, 30],
-              clack: [1500, 0.05, 0.10, 60], clunk: [520, 0.08, 0.1, 90] };
-function sfx(kind) {
+              clack: [1500, 0.05, 0.10, 60], clunk: [520, 0.08, 0.1, 90], ratchet: [6600, 0.004, 0.01, 0] };
+function sfx(kind, when = 0) {
   if (!audio.on || !audio.ctx) return;
   const [f, dur, gain, gap] = SFX[kind], now = performance.now();
   if (now - (audio.last[kind] || 0) < gap) return; audio.last[kind] = now;
@@ -1435,17 +1442,26 @@ function sfx(kind) {
   const src = ac.createBufferSource(); src.buffer = buf;
   const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * (0.88 + Math.random() * 0.24); bp.Q.value = 4;
   const g = ac.createGain(); g.gain.value = gain;
-  src.connect(bp); bp.connect(g); g.connect(audio.out); src.start();
+  src.connect(bp); bp.connect(g); g.connect(audio.out); src.start(when);
+}
+// crank: like advancing film in a camera, a ratchet click every few degrees over a friction rasp
+const RATCHET = 4, RASP = 0.0015;   // degrees per click, rasp gain at full speed (500°/s)
+function crankSound(a, b, dt) {    // the crank moved from a to b degrees during the last dt seconds
+  const ac = audio.ctx, t = ac.currentTime;
+  audio.rasp.gain.setTargetAtTime(audio.on ? RASP * Math.min(1, (b - a) / dt / 500) : 0, t, 0.015);
+  for (let k = Math.floor(a / RATCHET) + 1; k * RATCHET <= b; k++) sfx('ratchet', t + dt * (k * RATCHET - a) / (b - a));
 }
 // derive sounds from state changes between frames
 function soundWatch() {
   const snap = {
     wheels: V.resPos.map(v => Math.round(v)).join() + '|' + V.cntPos.map(v => Math.round(v)).join(),
     sliders: V.sliders.map(v => Math.round(v)).join(), turning: V.turning, lift: V.carLift > 0.001,
-    car: Math.round(V.carPos), sub: V.subLift > 0.5, rev: V.revPos > 0.5,
+    car: Math.round(V.carPos), sub: V.subLift > 0.5, rev: V.revPos > 0.5, th: V.turning ? V.theta : 0,
   };
-  const q = audio.prev; audio.prev = snap;
+  const q = audio.prev, now = performance.now(), dt = Math.min(0.1, (now - audio.t) / 1000); audio.prev = snap; audio.t = now;
   if (!q || !audio.ctx) return;
+  let th = snap.th; if (q.turning && (!snap.turning || th < q.th)) th += 360;   // a turn completed since the last frame
+  crankSound(q.th, th, Math.max(dt, 0.001));
   if (snap.wheels !== q.wheels) sfx('tooth');
   if (snap.sliders !== q.sliders) sfx('slide');
   if (q.turning && !snap.turning) sfx('clack');
