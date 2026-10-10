@@ -199,7 +199,7 @@ const SPECS = {
 };
 function derive(S) {
   S.R = v => v * S.sR;
-  // vertical map: the Type II has a shorter CURTA band and a taller setting section than the Type I (photos)
+  // vertical map: the Type II has a shorter CURTA band and a taller setting section than the Type I
   const zb = S.zBand, k1 = (zb - 16.7) / (49.2 - 16.7), k2 = (60.7 - zb) / (60.7 - 49.2);
   S.fz = v => v <= 16.7 || v >= 60.7 ? v : v <= 49.2 ? 16.7 + (v - 16.7) * k1 : zb + (v - 49.2) * k2;
   S.Y = v => S.fz(v) * S.sY;
@@ -211,7 +211,7 @@ function derive(S) {
   S.dB = mod(S.phiA - S.phiB, 360);                          // clockwise distance A -> B
   S.phiRev = S.rev;                                        // reversing lever: at the back, just below the band
   S.knobY = d => S.Y(41.3 - 2 * d);
-  S.crankHome = 66;                                         // zero stop: arm points front-right (photos)
+  S.crankHome = 66;                                         // zero stop: arm points front-right
   // timing of a crank revolution (degrees)
   S.T0 = 12; S.tau = 11.25;   // drum tooth pitch (10 teeth span ~101°)
   S.tCnt = 300;
@@ -462,7 +462,7 @@ function bottomPlate(g, w, h, S) {
     line(S.serial.split('').join('\u2009'), 0.57, 0.028, 0.16, 300, NUM, 0.19);
   }
 }
-// "CURTA" logo as engraved on the band (single-stroke geometric letters, traced from photos)
+// "CURTA" logo as engraved on the band
 const CURTA_GLYPHS = {
   C: { w: 1.25, d: g => { g.moveTo(1.25, 0); g.lineTo(0.5, 0); g.arc(0.5, 0.5, 0.5, -Math.PI / 2, Math.PI / 2, true); g.lineTo(1.25, 1); } },
   U: { w: 1.4, d: g => { g.moveTo(0, 0); g.lineTo(0, 0.55); g.arcTo(0, 1, 0.45, 1, 0.45); g.lineTo(0.95, 1); g.arcTo(1.4, 1, 1.4, 0.55, 0.45); g.lineTo(1.4, 0); } },
@@ -607,6 +607,19 @@ function lathe(pts, seg = 96, phiStart = 0, phiLen = TAU) {
   return new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), seg, phiStart, phiLen);
 }
 
+// Decimal marker: chrome pin of radius a with a domed head, along +y from -foot to tip
+function markerGeo(a, foot, tip) {
+  const pts = [[0, -foot], [a - 0.15, -foot], [a, -foot + 0.15], [a, tip - 0.75 * a]];
+  for (let i = 1; i <= 8; i++) { const t = i / 8 * Math.PI / 2; pts.push([a * Math.cos(t), tip - 0.75 * a + 0.75 * a * Math.sin(t)]); }
+  return lathe(pts, 24);
+}
+// Axis of a pin of radius a wedged between an upper edge P and a lower edge Q ([r, y]): it passes through their
+// midpoint and leans outward by tilt (radians from the vertical), so that both edges touch its side.
+function wedge(P, Q, a) {
+  const dr = P[0] - Q[0], dy = P[1] - Q[1];
+  return { r: (P[0] + Q[0]) / 2, y: (P[1] + Q[1]) / 2, tilt: Math.atan2(dr, dy) + Math.asin(2 * a / Math.hypot(dr, dy)) };
+}
+
 const _gearCache = new Map();
 function gearGeo(n, rTip, rRoot, thick, holeR = 0, taper = 0) {
   const key = [n, rTip, rRoot, thick, holeR, taper].map(v => v.toFixed(3)).join('|');
@@ -711,6 +724,7 @@ function buildCurta(S) {
     rBase: R(26.5), rBot: R(24.5), rSl: R(22.75), rIn: R(21.0), rBand: R(23.75),
     rCar: R(26.5), rCarIn: R(25.0), rD0: R(24), rD1: R(20.5),
     rDrum: R(10.3), rT: R(10.3) + 3.2, rB: R(18.1), rW: R(22.3), rCol: R(19.6), rKnob: R(21.4),
+    ySl0: Y(16.62),   // lower edge of the setting sleeve: it stands clear of the base ring over the marker groove
   };
   parts.D = D;
 
@@ -748,7 +762,8 @@ function buildCurta(S) {
                   [D.rBase, Y(2.9)]];
     G.base.add(shellMesh(lathe(prof, 128), M.black, { label: '' }));
     G.base.add(shellMesh(knurlBand(D.rBase - 0.05, Y(2.9), Y(12.7), Math.round(TAU * D.rBase / 1.3), Math.round(Y(9.8) / 1.3), 0.5), M.knurl, { label: '', sub: '' }));
-    const prof2 = [[D.rBase, Y(12.7)], [D.rBase, Y(14.2)], [R(26.1), Y(14.8)], [R(25.25), Y(14.8)], [R(25.15), Y(14.5)], [R(24.35), Y(14.5)], [R(24.25), Y(14.8)], [D.rSl + 0.05, Y(14.8)], [D.rIn, Y(14.8)]];   // flat top ring with the marker groove
+    // flat top ring; the marker groove runs at the foot of the sleeve, under the sleeve's lower edge
+    const prof2 = [[D.rBase, Y(12.7)], [D.rBase, Y(14.2)], [R(26.1), Y(14.8)], [R(23.05), Y(14.8)], [R(23.05), Y(13.9)], [D.rIn, Y(13.9)], [D.rIn, D.ySl0]];
     G.base.add(shellMesh(lathe(prof2, 128), M.black, { label: '', sub: '' }));
     // inner wall of the base ring (visible in cutaway)
     const inner = shellMesh(new THREE.CylinderGeometry(R(23.2), R(23.2), Y(12.3), 96, 1, true), M.inner, { label: '' });
@@ -772,7 +787,7 @@ function buildCurta(S) {
 
   /* ---------------- sleeve (setting section + CURTA band) ---------------- */
   {
-    const y0 = Y(14.8), y1 = Y(49.2), ySlot0 = Y(19.5), ySlot1 = Y(47.6);
+    const y0 = D.ySl0, y1 = Y(49.2), ySlot0 = Y(19.5), ySlot1 = Y(47.6);
     const tt = y => (y - y0) / (y1 - y0);
     const holes = [];
     for (let k = 0; k < S.nS; k++) holes.push({ phi: S.phiK(k), w: 2.6, t0: tt(ySlot0), t1: tt(ySlot1) });
@@ -801,6 +816,7 @@ function buildCurta(S) {
     if (grey) { sleeveMat.normalMap = M.sleeveNormal; sleeveMat.normalScale.set(0.45, 0.45); M.sleeveNormal.repeat.set(10, 3); }
     const sl = shellMesh(revolvedShell({ r0: D.rSl, y0, r1: D.rSl, y1, thick: D.rSl - D.rIn, holes, seg: 240 }), [sleeveMat, M.wall], { label: '', sub: '' });
     G.sleeve.add(sl);
+    G.sleeve.add(shellMesh(lathe([[D.rIn, y0], [D.rSl, y0]], 128), M.wall, { label: '', sub: '' }));   // lower edge
     // turned lower edge of the band (catches the light, makes the step visible)
     G.sleeve.add(shellMesh(new THREE.TorusGeometry(D.rBand - 0.13, 0.14, 6, 160).rotateX(Math.PI / 2).translate(0, y1 + 0.13, 0), new THREE.MeshStandardMaterial({ color: grey ? 0x8a8b78 : 0x3b3c40, roughness: 0.35, metalness: 0.6 }), { label: '', sub: '' }));
     // flat step under the (slightly larger) CURTA band
@@ -826,7 +842,7 @@ function buildCurta(S) {
 
   /* ---------------- internal frame ---------------- */
   {
-    const bp = mesh(lathe([[R(3.2), Y(15.0)], [R(21.2), Y(15.0)], [R(21.2), Y(16.7)], [R(3.2), Y(16.7)], [R(3.2), Y(15.0)]], 96), M.alu, { label: '', sub: '' });
+    const bp = mesh(lathe([[R(3.2), Y(15.0)], [R(20.9), Y(15.0)], [R(20.9), Y(16.7)], [R(3.2), Y(16.7)], [R(3.2), Y(15.0)]], 96), M.alu, { label: '', sub: '' });
     G.frame.add(bp); parts.frame.push(bp);
     // brass mounting columns (Befestigungssäulen) in the free sector at the back
     const colPhis = [S.phi0 + 2.6 * S.pitch, 180 + 14, S.phiC0 + 0.5 * S.pitch];
@@ -988,28 +1004,30 @@ function buildCurta(S) {
   }
 
   /* ---------------- decimal markers on the base (setting register) ---------------- */
-  const pinGeo = mergeGeometries([new THREE.CylinderGeometry(0.62, 0.62, 1.7, 14).translate(0, 0.85, 0), new THREE.SphereGeometry(0.66, 16, 10).translate(0, 1.7, 0)]);
-  const addPins = (parent, reg, phis, r, y, tilt, defOn) => {
+  const aPin = 0.85 * S.sY, pinGeo = markerGeo(aPin, 0.9 * S.sY, 2.8 * S.sY);
+  const addPins = (parent, reg, phis, w, defOn) => {
     phis.forEach((ph, idx) => {
       const pv = pivot(ph); parent.add(pv);
       const p = shellMesh(pinGeo, M.pin, { label: 'Decimal marker', sub: 'Click to remove it', act: { type: 'pin', reg, idx } });
-      p.position.set(0, y, r); p.rotation.x = tilt; pv.add(p); p.userData.pin = true;
+      p.position.set(0, w.y, w.r); p.rotation.x = w.tilt; pv.add(p); p.userData.pin = true;
       const hit = mesh(new THREE.SphereGeometry(1.5, 8, 6), M.black, { label: 'Decimal marker position', sub: 'Click to place a decimal marker', act: { type: 'pin', reg, idx } });
-      hit.position.set(0, y + 0.8, r); hit.visible = false; hit.userData.track = true; pv.add(hit);
+      hit.position.set(0, w.y + 2 * Math.cos(w.tilt), w.r + 2 * Math.sin(w.tilt)); hit.visible = false; hit.userData.track = true; pv.add(hit);
       p.userData.on = defOn.includes(idx); p.visible = p.userData.on;
       parts.pins.push({ reg, idx, mesh: p });
     });
   };
-  const parkPins = (parent, phis, r, y, tilt) => phis.forEach(ph => {
+  const parkPins = (parent, phis, w) => phis.forEach(ph => {
     const pv = pivot(ph); parent.add(pv);
     const p = shellMesh(pinGeo, M.pin, { label: 'Decimal marker (parked)', sub: 'Click a gap between two digits to place a marker' });
-    p.position.set(0, y, r); p.rotation.x = tilt; pv.add(p);
+    p.position.set(0, w.y, w.r); p.rotation.x = w.tilt; pv.add(p);
   });
   {
+    // between the lower edge of the sleeve and the inner edge of the base ring's top
+    const w = wedge([D.rSl, D.ySl0], [R(23.05), Y(14.8)], aPin);
     const phis = []; for (let k = 1; k < S.nS; k++) phis.push(S.phiK(k) + S.pitch / 2);
-    addPins(G.base, 'set', phis, R(24.75), Y(14.5), 0.75, []);
+    addPins(G.base, 'set', phis, w, []);
     const back = S.phiK(S.nS - 1) - 1.2 * S.pitch;
-    parkPins(G.base, [back, back - 9, S.phi0 + 1.2 * S.pitch], R(24.75), Y(14.5), 0.75);
+    parkPins(G.base, [back, back - 9, S.phi0 + 1.2 * S.pitch], w);
   }
 
   /* ---------------- carriage ---------------- */
@@ -1055,16 +1073,18 @@ function buildCurta(S) {
     });
     const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, roughness: 0.4, metalness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3 });
     G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: Y(76.7), r1: D.rD1, y1: Y(77.7), thick: 0.35, holes, seg: 300 }), [dialMat, M.wall], { label: '', sub: '' }));
-    // groove for the decimal markers between the windows and the clearing cap
-    G.carShell.add(shellMesh(lathe([[D.rD1, Y(77.7)], [D.rD1, Y(77.45)], [R(19.25), Y(77.45)], [R(19.25), Y(76.6)]], 160), M.black, { label: '', sub: '' }));
-    // decimal markers on the dials
-    const rp = R(19.88), yp = Y(77.45);
+    // lip ring inside the windows and the marker groove
+    // behind it, which runs on under the bevelled rim of the clearing plate
+    G.carShell.add(shellMesh(lathe([[D.rD1, Y(77.7)], [R(20.45), Y(78.95)], [R(20.3), Y(79.25)], [R(20.0), Y(79.3)], [R(19.4), Y(79.05)],
+      [R(18.7), Y(78.75)], [R(18.32), Y(78.57)], [R(18.32), Y(77.6)], [R(16.3), Y(77.6)]], 160), M.black, { label: '', sub: '' }));
+    // decimal markers on the dials: wedged between the plate's rim and the lip's inner edge
+    const wp = wedge([R(18.02), Y(80.39)], [R(18.32), Y(78.57)], aPin);
     const rph = [], cph = [];
     for (let j = 1; j < S.nR; j++) rph.push(S.phiK(j) + S.pitch / 2);
     for (let i = 1; i < S.nC; i++) cph.push(S.phiCnt(i) + S.pitch / 2);
-    addPins(G.carriage, 'res', rph, rp, yp, 0.8, []);
-    addPins(G.carriage, 'cnt', cph, rp, yp, 0.8, []);
-    parkPins(G.carriage, [S.phiA - 0.35 * S.pitch, S.phiA - 0.65 * S.pitch, S.phiB + 0.35 * S.pitch, S.phiB + 0.65 * S.pitch], rp, yp, 0.8);
+    addPins(G.carriage, 'res', rph, wp, []);
+    addPins(G.carriage, 'cnt', cph, wp, []);
+    parkPins(G.carriage, [S.phiA - 0.35 * S.pitch, S.phiA - 0.65 * S.pitch, S.phiB + 0.35 * S.pitch, S.phiB + 0.65 * S.pitch], wp);
 
     // ---- carriage internals ----
     const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(23.6), Y(61.6)], [R(23.6), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
@@ -1099,13 +1119,13 @@ function buildCurta(S) {
     for (let i = 0; i < S.nC; i++) parts.cntW.push(makeWheelUnit(S.phiCnt(i), true, i));
 
     // ---- clearing plate (rotates with the clearing lever) + carriage collar ----
-    const yPl = Y(79.3);                                                  // top of the flat clearing plate
-    // flat right up to the collar (r ≈ 9.9 mm on the Type I, 9 mm on the Type II), so the stowed ring can lie on it
+    const yPl = Y(81.95);                                                 // top of the flat clearing plate
+    // flat right up to the collar (r ≈ 9.9 mm on the Type I, 9 mm on the Type II), so the stowed ring can lie on it;
+    // its rim is a 32° bevel above a short upright edge, which overhangs the marker groove
     const rCol = S.id === 'II' ? R(7.25) : R(9.9);
-    G.cap.add(shellMesh(lathe([[R(19.25), Y(77.45)], [R(19.25), yPl - 0.75], [R(18.55), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)], [R(19.25), Y(76.0)], [R(19.25), Y(77.45)]], 160), M.black, { label: '', sub: '' }));
-    // clearing lever (photos): flat stamped blade ending in a wire ring, pivoting on a domed screw near the plate edge.
-    // Working position: a headed stud on the plate sits in the slot of the hooked end. Stowing swings the lever about the
-    // screw, sliding the slot off the stud: the ring then lies beside the collar and the hook reaches out over the dials.
+    G.cap.add(shellMesh(lathe([[R(16.3), Y(76.0)], [R(16.3), Y(80.35)], [R(18.02), Y(80.35)], [R(18.02), Y(81.1)], [R(17.9), Y(81.35)], [R(17.1), yPl - 0.06],
+      [R(16.95), yPl], [rCol + 0.05, yPl], [rCol + 0.05, Y(76.0)], [R(16.3), Y(76.0)]], 160), M.black, { label: '', sub: '' }));
+    // clearing lever
     const L = LEVER_FIT[S.id], lv = G.lever;
     const onBlade = ([x, z]) => new THREE.Vector3(x, 0, z).multiplyScalar(L.scale).applyAxisAngle(new THREE.Vector3(0, 1, 0), L.turn * DEG);
     lv.position.set(L.pivot[0], yPl, L.pivot[1]);
@@ -1124,8 +1144,8 @@ function buildCurta(S) {
     stud.position.copy(onBlade(LEVER_STUD)).add(lv.position); G.cap.add(stud);
     lv.userData.store = L.store * DEG;
     // collar (main-shaft sleeve) around the crank hub: a short bevelled skirt on the Type II, a shouldered sleeve on the Type I
-    G.carShell.add(shellMesh(lathe([...(S.id === 'II' ? [[rCol, Y(76.0)], [rCol, yPl + 0.35], [R(7.0), yPl + 1.2], [6.55 * S.sC + 0.35, Y(81.4)]]
-      : [[rCol, Y(76.0)], [rCol, yPl + 1.55], [R(9.55), yPl + 1.8], [R(8.1), Y(81.4)]]), [6.55 * S.sC - 0.25, Y(81.4)], [6.55 * S.sC - 0.25, Y(76.0)]], 128), M.black, { label: '' }));
+    G.carShell.add(shellMesh(lathe([...(S.id === 'II' ? [[rCol, Y(76.0)], [rCol, yPl + 0.35], [R(7.0), yPl + 1.2], [6.55 * S.sC + 0.35, Y(84.05)]]
+      : [[rCol, Y(76.0)], [rCol, yPl + 1.55], [R(9.55), yPl + 1.8], [R(8.1), Y(84.05)]]), [6.55 * S.sC - 0.25, Y(84.05)], [6.55 * S.sC - 0.25, Y(76.0)]], 128), M.black, { label: '' }));
   }
 
   /* ---------------- crank (operating handle): late plastic type with wedge head ---------------- */
@@ -1133,7 +1153,7 @@ function buildCurta(S) {
     const c = G.crank, sC = S.sC;
     const crO = { label: 'Operating handle (crank)', sub: 'Drag the knob clockwise for one full turn', act: { type: 'crank' } };
     const hubO = { label: 'Crank hub', sub: 'Click: pull up for subtraction (red ring) / push down for addition', act: { type: 'crankHub' } };
-    const rHub = 6.55 * sC, yHub0 = Y(81.4), yHub1 = Y(84.5), yTop = Y(91.4), armT = 3.6 * sC;
+    const rHub = 6.55 * sC, yHub0 = Y(84.05), yHub1 = Y(87.15), yTop = Y(94.05), armT = 3.6 * sC;
     const sleeve = mesh(new THREE.CylinderGeometry(rHub - 0.12, rHub - 0.12, Y(3.0), 40), M.red, { label: '' });
     sleeve.position.y = yHub0 - Y(1.5) - 0.02; c.add(sleeve); parts.redRing = sleeve;
     const hub = mesh(lathe([[0, yHub0], [rHub, yHub0], [rHub, yHub1], [0, yHub1]], 48), M.black, hubO); c.add(hub);
@@ -1165,7 +1185,7 @@ function buildCurta(S) {
     arrow.position.set(-1.1 * sC, yTop + 0.02, 1.5 * sC); arrow.scale.setScalar(sC); c.add(arrow);
     // knob: knurled cylinder with a smooth rounded cap, spins freely on its pin
     const knobG = new THREE.Group(); knobG.position.set(0, 0, rK); c.add(knobG);
-    const rk = 3.78 * sC, yk0 = yTop + 0.25, yk1 = Y(105.2) + (sC - 1) * 6;
+    const rk = 3.78 * sC, yk0 = yTop + 0.25, yk1 = Y(107.85) + (sC - 1) * 6;
     knobG.add(mesh(lathe([[0, yTop - 0.02], [rk - 0.3, yTop - 0.02], [rk, yk0], [rk, yk0 + 0.4]], 32), M.blackGloss, crO));
     knobG.add(mesh(knurlBand(rk, yk0 + 0.4, yk1, 22, 14, 0.42, 0.28), [M.knurlSide, M.knurlSide], crO));
     const kCore = mesh(new THREE.CylinderGeometry(rk - 0.01, rk - 0.01, yk1 - yk0 - 0.4, 22), M.knurlSide, crO); kCore.position.y = (yk0 + 0.4 + yk1) / 2; knobG.add(kCore);
@@ -1543,13 +1563,13 @@ renderer.domElement.addEventListener('pointerdown', e => {
     drag.phi = S.phiK(act.k);
   } else if (act.type === 'crank') {
     if (busy) { drag = null; return; }
-    drag.a = angleOnPlane(e, S.Y(92) + model.G.crank.position.y);
+    drag.a = angleOnPlane(e, S.Y(94.65) + model.G.crank.position.y);
   } else if (act.type === 'carriage') {
     if (busy || V.turning) { if (V.turning) toast('The carriage can only be lifted with the handle in its zero stop'); drag = null; return; }
     drag.a = angleOnPlane(e, S.Y(70)); drag.p0 = V.carPos;
   } else if (act.type === 'lever') {
     if (busy || V.turning) { drag = null; return; }
-    drag.a = angleOnPlane(e, S.Y(81)); drag.l0 = V.lever;
+    drag.a = angleOnPlane(e, S.Y(83.65)); drag.l0 = V.lever;
   }
 }, true);
 
@@ -1564,7 +1584,7 @@ renderer.domElement.addEventListener('pointermove', e => {
       V.sliders[act.k] = d; const di = Math.round(d);
       if (mach.set[act.k] !== di) { mach.set[act.k] = di; updatePanel(); }
     } else if (act.type === 'crank' && drag.moved) {
-      const a = angleOnPlane(e, S.Y(92) + model.G.crank.position.y); if (a == null || drag.a == null) return;
+      const a = angleOnPlane(e, S.Y(94.65) + model.G.crank.position.y); if (a == null || drag.a == null) return;
       const da = -dAng(drag.a, a); drag.a = a;
       if (da > 0) {
         if (!V.turning && !startTurn()) { drag = null; return; }
@@ -1578,7 +1598,7 @@ renderer.domElement.addEventListener('pointermove', e => {
       const da = dAng(drag.a, a);
       V.carPos = clamp(drag.p0 + da / S.pitch, -0.3, S.nC - 0.7);
     } else if (act.type === 'lever' && drag.moved) {
-      const a = angleOnPlane(e, S.Y(81)); if (a == null || drag.a == null) return;
+      const a = angleOnPlane(e, S.Y(83.65)); if (a == null || drag.a == null) return;
       if (!V.clearing) { beginClear(); V.carLift = 1; if (V.leverOut < 1) V.leverOut = 1; }
       const da = -dAng(drag.a, a); drag.a = a;
       evalClear(clamp(V.lever + da, drag.l0 - 360, drag.l0 + 360));
