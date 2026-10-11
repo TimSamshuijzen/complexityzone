@@ -344,7 +344,8 @@ function canvasTex(w, h, draw, srgb = true) {
 const DIGIT_FONT = '"DIN Alternate","DIN Condensed","Bahnschrift","Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif';
 const LOGO_FONT = '"Century Gothic","Futura","Avenir Next","Avenir","Montserrat","Segoe UI",sans-serif';
 
-// Number wheel (radial axle): digits stacked around the rim, each glyph's top pointing toward the machine axis.
+// Number wheel (radial axle): digits stacked around the rim, each glyph's top pointing toward the machine axis;
+// read through the window they increase to the right (as on the real wheels)
 function wheelTexture(bg, fg) {
   return canvasTex(1280, 160, (g, w, h) => {
     g.fillStyle = bg; g.fillRect(0, 0, w, h);
@@ -352,7 +353,7 @@ function wheelTexture(bg, fg) {
     g.font = `600 172px ${DIGIT_FONT}`;
     for (let i = 0; i < 10; i++) {
       g.save(); g.translate((i + 0.5) * w / 10, h / 2); g.rotate(Math.PI); g.scale(0.7, 1);
-      g.fillText(String(i), 0, 3); g.restore();
+      g.fillText(String(9 - i), 0, 3); g.restore();
     }
   });
 }
@@ -692,6 +693,31 @@ function gearGeo(n, rTip, rRoot, thick, holeR = 0, taper = 0) {
   return g;
 }
 
+// Crown gear: teeth standing up on the end face (axis vertical); tooth 0 centred on +z, angles run from +z toward +x.
+// The teeth keep the same width (sRoot, sTip: half widths) from rIn to rOut, as they mesh with straight spur teeth.
+function crownGeo(n, rIn, rOut, yBot, yRoot, yTip, sRoot, sTip) {
+  const w = TAU / n;
+  const prof = r => {                                          // [angle, height] round the circle at radius r, closed
+    const p = [];
+    for (let j = 0; j < n; j++) for (const [a, up] of [[-w / 2, 0], [-sRoot / r, 0], [-sTip / r, 1], [sTip / r, 1], [sRoot / r, 0]]) p.push([j * w + a, up ? yTip : yRoot]);
+    return [...p, [TAU - w / 2, yRoot]];
+  };
+  const pO = prof(rOut), ms = pO.slice(1).map(([a1], i) => Math.ceil((a1 - pO[i][0]) / (TAU / 120)));  // so the outer wall stays round
+  const sub = p => p.slice(1).flatMap(([a1, h1], i) => Array.from({ length: ms[i] }, (_, k) => [p[i][0] + (a1 - p[i][0]) * k / ms[i], p[i][1] + (h1 - p[i][1]) * k / ms[i]]));
+  const I = sub(prof(rIn)), O = sub(pO);
+  const g = new GB(), P = (r, a, y) => [r * Math.sin(a), y, r * Math.cos(a)], rad = a => [Math.sin(a), 0, Math.cos(a)];
+  const tri = (Q, ref) => { if (Math.hypot(...v3cross(v3sub(Q[1], Q[0]), v3sub(Q[2], Q[0]))) > 1e-9) g.tri(Q, ref); };
+  I.forEach(([a0, h0], i) => {
+    const [a1, h1] = I[(i + 1) % I.length], b0 = O[i][0], b1 = O[(i + 1) % O.length][0], inw = rad(a0).map(v => -v);
+    g.quad([P(rIn, a0, h0), P(rOut, b0, h0), P(rOut, b1, h1), P(rIn, a1, h1)], null, null, [0, 1, 0]);          // tops and flanks
+    g.quad([P(rOut, b0, yBot), P(rOut, b1, yBot), P(rOut, b1, h1), P(rOut, b0, h0)], [rad(b0), rad(b1), rad(b1), rad(b0)], null, rad(b0));
+    tri([P(rIn, a0, yRoot), P(rIn, a1, yRoot), P(rIn, a1, h1)], inw); tri([P(rIn, a0, yRoot), P(rIn, a1, h1), P(rIn, a0, h0)], inw);
+    g.tri([[0, yRoot, 0], P(rIn, a0, yRoot), P(rIn, a1, yRoot)], [0, 1, 0]);
+    g.tri([[0, yBot, 0], P(rOut, b0, yBot), P(rOut, b1, yBot)], [0, -1, 0]);
+  });
+  return g.geo();
+}
+
 function twistedBar(w, d, len, turns) {
   const g = new THREE.BoxGeometry(w, len, d, 1, 60, 1);
   const p = g.attributes.position;
@@ -982,9 +1008,9 @@ function buildCurta(S) {
       const spin = new THREE.Group(); g.add(spin);
       const pr = Math.min(2.2, D.rT * S.pitch * DEG / 2 - 0.12);
       const pin = mesh(gearGeo(5, pr, pr - 0.9, isCnt ? Y(2.2) : 0.9), M.brass, { label: '', sub: '' });
-      pin.position.y = isCnt ? Y(19.2) : S.knobY(0);
+      pin.position.y = isCnt ? Y(19.2) : S.knobY(0); pin.rotation.y = 36 * DEG;   // half a tooth: the drum teeth meet a gap
       spin.add(pin);
-      if (k === 0) { const ex = mesh(gearGeo(5, pr, pr - 0.9, 0.8), M.brass, { label: '', sub: '' }); ex.position.y = Y(43.3); spin.add(ex); }
+      if (k === 0) { const ex = mesh(gearGeo(5, pr, pr - 0.9, 0.8), M.brass, { label: '', sub: '' }); ex.position.y = Y(43.3); ex.rotation.y = 36 * DEG; spin.add(ex); }
       const star = mesh(gearGeo(10, 2.25, 1.55, starH), M.brass, { label: '', sub: '' }); star.position.y = starY; spin.add(star);
       const coll = mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.2, 12), M.brass); coll.position.y = Y(17.4); g.add(coll);
       // carry slide in the cage
@@ -1145,27 +1171,32 @@ function buildCurta(S) {
     parkPins(G.carriage, [S.phiA - 0.35 * S.pitch, S.phiA - 0.65 * S.pitch, S.phiB + 0.35 * S.pitch, S.phiB + 0.65 * S.pitch], wp);
 
     // ---- carriage internals ----
-    const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(20.7), Y(61.6)], [R(20.7), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
-    G.carMech.add(floor); parts.frame.push(floor);
-    const hub = mesh(lathe([[R(8.0), Y(62.4)], [R(16.2), Y(62.4)], [R(16.2), Y(71.4)], [R(8.0), Y(71.4)]], 96), M.alu, { label: '', sub: '' });
-    G.carMech.add(hub); parts.frame.push(hub);
     const dn = 3.25 + 0.35 + 0.05;                                     // wheel radius + dial thickness + clearance
     const yAx = D.yD - dn, rAx = D.rW;                                 // wheel centre: its top touches the window centre
+    // drive to each number wheel: a 5-tooth crown pinion on top of the vertical axle turns a 10-tooth spur gear
+    // on the wheel's radial axle from below, meshing on the wheel side of the crown (vertical axle 72°, wheel 36° per unit)
+    const spT = 1.9, spR = 1.38, spIn = D.rT + 0.6, spOut = spIn + 2.6; // spur gear: tip / root radius, radial extent
+    const crTip = yAx - spR - 0.04, crRoot = yAx - spT - 0.05, crBot = crRoot - 0.9;
+    const crPhase = 0.91 * 72 + 2 * -162 + 180;                       // crown teeth into the spur gaps (wheel angle -162° at 0)
+    const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(20.7), Y(61.6)], [R(20.7), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
+    G.carMech.add(floor); parts.frame.push(floor);
+    const hub = mesh(lathe([[R(8.0), Y(62.4)], [R(16.2), Y(62.4)], [R(16.2), crBot - 0.15], [R(8.0), crBot - 0.15]], 96), M.alu, { label: '', sub: '' });
+    G.carMech.add(hub); parts.frame.push(hub);
     const makeWheelUnit = (phi, isCnt, idx) => {
       const pv = pivot(phi); G.carMech.add(pv);
       const vert = new THREE.Group(); vert.position.set(0, 0, D.rT); pv.add(vert);
-      const yB = yAx - 1.25;                                             // height of the vertical bevel gear
-      const vTop = yB + 0.6 + 0.03;                                      // pokes just through the bevel gear
-      const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, vTop - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (vTop + Y(60.4)) / 2; vert.add(vax);
+      const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, crBot + 0.1 - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (crBot + 0.1 + Y(60.4)) / 2; vert.add(vax);
       const st = mesh(gearGeo(10, 2.25, 1.55, Y(1.1)), M.brass, { label: '', sub: '' }); st.position.y = Y(60.95); vert.add(st);
-      const bv = mesh(gearGeo(12, 1.9, 1.45, 1.2, 0, 0.35), M.brass, { label: '', sub: '' }); bv.position.y = yB; vert.add(bv);
-      // radial axle with number wheel
+      const cr = mesh(crownGeo(5, 0.5, 1.15, crBot, crRoot, crTip, 0.28, 0.06), M.steel, { label: '', sub: '' }); cr.rotation.y = crPhase * DEG; vert.add(cr);
+      // radial axle with spur gear, hub, tens transfer pin and number wheel
       const rad = new THREE.Group(); rad.position.set(0, yAx, rAx); pv.add(rad);
       const spin = new THREE.Group(); rad.add(spin);
-      const rax = mesh(new THREE.CylinderGeometry(0.6, 0.6, D.rW + 1.6 - (D.rT + 1.6), 10).rotateX(Math.PI / 2), M.steel, { label: '', sub: '' });
-      rax.position.z = (D.rW + 1.6 + D.rT + 1.6) / 2 - D.rW; spin.add(rax);
-      const rb = mesh(gearGeo(12, 1.9, 1.45, 1.2, 0, 0.35).clone().rotateX(-Math.PI / 2), M.brass, { label: '', sub: '' }); rb.position.z = D.rT + 2.3 - D.rW; spin.add(rb);
-      const pn = mesh(gearGeo(10, 1.8, 1.3, 1.1).clone().rotateX(Math.PI / 2), M.blackPlastic, { label: '', sub: '' }); pn.position.z = -3.6; spin.add(pn);
+      const along = (r, z0, z1, mat, n = 24) => { const m = mesh(new THREE.CylinderGeometry(r, r, z1 - z0, n).rotateX(Math.PI / 2), mat, { label: '', sub: '' }); m.position.z = (z0 + z1) / 2 - D.rW; spin.add(m); return m; };
+      along(0.6, D.rT - 0.35, D.rW + 1.6, M.steel, 10);
+      along(0.95, D.rT - 0.2, spIn, M.blackPlastic);
+      const sp = mesh(gearGeo(10, spT, spR, spOut - spIn).clone().rotateX(Math.PI / 2), M.blackPlastic, { label: '', sub: '' }); sp.position.z = (spIn + spOut) / 2 - D.rW; spin.add(sp);
+      along(1.0, spOut, D.rW - 1.2, M.blackPlastic);
+      along(0.16, D.rW - 2.3, D.rW - 1.2, M.steel, 8).position.y = 1.35;   // tens transfer pin: passes the bottom between 9 and 0
       const wh = mesh(new THREE.CylinderGeometry(3.25, 3.25, 2.4, 48).rotateX(Math.PI / 2), M.wheelRes,
         { label: '', sub: '' });
       wh.position.z = 0; spin.add(wh);
@@ -1324,8 +1355,8 @@ function startTurn() {
 function setTheta(th) { V.theta = clamp(th, 0, 360); evalTurn(V.theta); if (V.theta >= 360) finishTurn(); }
 function finishTurn() {
   const P = V.plan;
-  for (let k = 0; k < S.nR; k++) V.shaftBase[k] += P.teeth[k] * 36;
-  V.shaftBase[S.nR] += P.d * 36;
+  for (let k = 0; k < S.nR; k++) V.shaftBase[k] += P.teeth[k] * 72;   // 5-tooth pinions: 72° per drum tooth
+  V.shaftBase[S.nR] += P.d * 72;
   mach.commit(P); V.turning = false; V.theta = 0; V.plan = null;
   for (let j = 0; j < S.nR; j++) V.resPos[j] = mach.res[j];
   for (let i = 0; i < S.nC; i++) V.cntPos[i] = mach.cnt[i];
@@ -1470,8 +1501,8 @@ function updateScene() {
   model.shafts.forEach((sh, k) => {
     let a = V.shaftBase[k];
     if (V.turning && P) {
-      if (sh.isCnt) a += P.d * 36 * sstep((V.theta - S.tCnt) / 8);
-      else a += teethProg(V.theta - (S.T0 + S.pitch * k), P.teeth[k]) * 36;
+      if (sh.isCnt) a += P.d * 72 * sstep((V.theta - S.tCnt) / 8);
+      else a += teethProg(V.theta - (S.T0 + S.pitch * k), P.teeth[k]) * 72;
     }
     sh.spin.rotation.y = a * DEG;
     if (!sh.isCnt && !sh.nines) sh.pin.position.y = S.knobY(V.sliders[k]);
@@ -1484,9 +1515,9 @@ function updateScene() {
     sh.slide.position.y = S.Y(54.0) - dip * 1.2;
   });
   // number wheels
-  const wa = pos => (180 - 36 * (pos + 0.5)) * DEG;
-  model.resW.forEach((w, j) => { w.spin.rotation.z = wa(V.resPos[j]); w.vert.rotation.y = V.resPos[j] * 36 * DEG; });
-  model.cntW.forEach((w, i) => { w.spin.rotation.z = wa(V.cntPos[i]); w.vert.rotation.y = V.cntPos[i] * 36 * DEG; });
+  const wa = pos => (36 * pos - 162) * DEG;                     // digit pos on top; the crown below turns twice as fast
+  model.resW.forEach((w, j) => { w.spin.rotation.z = wa(V.resPos[j]); w.vert.rotation.y = V.resPos[j] * 72 * DEG; });
+  model.cntW.forEach((w, i) => { w.spin.rotation.z = wa(V.cntPos[i]); w.vert.rotation.y = V.cntPos[i] * 72 * DEG; });
   // clearing lever / cap
   G.cap.rotation.y = (S.phiA - V.lever) * DEG;
   G.lever.rotation.y = (1 - V.leverOut) * G.lever.userData.store;
