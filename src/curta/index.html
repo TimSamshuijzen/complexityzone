@@ -1637,7 +1637,7 @@ function audioInit() {
   if (audio.ctx || !audio.on) return;
   try {
     const ac = audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    audio.out = ac.createGain(); audio.out.gain.value = 14;
+    audio.out = ac.createGain(); audio.out.gain.value = 40;
     audio.out.connect(ac.destination);
     // crank friction: looped noise whose level follows the crank speed (see crankSound)
     const n = ac.sampleRate, buf = ac.createBuffer(1, n, n), d = buf.getChannelData(0);
