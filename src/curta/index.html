@@ -532,6 +532,7 @@ class GB {
 
 // Thick surface of revolution along a straight profile (r0,y0)->(r1,y1) with rectangular holes.
 // holes: {phi, w (tangential mm), t0, t1}. Thickness goes inward along the profile normal.
+// Material groups: 0 outer surface, 1 inner surface, 2 hole walls (only when there are holes).
 function revolvedShell(o) {
   const { r0, y0, r1, y1, thick = 1, holes = [], seg = 200, walls = true } = o;
   const dr = r1 - r0, dy = y1 - y0, L = Math.hypot(dr, dy);
@@ -548,13 +549,16 @@ function revolvedShell(o) {
     else if (a1 > 180) H.push({ a0, a1: 180, t0: h.t0, t1: h.t1, open1: true }, { a0: -180, a1: a1 - 360, t0: h.t0, t1: h.t1, open0: true });
     else H.push({ a0, a1, t0: h.t0, t1: h.t1 });
   });
+  // round the hole edges like the grid lines, so the wall loops below find every grid line on an edge
+  const rp = v => Math.round(v * 1e5) / 1e5, rt = v => Math.round(v * 1e6) / 1e6;
+  H.forEach(h => { h.a0 = rp(h.a0); h.a1 = rp(h.a1); h.t0 = rt(h.t0); h.t1 = rt(h.t1); });
   let ph = []; for (let i = 0; i <= seg; i++) ph.push(-180 + 360 * i / seg);
   H.forEach(h => { ph.push(h.a0, h.a1); });
-  ph = [...new Set(ph.map(v => Math.round(v * 1e5) / 1e5))].filter(v => v >= -180 && v <= 180).sort((a, b) => a - b);
+  ph = [...new Set(ph.map(rp))].filter(v => v >= -180 && v <= 180).sort((a, b) => a - b);
   let ts = [0, 1]; H.forEach(h => ts.push(h.t0, h.t1));
-  ts = [...new Set(ts.map(v => Math.round(v * 1e6) / 1e6))].sort((a, b) => a - b);
+  ts = [...new Set(ts.map(rt))].sort((a, b) => a - b);
   const inHole = (p, t) => H.some(h => p > h.a0 && p < h.a1 && t > h.t0 && t < h.t1);
-  const g = new GB(), gi = new GB();
+  const g = new GB(), gi = new GB(), gw = new GB();   // outer surface, inner surface, hole walls (material groups 0, 1, 2)
   for (let i = 0; i < ph.length - 1; i++) for (let j = 0; j < ts.length - 1; j++) {
     const pa = ph[i], pb = ph[i + 1], ta = ts[j], tb = ts[j + 1];
     if (inHole((pa + pb) / 2, (ta + tb) / 2)) continue;
@@ -574,20 +578,21 @@ function revolvedShell(o) {
       const hu = ((h.a0 + h.a1) / 2 + 180) / 360, WU = [[hu, 0.5], [hu, 0.5], [hu, 0.5], [hu, 0.5]];
       for (let j = 0; j < tIn.length - 1; j++) {
         const ta = tIn[j], tb = tIn[j + 1];
-        if (!h.open0) gi.quad([P(h.a0, ta, 0), P(h.a0, tb, 0), P(h.a0, tb, thick), P(h.a0, ta, thick)], null, WU, tan(h.a0));
-        if (!h.open1) gi.quad([P(h.a1, ta, 0), P(h.a1, tb, 0), P(h.a1, tb, thick), P(h.a1, ta, thick)], null, WU, tan(h.a1).map(x => -x));
+        if (!h.open0) gw.quad([P(h.a0, ta, 0), P(h.a0, tb, 0), P(h.a0, tb, thick), P(h.a0, ta, thick)], null, WU, tan(h.a0));
+        if (!h.open1) gw.quad([P(h.a1, ta, 0), P(h.a1, tb, 0), P(h.a1, tb, thick), P(h.a1, ta, thick)], null, WU, tan(h.a1).map(x => -x));
       }
       const pIn = ph.filter(p => p >= h.a0 - 1e-9 && p <= h.a1 + 1e-9);
       for (let i = 0; i < pIn.length - 1; i++) {
         const pa = pIn[i], pb = pIn[i + 1];
-        gi.quad([P(pa, h.t0, 0), P(pb, h.t0, 0), P(pb, h.t0, thick), P(pa, h.t0, thick)], null, WU, prof((pa + pb) / 2));
-        gi.quad([P(pa, h.t1, 0), P(pb, h.t1, 0), P(pb, h.t1, thick), P(pa, h.t1, thick)], null, WU, prof((pa + pb) / 2).map(x => -x));
+        gw.quad([P(pa, h.t0, 0), P(pb, h.t0, 0), P(pb, h.t0, thick), P(pa, h.t0, thick)], null, WU, prof((pa + pb) / 2));
+        gw.quad([P(pa, h.t1, 0), P(pb, h.t1, 0), P(pb, h.t1, thick), P(pa, h.t1, thick)], null, WU, prof((pa + pb) / 2).map(x => -x));
       }
     }
   }
-  const n1 = g.p.length / 3, n2 = gi.p.length / 3;
-  g.p.push(...gi.p); g.n.push(...gi.n); g.u.push(...gi.u);
+  const n1 = g.p.length / 3, n2 = gi.p.length / 3, n3 = gw.p.length / 3;
+  for (const b of [gi, gw]) { g.p.push(...b.p); g.n.push(...b.n); g.u.push(...b.u); }
   const geo = g.geo(); geo.addGroup(0, n1, 0); geo.addGroup(n1, n2, 1);
+  if (n3) geo.addGroup(n1 + n2, n3, 2);
   return geo;
 }
 
@@ -793,11 +798,13 @@ function buildCurta(S) {
                   carrySlides: [], pins: [], frame: [] };
 
   const D = {
-    rBase: R(26.5), rBot: R(24.5), rSl: R(22.75), rIn: R(21.0), rBand: R(23.75),
+    rBase: R(26.5), rBot: R(24.5), rSl: R(22.75), rIn: R(22.75) - 1.2, rBand: R(23.75),   // sleeve wall 1.2 mm on both types
     rCar: R(26.5), rCarIn: R(25.0), rD0: R(24.4), rD1: R(20.5), yD: Y(77.2),   // flat dial ring with the digit windows
-    rDrum: R(10.3), rT: R(10.3) + 3.2, rB: R(18.1), rW: R(22.3), rCol: R(19.6), rKnob: R(21.4),
+    rDrum: R(10.3), rT: R(10.3) + 3.2, rW: R(22.3), rCol: R(19.6), rKnob: R(21.4),
     ySl0: Y(16.62),   // lower edge of the setting sleeve, on top of its flared foot
   };
+  // twisted bars as far out as the check wheels allow: each wheel (half the bar spacing, less 0.15) turns 0.1 inside the sleeve
+  D.rB = (D.rIn - 0.1 + 0.15) / (1 + Math.sin(S.pitch / 2 * DEG));
   // decimal marker
   const pin = { a: 0.85, b: 0.95, rc: 0.63, hc: 0.74, n: 0.52, hn0: 0.8, hn1: 0.92, s: 0.63, hs0: 1.54, hs1: 1.76, L: 2.95 };
   for (const key in pin) pin[key] *= S.sY;
@@ -892,7 +899,9 @@ function buildCurta(S) {
     });
     const sleeveMat = new THREE.MeshPhysicalMaterial({ map: sleeveTex, roughness: grey ? 0.62 : 0.5, metalness: grey ? 0.25 : 0.2, clearcoat: grey ? 0.15 : 0.35, clearcoatRoughness: 0.5 });
     if (grey) { sleeveMat.normalMap = M.sleeveNormal; sleeveMat.normalScale.set(0.45, 0.45); M.sleeveNormal.repeat.set(10, 3); }
-    const sl = shellMesh(revolvedShell({ r0: D.rSl, y0, r1: D.rSl, y1, thick: D.rSl - D.rIn, holes, seg: 240 }), [sleeveMat, M.wall], { label: '', sub: '' });
+    // slot walls in the sleeve's own finish, not the dark inside, so the grey Type II sleeve reads as solid
+    const cutMat = new THREE.MeshPhysicalMaterial({ color: grey ? M.sleeveColor : 0x141516, roughness: grey ? 0.62 : 0.5, metalness: grey ? 0.25 : 0.2, clearcoat: grey ? 0.15 : 0.35, clearcoatRoughness: 0.5 });
+    const sl = shellMesh(revolvedShell({ r0: D.rSl, y0, r1: D.rSl, y1, thick: D.rSl - D.rIn, holes, seg: 240 }), [sleeveMat, M.wall, cutMat], { label: '', sub: '' });
     G.sleeve.add(sl);
     G.sleeve.add(shellMesh(lathe([[D.rIn, y0], [D.rSl, y0]], 128), M.wall, { label: '', sub: '' }));   // lower edge
     // turned lower edge of the band (catches the light, makes the step visible)
@@ -1156,7 +1165,7 @@ function buildCurta(S) {
       g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(0, 0, w, 3);
     });
     const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, roughness: 0.4, metalness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3 });
-    G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: D.yD, r1: D.rD1, y1: D.yD, thick: 0.35, holes, seg: 300 }), [dialMat, M.wall], { label: '', sub: '' }));
+    G.carShell.add(shellMesh(revolvedShell({ r0: D.rD0, y0: D.yD, r1: D.rD1, y1: D.yD, thick: 0.35, holes, seg: 300 }), [dialMat, M.wall, M.wall], { label: '', sub: '' }));
     // ring inside the windows (machined edges, sharp normals)
     const { A, E } = D.carGroove, f = (Y(79.19) - E[1]) / (Y(79.19) - Y(78.17));
     G.carShell.add(shellMesh(latheSharp([[R(20.76), D.yD], [R(20.76), Y(78.17)], [R(19.71) + f * (R(20.76) - R(19.71)), E[1]], E, A, [A[0], Y(77.6)],
