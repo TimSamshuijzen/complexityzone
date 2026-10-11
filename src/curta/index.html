@@ -723,6 +723,27 @@ function crownGeo(n, rIn, rOut, yBot, yRoot, yTip, sRoot, sTip) {
   return g.geo();
 }
 
+// Setting knob: a block with flat sides, its side profile extruded across x. front: (z, y) polyline from the bottom corner
+// up to the top corner (the ridges); the block runs back from it to zb. Both front vertical edges are bevelled, from the
+// full width w at zc down to wf at zt.
+function settingKnobGeo({ w, wf, zb, zc, zt, front }) {
+  const hw = z => z <= zc ? w / 2 : w / 2 - (w - wf) / 2 * (z - zc) / (zt - zc);
+  const X = (s, [z, y]) => [s * hw(z), y, z];
+  const y0 = front[0][1], y1 = front[front.length - 1][1];
+  const loop = [[zb, y0], [zc, y0], ...front, [zc, y1], [zb, y1]];   // counter-clockwise in (z, y)
+  const g = new GB();
+  for (let i = 0; i < loop.length; i++) {
+    const a = loop[i], b = loop[(i + 1) % loop.length];
+    g.quad([X(-1, a), X(1, a), X(1, b), X(-1, b)], null, null, [0, a[0] - b[0], b[1] - a[1]]);
+  }
+  // the sides: the bevels fold them at zc, so the plain part and the bevelled part are triangulated apart
+  for (const reg of [[[zb, y0], [zc, y0], [zc, y1], [zb, y1]], [[zc, y0], ...front, [zc, y1]]]) {
+    const ix = THREE.ShapeUtils.triangulateShape(reg.map(([z, y]) => new THREE.Vector2(z, y)), []);
+    for (const s of [-1, 1]) for (const t of ix) g.tri(t.map(i => X(s, reg[i])), [s, 0, 0]);
+  }
+  return g.geo();
+}
+
 // Setting axle: a round steel axle with a helical V groove, a turn per ten digit steps. The knob's screw tip runs in the
 // groove (aG at height yRef, round end at yEnd, runs out at the foot so the knob slides on); its spring ball clicks into
 // a row of dimples, one at each height in ys, sunk into the groove's edge. k: twist in rad per mm, angles from +z toward
@@ -944,7 +965,7 @@ function buildCurta(S) {
     const tt = y => (y - y0) / (y1 - y0);
     const holes = [];
     for (let k = 0; k < S.nS; k++) holes.push({ phi: S.phiK(k), w: 2.6, t0: tt(ySlot0), t1: tt(ySlot1) });
-    holes.push({ phi: S.phiRev, w: 1.7, t0: tt(Y(39.6)), t1: tt(Y(48.7)) });
+    holes.push({ phi: S.phiRev, w: 2.6, t0: tt(Y(39.6)), t1: tt(Y(48.7)) });
     const grey = S.sleeve === 'grey';
     const sleeveTex = canvasTex(4096, 1024, (g, w, h) => {
       g.fillStyle = grey ? '#727360' : '#141516'; g.fillRect(0, 0, w, h);
@@ -960,7 +981,7 @@ function buildCurta(S) {
       }
       // engraved double arrow beside the reversing lever slot (on the slider side of the slot)
       const pxmm = w / (TAU * D.rSl), pymm = h / (y1 - y0);
-      const ax = ((S.phiRev + 180) / 360) * w - 2.2 * pxmm, ya = (1 - tt(Y(48.3))) * h, yb = (1 - tt(Y(40.4))) * h;
+      const ax = ((S.phiRev + 180) / 360) * w - 4.2 * pxmm, ya = (1 - tt(Y(48.3))) * h, yb = (1 - tt(Y(40.4))) * h;
       g.fillStyle = '#f2f2ee';
       drawArrowUp(g, ax, ya, (yb - ya) / 2 + 2, 0.24 * pxmm, 0.85 * pxmm, 1.5 * pymm, '#f2f2ee');
       g.save(); g.translate(ax, yb); g.scale(1, -1); drawArrowUp(g, 0, 0, (yb - ya) / 2 + 2, 0.24 * pxmm, 0.85 * pxmm, 1.5 * pymm, '#f2f2ee'); g.restore();
@@ -1127,12 +1148,17 @@ function buildCurta(S) {
       // block round the setting axle, as tall as the knob (it holds the guide screw and the detent ball)
       const blk = mesh(new THREE.BoxGeometry(2.6, Y(5.8), 3.6), M.blackPlastic, lbl); blk.position.set(0, 0, D.rB - 0.2); sg.add(blk);
       const neck = mesh(new THREE.BoxGeometry(1.9, 4.2, D.rSl - D.rB + 0.2), M.blackPlastic, lbl); neck.position.set(0, 0, (D.rSl + D.rB) / 2 + 0.7); sg.add(neck);
-      // serrated knob outside the slot
+      // knob outside the slot, fitted to input-setings.png: flat sides, six 90° ridges across the front 1 mm apart, their
+      // tips on a shallow arc that stands out most 0.4 above the centre; the bottom corner is lower and fuller than the top
       const kb = new THREE.Group(); kb.position.z = D.rSl; sg.add(kb);
       if (!parts.knobGeo) {
-        const bx = [new THREE.BoxGeometry(2.55, Y(6.0), 2.75).translate(0, 0, 1.375)];
-        for (let s = 0; s < 8; s++) bx.push(new THREE.BoxGeometry(3.05, Y(0.42), 3.0).translate(0, Y(-2.79 + s * 0.797), 1.5));
-        parts.knobGeo = mergeGeometries(bx);
+        const zt = 3.55, e = y => 0.055 * (y - 0.4) ** 2, front = [[zt - e(-2.5) - 0.42, Y(-3.1)]];
+        [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5].forEach((y, i) => {
+          front.push([zt - e(y), Y(y)]);
+          if (i < 5) front.push([zt - 0.5 - e(y + 0.5), Y(y + 0.5)]);
+        });
+        front.push([zt - e(2.5) - 0.63, Y(3.0)]);
+        parts.knobGeo = settingKnobGeo({ w: 2.3, wf: 1.3, zb: -0.3, zc: zt - 1.2, zt, front });
       }
       const kc = mesh(parts.knobGeo, kMat, lbl); kb.add(kc);
       // fork reaching the counting pinion on the transmission shaft
@@ -1156,10 +1182,8 @@ function buildCurta(S) {
     const act = { type: 'rev' };
     const o = { label: 'Counter reversing lever', sub: 'Click to toggle. Up: normal · Down: the counter counts minus turns positively', act };
     const body = mesh(new THREE.BoxGeometry(1.4, Y(4.4), 4.4), M.blackPlastic, o); body.position.z = D.rSl - 0.9; lv.add(body);
-    // ribbed finger knob: a stepped stack of ridges, like the setting knobs
-    const kb = [new THREE.BoxGeometry(2.5, Y(4.6), 1.5).translate(0, 0, 0.75)];
-    for (let s = 0; s < 5; s++) kb.push(new THREE.BoxGeometry(2.8, Y(0.5), 0.55 + 0.12 * s).translate(0, Y(-1.9 + s * 0.95), 1.5 + (0.55 + 0.12 * s) / 2));
-    const knob = mesh(mergeGeometries(kb), M.blackPlastic, o); knob.position.z = D.rSl; lv.add(knob);
+    // finger knob: the same as a setting knob, in a slot as wide as theirs
+    const knob = mesh(parts.knobGeo, M.blackPlastic, o); knob.position.z = D.rSl; lv.add(knob);
     parts.revLever = lv;
     const rod = mesh(new THREE.CylinderGeometry(0.8, 0.8, Y(30), 12), M.brass, { label: '' });
     at(rod, D.rCol - 0.9, S.phiRev, Y(31)); G.mech.add(rod);
@@ -1602,7 +1626,7 @@ function updateScene() {
   G.cap.rotation.y = (S.phiA - V.lever) * DEG;
   G.lever.rotation.y = (1 - V.leverOut) * G.lever.userData.store;
   // reversing lever
-  model.revLever.position.y = lerp(S.Y(46.35), S.Y(41.95), V.revPos);
+  model.revLever.position.y = lerp(S.Y(46.1), S.Y(41.7), V.revPos);   // up, the knob just clears the CURTA band
 }
 
 /* =====================================================================
