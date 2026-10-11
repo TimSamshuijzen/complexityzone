@@ -723,14 +723,81 @@ function crownGeo(n, rIn, rOut, yBot, yRoot, yTip, sRoot, sTip) {
   return g.geo();
 }
 
-function twistedBar(w, d, len, turns) {
-  const g = new THREE.BoxGeometry(w, len, d, 1, 60, 1);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const y = p.getY(i), a = (y / len + 0.5) * turns * TAU, x = p.getX(i), z = p.getZ(i);
-    p.setX(i, x * Math.cos(a) - z * Math.sin(a)); p.setZ(i, x * Math.sin(a) + z * Math.cos(a));
+// Setting axle: a round steel axle with a helical V groove, a turn per ten digit steps. The knob's screw tip runs in the
+// groove (aG at height yRef, round end at yEnd, runs out at the foot so the knob slides on); its spring ball clicks into
+// a row of dimples, one at each height in ys, sunk into the groove's edge. k: twist in rad per mm, angles from +z toward
+// +x as in at(). Built on a helical grid, so the groove follows the grid lines.
+function settingAxleGeo({ r, y0, y1, k, aG, yRef, yEnd, ys }) {
+  const G = { w: 1.0, d: 0.36 }, B = { rho: 0.7, d: 0.28, off: 0.75 };   // B.off: dimple centres from the groove centre line
+  const sec = Math.hypot(1, r * k), aC = aG + B.off * sec / r;
+  const vee = t => Math.max(0, (1 - Math.hypot(t, 0.2)) / (1 - 0.2));   // V with a rounded root: 1 on the centre line, 0 at |t| = 1
+  const wrap = a => a - TAU * Math.round(a / TAU);
+  const q0 = Math.sqrt(B.rho ** 2 - (B.rho - B.d) ** 2);                // dimple radius on the surface
+  const depth = (u, y) => {
+    // groove: distance across it on the unrolled surface, the end at yEnd round
+    const dg = wrap(u - aG), dc = wrap(u - aC), dy = y - yEnd;
+    const perp = r * dg / sec, along = (r * (dg + k * dy) * r * k + dy) / sec;
+    let d = G.d * vee((along > 0 ? Math.hypot(perp, along) : Math.abs(perp)) / (G.w / 2));
+    // dimples: spherical pockets, blended in with a smooth max so their rims are rounded off (~0.15 mm)
+    for (const yj of ys) {
+      const q = Math.hypot(r * (dc + k * (y - yj)), y - yj);
+      if (q >= B.rho) continue;
+      const sp = B.d - B.rho + Math.sqrt(B.rho ** 2 - q * q), f = 0.1, t = Math.min(1, Math.max(0, 0.5 + 0.5 * (sp - d) / f));
+      d += (sp - d) * t + f * t * (1 - t);
+    }
+    return d;
+  };
+  // columns: coarse round the plain surface, fine across the groove and the dimples, with lines on the groove edges
+  const gHalf = G.w / 2 * sec / r, cHalf = (q0 + 0.1) * (1 / r + k) + 0.04;
+  const cols = [];
+  for (let i = 0; i < 48; i++) cols.push(i * TAU / 48);
+  const fine = (c, half, step) => { const n = Math.ceil(2 * half / step); for (let i = 0; i <= n; i++) cols.push(c - half + 2 * half * i / n); };
+  fine(aG, gHalf, 0.04); fine(aG, gHalf + 0.1, 0.07); fine(aC, cHalf, 0.04);
+  const U = [...new Set(cols.map(u => mod(u, TAU)))].sort((a, b) => a - b).filter((u, i, a) => i === 0 || u - a[i - 1] > 0.015);
+  if (TAU - U[U.length - 1] + U[0] < 0.015) U.pop();
+  // rows per column: about a millimetre apart (the tracks run along the columns), finer only where a column crosses
+  // a dimple or the groove's round end; neighbouring columns are zipped together, so the mesh stays closed
+  const nC = Math.ceil(y1 - y0), coarse = Array.from({ length: nC + 1 }, (_, i) => y0 + (y1 - y0) * i / nC);
+  const near = (c, half, step) => Array.from({ length: 2 * Math.round(half / step) + 1 }, (_, i) => c - half + i * step);
+  const pos = [], nrm = [], col = [], idx = [], e = 1e-4;
+  const vert = (u, y) => {
+    // normal from the surface derivatives in (angle, height): rho = r - depth, with u = a - k (y - yRef)
+    const dep = depth(u, y), a = u + k * (y - yRef), rr = r - dep, s = Math.sin(a), c = Math.cos(a);
+    const Du = (depth(u + e, y) - depth(u - e, y)) / (2 * e), Dy = (depth(u, y + e) - depth(u, y - e)) / (2 * e);
+    const ra = -Du, ry = k * Du - Dy;
+    const A1 = ra * s + rr * c, A3 = ra * c - rr * s, B1 = ry * s, B3 = ry * c;
+    const n = [-A3, A3 * B1 - A1 * B3, A1], l = Math.hypot(...n);
+    const ao = 1 - 0.9 * dep;                                       // pockets a little darker, so they read as recesses
+    pos.push(rr * s, y, rr * c); nrm.push(n[0] / l, n[1] / l, n[2] / l); col.push(ao, ao, ao);
+    return pos.length / 3 - 1;
+  };
+  const colV = U.map(u => {
+    let ys1 = [...coarse];
+    if (Math.abs(wrap(u - aC)) <= cHalf + 1e-9) for (const yj of ys) ys1.push(...near(yj, 0.63, 0.07));
+    if (Math.abs(wrap(u - aG)) <= gHalf + 0.1 + 1e-9) ys1.push(...near(yEnd + 0.15, 0.6, 0.04));
+    ys1 = ys1.filter(y => y >= y0 && y <= y1).sort((a, b) => a - b).filter((y, i, a) => i === 0 || y - a[i - 1] > 0.03);
+    if (ys1[ys1.length - 1] < y1) ys1[ys1.length - 1] = y1;
+    return ys1.map(y => ({ y, i: vert(u, y) }));
+  });
+  for (let c = 0; c < colV.length; c++) {
+    const A = colV[c], B = colV[(c + 1) % colV.length];
+    let a = 0, b = 0;
+    while (a < A.length - 1 || b < B.length - 1) {
+      if (b === B.length - 1 || (a < A.length - 1 && A[a + 1].y <= B[b + 1].y)) { idx.push(A[a].i, B[b].i, A[a + 1].i); a++; }
+      else { idx.push(A[a].i, B[b].i, B[b + 1].i); b++; }
+    }
   }
-  g.computeVertexNormals();
+  // end faces, on their own vertices so they stay flat
+  for (const up of [false, true]) {
+    const c0 = pos.length / 3, y = up ? y1 : y0; pos.push(0, y, 0); nrm.push(0, up ? 1 : -1, 0); col.push(1, 1, 1);
+    for (const cl of colV) { const j = cl[up ? cl.length - 1 : 0].i; pos.push(pos[3 * j], y, pos[3 * j + 2]); nrm.push(0, up ? 1 : -1, 0); col.push(1, 1, 1); }
+    for (let i = 0, n = colV.length; i < n; i++) { const p = c0 + 1 + i, q = c0 + 1 + (i + 1) % n; idx.push(...(up ? [c0, p, q] : [c0, q, p])); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
   return g;
 }
 
@@ -750,6 +817,7 @@ function makeMaterials(S) {
   M.chrome = new THREE.MeshStandardMaterial({ color: 0xe6e7ea, roughness: 0.08, metalness: 1 });
   M.steel = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 0.22, metalness: 1, envMapIntensity: 0.9 });
   M.darkSteel = new THREE.MeshStandardMaterial({ color: 0x5f656d, roughness: 0.3, metalness: 1, envMapIntensity: 0.9 });
+  M.axle = new THREE.MeshStandardMaterial({ color: 0xc2c6cc, roughness: 0.16, metalness: 1, envMapIntensity: 1.0, vertexColors: true });   // ground setting axles
   M.alu = new THREE.MeshStandardMaterial({ color: 0x9da2a9, roughness: 0.38, metalness: 1, envMapIntensity: 0.85 });
   M.brass = new THREE.MeshStandardMaterial({ color: 0xc9a046, roughness: 0.26, metalness: 1, envMapIntensity: 0.9 });
   M.copper = new THREE.MeshStandardMaterial({ color: 0xc8845a, roughness: 0.35, metalness: 1 });
@@ -769,7 +837,7 @@ function makeMaterials(S) {
     M.sleeveColor = 0x727360;
     M.sleeveNormal = crinkleNormal();
   }
-  M.internal = [M.steel, M.darkSteel, M.alu, M.brass, M.copper, M.nickel, M.nickelPlain];
+  M.internal = [M.steel, M.darkSteel, M.axle, M.alu, M.brass, M.copper, M.nickel, M.nickelPlain];
   for (const m of M.internal) m.userData.env = m.envMapIntensity;
   M.xray = new THREE.MeshStandardMaterial({ color: 0x9fb4cc, transparent: true, opacity: 0.13, roughness: 0.2, metalness: 0.2, depthWrite: false, side: THREE.DoubleSide });
   return M;
@@ -803,7 +871,7 @@ function buildCurta(S) {
     rDrum: R(10.3), rT: R(10.3) + 3.2, rW: R(22.3), rCol: R(19.6), rKnob: R(21.4),
     ySl0: Y(16.62),   // lower edge of the setting sleeve, on top of its flared foot
   };
-  // twisted bars as far out as the check wheels allow: each wheel (half the bar spacing, less 0.15) turns 0.1 inside the sleeve
+  // setting axles as far out as the check wheels allow: each wheel (half the bar spacing, less 0.15) turns 0.1 inside the sleeve
   D.rB = (D.rIn - 0.1 + 0.15) / (1 + Math.sin(S.pitch / 2 * DEG));
   // decimal marker
   const pin = { a: 0.85, b: 0.95, rc: 0.63, hc: 0.74, n: 0.52, hn0: 0.8, hn1: 0.92, s: 0.63, hs0: 1.54, hs1: 1.76, L: 2.95 };
@@ -1030,20 +1098,23 @@ function buildCurta(S) {
     }
   }
 
-  /* ---------------- setting units: twisted bar, check wheel, slider knob ---------------- */
+  /* ---------------- setting units: setting axle, check wheel, slider knob ---------------- */
   {
-    const barLen = Y(45.0) - Y(16.9);
-    const turns = barLen / ((S.knobY(0) - S.knobY(1)) * 10);
-    const barGeo = twistedBar(1.7, 0.55, barLen, turns);
-    const cwR = D.rB * Math.sin(S.pitch / 2 * DEG) - 0.15; // half the bar spacing, less a small gap to the next check wheel
+    // Seen from outside, the groove faces straight out 3.7 steps above the knob centre;
+    // the screw sits low in the knob, the ball high. In the axle's own frame the groove is a fixed helix: aG = 9.5 × 36°
+    // undoes the check wheel's turn at digit 0 (see updateScene).
+    const h = S.knobY(0) - S.knobY(1), tw = 36 * DEG / h, yRef = S.knobY(0) + 3.7 * h, aG = 342 * DEG;
+    const axGeo = settingAxleGeo({ r: 1.15, y0: Y(16.9), y1: Y(45.0), k: tw, aG, yRef,
+                                   yEnd: S.knobY(0) - 0.65 * h, ys: Array.from({ length: 10 }, (_, d) => S.knobY(d) + 1.15 * h) });
+    const cwR = D.rB * Math.sin(S.pitch / 2 * DEG) - 0.15; // half the axle spacing, less a small gap to the next check wheel
     for (let k = 0; k < S.nS; k++) {
       const phi = S.phiK(k);
       const red = S.redKnobs.includes(k);
-      // twisted bar + check wheel rotate together about the bar axis
+      // setting axle + check wheel rotate together about the axle
       const bg = new THREE.Group(); at(bg, D.rB, phi, 0); G.mech.add(bg);
       const rot = new THREE.Group(); bg.add(rot);
-      const bar = mesh(barGeo, M.steel, { label: ``, sub: '' });
-      bar.position.y = Y(16.9) + barLen / 2; rot.add(bar);
+      const bar = mesh(axGeo, M.axle, { label: ``, sub: '' });
+      rot.add(bar);
       const cw = mesh(new THREE.CylinderGeometry(cwR, cwR, Y(3.0), 48), M.check, { label: ``, sub: '' });
       cw.position.y = Y(45.8); rot.add(cw);
       const cwAx = mesh(new THREE.CylinderGeometry(0.6, 0.6, Y(2.5), 8), M.steel); cwAx.position.y = Y(47.8); rot.add(cwAx);
@@ -1053,8 +1124,8 @@ function buildCurta(S) {
       const sg = new THREE.Group(); pv.add(sg);
       const kMat = red ? M.redAnodised : M.blackPlastic;
       const lbl = { label: `Setting knob ${k + 1}`, sub: 'Drag up/down', act: { type: 'slider', k } };
-      // block around the twisted bar
-      const blk = mesh(new THREE.BoxGeometry(2.6, 4.2, 3.6), M.blackPlastic, lbl); blk.position.set(0, 0, D.rB - 0.2); sg.add(blk);
+      // block round the setting axle, as tall as the knob (it holds the guide screw and the detent ball)
+      const blk = mesh(new THREE.BoxGeometry(2.6, Y(5.8), 3.6), M.blackPlastic, lbl); blk.position.set(0, 0, D.rB - 0.2); sg.add(blk);
       const neck = mesh(new THREE.BoxGeometry(1.9, 4.2, D.rSl - D.rB + 0.2), M.blackPlastic, lbl); neck.position.set(0, 0, (D.rSl + D.rB) / 2 + 0.7); sg.add(neck);
       // serrated knob outside the slot
       const kb = new THREE.Group(); kb.position.z = D.rSl; sg.add(kb);
@@ -1196,7 +1267,7 @@ function buildCurta(S) {
       const vert = new THREE.Group(); vert.position.set(0, 0, D.rT); pv.add(vert);
       const vax = mesh(new THREE.CylinderGeometry(0.7, 0.7, crBot + 0.1 - Y(60.4), 10), M.steel, { label: '', sub: '' }); vax.position.y = (crBot + 0.1 + Y(60.4)) / 2; vert.add(vax);
       const st = mesh(gearGeo(10, 2.25, 1.55, Y(1.1)), M.brass, { label: '', sub: '' }); st.position.y = Y(60.95); vert.add(st);
-      const cr = mesh(crownGeo(5, 0.5, 1.15, crBot, crRoot, crTip, 0.28, 0.06), M.steel, { label: '', sub: '' }); cr.rotation.y = crPhase * DEG; vert.add(cr);
+      const cr = mesh(crownGeo(5, 0.5, 1.15, crBot, crRoot, crTip, 0.28, 0.06), M.brass, { label: '', sub: '' }); cr.rotation.y = crPhase * DEG; vert.add(cr);
       // radial axle with spur gear, hub, tens transfer pin and number wheel
       const rad = new THREE.Group(); rad.position.set(0, yAx, rAx); pv.add(rad);
       const spin = new THREE.Group(); rad.add(spin);
