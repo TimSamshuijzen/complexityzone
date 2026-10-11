@@ -1514,7 +1514,7 @@ function audioInit() {
   } catch (e) { audio.ctx = null; }
 }
 const SFX = { tooth: [5600, 0.010, 0.035, 14], slide: [3600, 0.016, 0.02, 30], tick: [2600, 0.02, 0.07, 30],
-              clack: [1500, 0.05, 0.10, 60], clunk: [520, 0.08, 0.05, 90], ratchet: [6600, 0.004, 0.01, 0] };
+              clack: [1500, 0.05, 0.05, 60], clunk: [520, 0.08, 0.05, 90], ratchet: [6600, 0.004, 0.01, 0] };
 function sfx(kind, when = 0) {
   if (!audio.on || !audio.ctx) return;
   const [f, dur, gain, gap] = SFX[kind], now = performance.now();
