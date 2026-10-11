@@ -136,8 +136,6 @@
     <button data-m="hidden">Internals</button>
   </div>
   <div class="row" style="justify-content:space-between">
-    <label class="chk"><input type="checkbox" id="cFrame" checked> Frame plates</label>
-    <label class="chk"><input type="checkbox" id="cSpin"> Auto-rotate</label>
     <label class="chk"><input type="checkbox" id="cSound" checked> Sound</label>
     <button id="bView">Reset view</button>
   </div>
@@ -1387,7 +1385,7 @@ let S, mach, model;
 const V = {
   sliders: [], sliderTarget: [], theta: 0, turning: false, plan: null,
   shaftBase: [], subLift: 0, carPos: 0, carLift: 0, lever: 0, leverOut: 1, revPos: 0,
-  resPos: [], cntPos: [], clearing: null, explode: 0, shellMode: 'solid', frame: true,
+  resPos: [], cntPos: [], clearing: null, explode: 0, shellMode: 'solid',
 };
 let busy = 0;
 
@@ -1410,7 +1408,7 @@ function buildType(id) {
   V.sliders = new Array(S.nS).fill(0); V.shaftBase = new Array(S.nR + 1).fill(0);
   V.resPos = new Array(S.nR).fill(0); V.cntPos = new Array(S.nC).fill(0);
   V.theta = 0; V.turning = false; V.plan = null; V.subLift = 0; V.carPos = 0; V.carLift = 0; V.lever = 0; V.leverOut = 1; V.revPos = 0; V.clearing = null;
-  applyShellMode(); applyFrame();
+  applyShellMode();
   $('tI').classList.toggle('on', id === 'I'); $('tII').classList.toggle('on', id === 'II');
   $('typeInfo').textContent = S.info;
   $('setInput').maxLength = S.nS;
@@ -1440,7 +1438,6 @@ function applyEnvDim() {
   const closed = V.shellMode === 'solid' && V.explode < 0.04;
   for (const mm of model.M.internal) mm.envMapIntensity = mm.userData.env * (closed ? 0.28 : 1);
 }
-function applyFrame() { for (const f of model.frame) f.visible = V.frame; }
 
 /* -------- turn evaluation -------- */
 function teethProg(x, n) { let s = 0; for (let i = 0; i < n; i++) s += sstep((x - i * S.tau) / S.tau); return s; }
@@ -2000,8 +1997,6 @@ $('bHelpX').onclick = () => { $('help').style.display = 'none'; };
 $('bHelp').onclick = () => { $('help').style.display = $('help').style.display === 'none' ? '' : 'none'; };
 $('bTurnN').onclick = () => { const n = clamp(parseInt($('turnN').value, 10) || 1, 1, 99); queue(async () => { for (let i = 0; i < n; i++) await opTurn(); }); };
 document.querySelectorAll('#shellBtns button').forEach(b => b.onclick = () => { V.shellMode = b.dataset.m; applyShellMode(); });
-$('cFrame').onchange = e => { V.frame = e.target.checked; applyFrame(); };
-$('cSpin').onchange = e => { controls.autoRotate = e.target.checked; controls.autoRotateSpeed = 1.2; };
 $('rExplode').oninput = e => {
   const nx = parseFloat(e.target.value), dy = (nx - V.explode) * 62;
   V.explode = nx; camera.position.y += dy; controls.target.y += dy; applyEnvDim();
