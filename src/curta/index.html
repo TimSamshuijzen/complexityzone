@@ -1341,7 +1341,7 @@ function buildCurta(S) {
   {
     const c = G.crank, K = CRANK, yPl = Y(81.95), y = h => yPl + h;
     const crO = { label: 'Operating handle (crank)', sub: 'Click for one full turn', act: { type: 'crank' } };
-    const hubO = { label: 'Crank hub', sub: 'Click for: up = subtraction (red ring), down = addition', act: { type: 'crankHub' } };
+    const hubO = { label: 'Crank hub', sub: 'Click to toggle. Up = subtraction (red ring). Down = addition', act: { type: 'crankHub' } };
     // sleeve in the collar's bore: guiding land, red groove (shows above the collar only when pulled up), hub
     const disc = (r, h0, h1) => latheSharp([[0, y(h0)], [r, y(h0)], [r, y(h1)], [0, y(h1)]], 48);
     c.add(mesh(disc(K.rLand, K.hLand, K.hRed), M.black, { label: '' }));
