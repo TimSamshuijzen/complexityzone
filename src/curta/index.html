@@ -882,7 +882,7 @@ function buildCurta(S) {
   const M = makeMaterials(S);
   const root = new THREE.Group();
   const parts = { M, shell: [], picks: [], sliders: [], checks: [], bars: [], shafts: [], resW: [], cntW: [], resAx: [], cntAx: [],
-                  carrySlides: [], pins: [], frame: [] };
+                  carrySlides: [], pins: [] };
 
   const D = {
     rBase: R(26.5), rBot: R(24.5), rSl: R(22.75), rIn: R(22.75) - 0.8, rBand: R(23.75),   // sleeve wall 0.8 mm on both types
@@ -1021,7 +1021,7 @@ function buildCurta(S) {
   /* ---------------- internal frame ---------------- */
   {
     const bp = mesh(lathe([[R(3.2), Y(15.0)], [R(20.9), Y(15.0)], [R(20.9), Y(16.7)], [R(3.2), Y(16.7)], [R(3.2), Y(15.0)]], 96), M.alu, { label: '', sub: '' });
-    G.frame.add(bp); parts.frame.push(bp);
+    G.frame.add(bp);
     // brass mounting columns (Befestigungssäulen) in the free sector at the back
     const colPhis = [S.phi0 + 2.6 * S.pitch, 180 + 14, S.phiC0 + 0.5 * S.pitch];
     for (const ph of colPhis) {
@@ -1031,11 +1031,11 @@ function buildCurta(S) {
     }
     // top body casting (Maschinenkörper) with radial slots
     const top = mesh(lathe([[R(4.4), Y(47.6)], [R(20.7), Y(47.6)], [R(20.7), Y(49.4)], [R(4.4), Y(49.4)], [R(4.4), Y(47.6)]], 96), M.alu, { label: '', sub: '' });
-    G.frame.add(top); parts.frame.push(top);
+    G.frame.add(top);
     // tens-carry cage rings
     for (const [ya, yb] of [[49.6, 50.7], [57.3, 58.4]]) {
       const ring = mesh(lathe([[R(9.4), Y(ya)], [R(20.7), Y(ya)], [R(20.7), Y(yb)], [R(9.4), Y(yb)], [R(9.4), Y(ya)]], 96), M.alu, { label: '', sub: '' });
-      G.frame.add(ring); parts.frame.push(ring);
+      G.frame.add(ring);
     }
   }
 
@@ -1281,9 +1281,9 @@ function buildCurta(S) {
     const crTip = yAx - spR - 0.04, crRoot = yAx - spT - 0.05, crBot = crRoot - 0.9;
     const crPhase = 0.91 * 72 + 2 * -162 + 180;                       // crown teeth into the spur gaps (wheel angle -162° at 0)
     const floor = mesh(lathe([[R(9.4), Y(61.6)], [R(20.7), Y(61.6)], [R(20.7), Y(62.4)], [R(9.4), Y(62.4)], [R(9.4), Y(61.6)]], 96), M.alu, { label: '', sub: '' });
-    G.carMech.add(floor); parts.frame.push(floor);
+    G.carMech.add(floor);
     const hub = mesh(lathe([[R(8.0), Y(62.4)], [R(16.2), Y(62.4)], [R(16.2), crBot - 0.15], [R(8.0), crBot - 0.15]], 96), M.alu, { label: '', sub: '' });
-    G.carMech.add(hub); parts.frame.push(hub);
+    G.carMech.add(hub);
     const makeWheelUnit = (phi, isCnt, idx) => {
       const pv = pivot(phi); G.carMech.add(pv);
       const vert = new THREE.Group(); vert.position.set(0, 0, D.rT); pv.add(vert);
