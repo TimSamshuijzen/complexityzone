@@ -189,7 +189,7 @@
       }
 
       .overlay button,
-      .help-actions button {
+      .info-actions button {
         padding: 12px 17px;
         border: 1px solid var(--button);
         border-radius: 2px;
@@ -199,7 +199,7 @@
         letter-spacing: 1px;
       }
 
-      .help {
+      .info {
         width: min(440px, calc(100% - 36px));
         max-width: none;
         max-height: calc(100% - 36px);
@@ -213,29 +213,29 @@
         user-select: text;
       }
 
-      .help::backdrop {
+      .info::backdrop {
         background: #000000d9;
         backdrop-filter: blur(8px);
       }
 
-      .help-card {
+      .info-card {
         padding: 30px;
       }
 
-      .help-card h2 {
+      .info-card h2 {
         margin: 12px 0 16px;
         color: var(--title);
         font-size: 26px;
         letter-spacing: 2px;
       }
 
-      .help-card p {
+      .info-card p {
         color: var(--dialog-text);
         font-size: 12px;
         line-height: 1.8;
       }
 
-      .help-controls {
+      .info-controls {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
@@ -243,25 +243,25 @@
         font: 11px monospace;
       }
 
-      .help-actions {
+      .info-actions {
         display: flex;
         gap: 10px;
         margin-top: 16px;
       }
 
-      .help-actions #reset-button {
+      .info-actions #reset-button {
         background: transparent;
         color: var(--text);
       }
 
-      .help-card .credits {
+      .info-card .credits {
         margin: 20px 0 0;
         color: var(--muted);
         font-size: 10px;
         line-height: 1.6;
       }
 
-      .help-card a {
+      .info-card a {
         color: var(--link);
       }
 
@@ -345,30 +345,30 @@
           letter-spacing: 0;
         }
 
-        .help-card {
+        .info-card {
           padding: 20px;
         }
 
-        .help-card h2 {
+        .info-card h2 {
           font-size: 22px;
         }
 
-        .help-card p {
+        .info-card p {
           font-size: 11px;
           line-height: 1.65;
         }
 
-        .help-controls {
+        .info-controls {
           gap: 10px;
           font-size: 10px;
         }
 
-        .help-actions button {
+        .info-actions button {
           padding: 10px 11px;
           font-size: 10px;
         }
 
-        .help-card .credits {
+        .info-card .credits {
           margin-top: 16px;
           font-size: 9px;
         }
@@ -392,30 +392,30 @@
           padding: 6px 10px;
         }
 
-        .help {
+        .info {
           width: min(650px, calc(100% - 36px));
         }
 
-        .help-card {
+        .info-card {
           padding: 14px 22px;
         }
 
-        .help-card h2 {
+        .info-card h2 {
           margin: 6px 0;
           font-size: 22px;
         }
 
-        .help-controls {
+        .info-controls {
           grid-template-columns: 1fr 1fr 1fr;
           padding: 6px 0;
           gap: 8px;
         }
 
-        .help-card p {
+        .info-card p {
           margin: 6px 0;
         }
 
-        .help-card .credits {
+        .info-card .credits {
           margin-top: 10px;
         }
       }
@@ -869,8 +869,8 @@
         <button id="pause-button" title="Pause · P" aria-pressed="false">PAUSE</button>
         <button id="view-button" title="Screen view · V" aria-pressed="false">SCREEN</button>
         <button id="fullscreen-button" title="Fullscreen · F">FULLSCREEN</button>
-        <button id="help-button" title="Help · H" aria-haspopup="dialog" aria-expanded="false">
-          HELP
+        <button id="info-button" title="Info · I" aria-haspopup="dialog" aria-expanded="false">
+          INFO
         </button>
       </nav>
     </header>
@@ -1679,14 +1679,14 @@
       <button data-action="bomb">BOMB</button>
       <button data-action="hyper">HYPER</button>
     </div>
-    <dialog id="help" class="help" aria-labelledby="help-title">
-      <div class="help-card">
-        <h2 id="help-title">DEFENDER</h2>
+    <dialog id="info" class="info" aria-labelledby="info-title">
+      <div class="info-card">
+        <h2 id="info-title">DEFENDER</h2>
         <p>
           Insert a coin, then press <b>1</b> to start. For two players, insert two coins and press
           <b>2</b>; players take turns.
         </p>
-        <div class="help-controls">
+        <div class="info-controls">
           <span>C / 5 · Insert coin</span>
           <span>1 / 2 · Start</span>
           <span>↑ ↓ / W S · Up, down</span>
@@ -1698,10 +1698,10 @@
           <span>P · Pause</span>
           <span>V · Screen view</span>
           <span>F · Fullscreen</span>
-          <span>H · Help</span>
+          <span>I · Info</span>
         </div>
-        <div class="help-actions">
-          <button id="close-help" autofocus>BACK TO GAME</button>
+        <div class="info-actions">
+          <button id="close-info" autofocus>BACK TO GAME</button>
           <button id="reset-button">RESET MACHINE</button>
         </div>
         <p class="credits">
@@ -5449,7 +5449,7 @@
       const context = canvas.getContext("2d", { alpha: false });
       const frameImage = context.createImageData(canvas.width, canvas.height);
       const pixels = new Uint32Array(frameImage.data.buffer);
-      const help = byId("help");
+      const info = byId("info");
       const joystick = byId("joystick");
       const stick = byId("stick");
       const controls = [...document.querySelectorAll("[data-action]")];
@@ -5466,7 +5466,7 @@
         KeyP: "pause",
         KeyV: "view",
         KeyF: "fullscreen",
-        KeyH: "help",
+        KeyI: "info",
         Escape: "escape",
       };
 
@@ -5477,7 +5477,7 @@
         pause: () => setPaused(!paused),
         view: toggleView,
         fullscreen: toggleFullscreen,
-        help: openHelp,
+        info: openInfo,
         escape: () => setPaused(false),
       };
 
@@ -5632,7 +5632,7 @@
         requestAnimationFrame(animate);
         const delta = lastTime ? Math.min(time - lastTime, 100) : 0;
         lastTime = time;
-        if (failed || !machineReady || paused || help.open || document.hidden) {
+        if (failed || !machineReady || paused || info.open || document.hidden) {
           elapsed = 0;
           return;
         }
@@ -5697,7 +5697,7 @@
       }
 
       function syncAudio() {
-        const active = machineReady && !paused && !help.open && !document.hidden;
+        const active = machineReady && !paused && !info.open && !document.hidden;
         if (!active) stopAudio();
         game.setAudioActive?.(active);
       }
@@ -5749,23 +5749,23 @@
         }
       }
 
-      function openHelp() {
-        if (help.open) return;
+      function openInfo() {
+        if (info.open) return;
         releaseControls();
-        help.showModal();
-        byId("help-button").setAttribute("aria-expanded", "true");
+        info.showModal();
+        byId("info-button").setAttribute("aria-expanded", "true");
         syncAudio();
       }
 
-      function onHelpClosed() {
-        byId("help-button").setAttribute("aria-expanded", "false");
+      function onInfoClosed() {
+        byId("info-button").setAttribute("aria-expanded", "false");
         lastTime = 0;
         syncAudio();
         focusGame();
       }
 
       function insertCoin() {
-        if (!machineReady || help.open) return;
+        if (!machineReady || info.open) return;
         unlockAudio();
         if (paused) setPaused(false);
         queuedCoins++;
@@ -5773,7 +5773,7 @@
       }
 
       function startPlayer(players) {
-        if (!machineReady || help.open) return;
+        if (!machineReady || info.open) return;
         unlockAudio();
         if (paused) setPaused(false);
         focusGame();
@@ -5942,7 +5942,7 @@
       }
 
       function resetMachine() {
-        help.close();
+        info.close();
         setPaused(false);
         stopAudio();
         queuedCoins = 0;
@@ -5969,10 +5969,10 @@
         (event) => {
           const binding = keyBinding(event);
           if (!binding) return;
-          if (help.open) {
-            if (binding.command === "help") {
+          if (info.open) {
+            if (binding.command === "info") {
               event.preventDefault();
-              help.close();
+              info.close();
             }
             return;
           }
@@ -5993,7 +5993,7 @@
         "keyup",
         (event) => {
           if (heldKeys.delete(event.code)) applyControls();
-          if (!help.open && keyBinding(event)) event.preventDefault();
+          if (!info.open && keyBinding(event)) event.preventDefault();
         },
         { capture: true },
       );
@@ -6044,15 +6044,15 @@
       byId("pause-button").addEventListener("click", () => setPaused(!paused));
       byId("view-button").addEventListener("click", toggleView);
       byId("fullscreen-button").addEventListener("click", toggleFullscreen);
-      byId("help-button").addEventListener("click", openHelp);
+      byId("info-button").addEventListener("click", openInfo);
       byId("resume-button").addEventListener("click", () => setPaused(false));
       byId("reload-button").addEventListener("click", () => location.reload());
-      byId("close-help").addEventListener("click", () => help.close());
+      byId("close-info").addEventListener("click", () => info.close());
       byId("reset-button").addEventListener("click", resetMachine);
-      help.addEventListener("close", onHelpClosed);
+      info.addEventListener("close", onInfoClosed);
 
-      help.addEventListener("click", (event) => {
-        if (event.target === help) help.close();
+      info.addEventListener("click", (event) => {
+        if (event.target === info) info.close();
       });
 
       canvas.addEventListener("pointerdown", () => {
