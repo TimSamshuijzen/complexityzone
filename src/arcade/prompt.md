@@ -1,9 +1,13 @@
 
 See `src/arcade/defender.html`.
-It is a simulation of classic arcade game Defender.
+It is a simulation of classic arcade game Defender (1981).
 
-See the console panel-art img.
+Remove the speaker-panel and speaker.
 
-Please replace img with svg code. Use svg code in `src/arcade/img/defender_control_panel.svg`.
-Adjust where necessary, make sure it looks good and aligns well.
+Reduce height of lower section.
+In the lower section:
+- Remove the :before and :after artwork.
+- Remove the williams-badge.
+- Just a single INSERT COIN button.
+
 
