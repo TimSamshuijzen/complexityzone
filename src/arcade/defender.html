@@ -136,24 +136,6 @@
         content: "/ ";
       }
 
-      .edition {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        color: var(--muted);
-        white-space: nowrap;
-        font: 10px monospace;
-        letter-spacing: 2px;
-      }
-
-      .edition i {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 12px var(--accent);
-      }
-
       .tools {
         display: flex;
         gap: 7px;
@@ -423,8 +405,7 @@
 
       @media (max-width: 1120px) {
         .side-note,
-        .legend,
-        .edition {
+        .legend {
           display: none;
         }
       }
@@ -991,7 +972,6 @@
         <a class="crumb" href="https://complexity.zone/arcade/">arcade</a>
         <span class="crumb">Defender</span>
       </nav>
-      <div class="edition"><i></i><span>DEFENDER / TAITO / WILLIAMS / 1981</span></div>
       <nav class="tools" aria-label="Game options">
         <button id="sound-button" title="Sound · M" aria-pressed="false">SOUND OFF</button>
         <button id="pause-button" title="Pause · P" aria-pressed="false">PAUSE</button>
@@ -1862,7 +1842,6 @@
           <dd>M</dd>
         </div>
       </dl>
-      <p>Left reverses your ship.<br />Right engages the thrusters.</p>
     </aside>
     <div class="touch-controls" aria-label="Touch controls">
       <button data-action="coin">COIN</button>
