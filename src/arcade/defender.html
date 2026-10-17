@@ -416,8 +416,6 @@
 
       .screen-only .cabinet > :not(.bezel),
       .screen-only .bezel > :not(.screen-shell),
-      .screen-only .cabinet::before,
-      .screen-only .cabinet::after,
       .screen-only .side-note,
       .screen-only .legend {
         display: none;
@@ -568,28 +566,6 @@
           -3px 0 0 #494044,
           3px 0 0 #292629,
           inset 0 0 0 2px #55504a;
-      }
-
-      .cabinet::before,
-      .cabinet::after {
-        content: "";
-        position: absolute;
-        top: 164px;
-        bottom: 6px;
-        width: 13px;
-        z-index: 4;
-        background: linear-gradient(90deg, #09090a, #474142 40%, #151417 75%);
-        border-radius: 3px;
-        box-shadow: 2px 0 4px #000;
-      }
-
-      .cabinet::before {
-        left: 5px;
-      }
-
-      .cabinet::after {
-        right: 5px;
-        transform: scaleX(-1);
       }
 
       .marquee {
