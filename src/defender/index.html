@@ -969,11 +969,6 @@
       <p>Insert a coin, then press 1 PLAYER.</p>
       <div class="rule"></div>
       <p class="spec">
-        CPU:<br />Motorola MC6809E @ 1 MHz<br />Sound:<br />Motorola MC6808 @ 0.895 MHz<br />
-        Motorola MC1408 8-bit DAC
-      </p>
-      <div class="rule"></div>
-      <p class="spec">
         Source:<br /><a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
           >mwenge/defender</a
         ><br />assembled at startup<br />ROM checksums:<br />
@@ -1852,22 +1847,29 @@
           <button id="reset-button">RESET MACHINE</button>
         </div>
         <p class="credits">
-          Original game © Williams Electronics, 1981. Game and sound ROMs assembled in this page at
-          startup from the original source (Eugene Jarvis and Sam Dicker), fetched from
-          <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
-            >mwenge/defender</a
-          >
-          on GitHub and checked against the checksums in its Makefile. Emulation: CPU cores adapted
-          from
+          CPU: Motorola MC6809E at 1 MHz.<br />
+          Sound: Motorola MC6808 at 0.895 MHz with a Motorola MC1408 8-bit DAC.<br />
+          <br />
+          CPU cores adapted from
           <a href="https://github.com/iapx86/JavaScript" target="_blank" rel="noopener"
             >iapx86 / JavaScript</a
-          >. Hardware reference:
+          >.<br />
+          Hardware reference:
           <a
             href="https://github.com/mamedev/mame/blob/master/src/mame/williams/williams.cpp"
             target="_blank"
             rel="noopener"
             >MAME williams driver</a
           >.
+        </p>
+        <p class="credits">
+          This is not affiliated with ©Williams Electronics.<br />
+          This is a compiler and emulator, running in your browser. 
+          Game and sound code (by Eugene Jarvis and Sam Dicker) is fetched from
+          <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
+            >mwenge/defender</a
+          >
+          on GitHub at startup and checked against the checksums in its Makefile.
         </p>
       </div>
     </dialog>
