@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450" role="img" aria-labelledby="title desc">
-  <title id="title">Approximate Hyperspace Arcade Control Panel</title>
-  <desc id="desc">A simplified vector recreation of a retro arcade control panel, built from basic SVG elements and grouped for easy editing.</desc>
+  <title id="title">Defender Control Panel</title>
+  <desc id="desc">A simplified vector recreation of a retro arcade control panel.</desc>
 
   <!-- Basic reusable styling -->
   <defs>
