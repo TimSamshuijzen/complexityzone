@@ -506,23 +506,6 @@
         filter: saturate(1.15) brightness(1.13);
       }
 
-      .glass {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        background: repeating-linear-gradient(0deg, #0002 0 1px, transparent 1px 3px);
-        box-shadow: inset 0 0 22px 10px #0005;
-      }
-
-      .glass::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: linear-gradient(125deg, #a6bdd308, transparent 28%, transparent 78%, #9eb7bf04);
-      }
-
       .console {
         position: absolute;
         left: 27px;
@@ -1128,7 +1111,6 @@
               tabindex="0"
               aria-label="Defender game screen. Insert a coin with C or 5, then press 1 to start."
             ></canvas>
-            <div class="glass"></div>
             <section id="booting" class="overlay" hidden>
               <h2 id="booting-title">POWERING UP</h2>
             </section>
