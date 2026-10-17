@@ -258,18 +258,6 @@
         transform: translate(-50%, -50%) scale(var(--scale, 0.5));
       }
 
-      .status {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        color: var(--muted);
-        font: 9px monospace;
-        letter-spacing: 2px;
-        text-align: center;
-        white-space: pre;
-      }
-
       .overlay {
         position: absolute;
         z-index: 4;
@@ -431,8 +419,7 @@
       .screen-only .cabinet::before,
       .screen-only .cabinet::after,
       .screen-only .side-note,
-      .screen-only .legend,
-      .screen-only .status {
+      .screen-only .legend {
         display: none;
       }
 
@@ -993,8 +980,10 @@
         bottom: 11px;
         background: linear-gradient(110deg, #202024, #121215 42%, #242026);
         border-top: 2px solid #070708;
-        display: grid;
-        place-items: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
       }
 
       .coin {
@@ -1022,6 +1011,24 @@
       .coin:hover span,
       .coin.active span {
         background: #98521c;
+      }
+
+      .status {
+        width: 400px;
+        height: 47px;
+        display: grid;
+        place-items: center;
+        padding: 0 10px;
+        background: #070708;
+        border: 2px solid #2b292a;
+        box-shadow:
+          inset 0 0 8px #000,
+          2px 2px 0 #070707;
+        color: var(--muted);
+        font: 9px monospace;
+        letter-spacing: 1.5px;
+        text-align: center;
+        white-space: pre-wrap;
       }
 
       .screen-only canvas {
@@ -1860,9 +1867,9 @@
           <button class="coin" data-action="coin" title="Insert coin · C / 5">
             <span>INSERT<br />COIN</span>
           </button>
+          <div id="status" class="status" role="status"></div>
         </div>
       </div>
-      <div id="status" class="status" role="status"></div>
     </main>
     <aside class="legend">
       <div class="eyebrow">FLIGHT CONTROLS</div>
