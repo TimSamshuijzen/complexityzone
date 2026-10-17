@@ -1,0 +1,268 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450" role="img" aria-labelledby="title desc">
+  <title id="title">Approximate Hyperspace Arcade Control Panel</title>
+  <desc id="desc">A simplified vector recreation of a retro arcade control panel, built from basic SVG elements and grouped for easy editing.</desc>
+
+  <!-- Basic reusable styling -->
+  <defs>
+    <style>
+      .bg{fill:#000}
+      .w{fill:none;stroke:#f2f2f2;stroke-width:4;stroke-linejoin:miter;stroke-linecap:square}
+      .wf{fill:#f2f2f2}
+      .r{fill:#ff1238}
+      .y{fill:#ffd51e}
+      .g{fill:#39ff14}
+      .b{fill:#0c63ff}
+      .label{fill:#f2f2f2;font-family:"Arial Narrow",Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:1px}
+      .small{font-size:12px}
+      .title{font-size:20px;font-weight:900}
+      .tiny{font-size:10px}
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect class="bg" x="0" y="0" width="1200" height="450"/>
+
+  <!-- Outer frame -->
+  <g id="outer-frame">
+    <rect class="w" x="10" y="10" width="1180" height="430"/>
+  </g>
+
+  <!-- Decorative color rails running behind the panels -->
+  <g id="background-rails">
+    <rect class="y" x="455" y="120" width="290" height="14"/>
+    <rect class="g" x="455" y="150" width="290" height="10"/>
+    <rect class="r" x="455" y="180" width="290" height="10"/>
+    <rect class="y" x="455" y="345" width="290" height="18"/>
+    <rect class="r" x="455" y="375" width="290" height="20"/>
+
+    <rect class="y" x="140" y="330" width="220" height="14"/>
+    <rect class="r" x="140" y="352" width="220" height="10"/>
+    <rect class="g" x="140" y="320" width="220" height="10"/>
+
+    <rect class="y" x="840" y="332" width="220" height="14"/>
+    <rect class="r" x="840" y="354" width="220" height="10"/>
+    <rect class="g" x="840" y="320" width="220" height="10"/>
+  </g>
+
+  <!-- Left side cluster -->
+  <g id="left-panel">
+    <!-- Main box -->
+    <rect class="w" x="20" y="25" width="380" height="250"/>
+
+    <!-- Top-left vertical meters -->
+    <g id="left-meters">
+      <rect class="w" x="35" y="55" width="40" height="120"/>
+      <rect class="w" x="80" y="55" width="40" height="120"/>
+      <rect class="w" x="125" y="55" width="40" height="120"/>
+      <rect class="r" x="37" y="108" width="36" height="36"/>
+      <rect class="g" x="37" y="148" width="36" height="8"/>
+      <rect class="g" x="37" y="160" width="36" height="8"/>
+      <rect class="y" x="82" y="108" width="36" height="36"/>
+      <rect class="r" x="82" y="160" width="36" height="8"/>
+      <rect class="r" x="82" y="148" width="36" height="8"/>
+      <rect class="g" x="127" y="65" width="36" height="8"/>
+      <rect class="y" x="127" y="98" width="36" height="12"/>
+      <rect class="g" x="127" y="148" width="36" height="8"/>
+      <rect class="g" x="127" y="160" width="36" height="8"/>
+    </g>
+
+    <!-- Tall center indicator arrow -->
+    <g id="left-arrow-indicator">
+      <polygon class="w" points="175,45 205,25 235,45 235,225 205,245 175,225"/>
+      <polygon class="wf" points="177,48 205,30 233,48 233,222 205,240 177,222"/>
+    </g>
+
+    <!-- Small meter bank -->
+    <g id="left-small-meters">
+      <rect class="w" x="275" y="55" width="32" height="82"/>
+      <rect class="w" x="312" y="55" width="32" height="82"/>
+      <rect class="w" x="349" y="55" width="32" height="82"/>
+      <rect class="w" x="386" y="55" width="0" height="0" visibility="hidden"/>
+      <rect class="w" x="275" y="55" width="0" height="0" visibility="hidden"/>
+      <rect class="w" x="386" y="55" width="0" height="0" visibility="hidden"/>
+      <rect class="w" x="238" y="55" width="32" height="82"/>
+      <rect class="y" x="240" y="74" width="28" height="20"/>
+      <rect class="g" x="240" y="98" width="28" height="8"/>
+      <rect class="r" x="240" y="110" width="28" height="12"/>
+      <rect class="y" x="277" y="74" width="28" height="20"/>
+      <rect class="r" x="277" y="98" width="28" height="8"/>
+      <rect class="g" x="277" y="110" width="28" height="10"/>
+      <rect class="g" x="277" y="124" width="28" height="8"/>
+      <rect class="r" x="314" y="74" width="28" height="16"/>
+      <rect class="y" x="314" y="94" width="28" height="10"/>
+      <rect class="r" x="314" y="108" width="28" height="8"/>
+      <rect class="y" x="349" y="88" width="28" height="16"/>
+      <rect class="r" x="349" y="108" width="28" height="8"/>
+    </g>
+
+    <!-- Reverse button -->
+    <g id="reverse-button">
+      <circle class="wf" cx="270" cy="185" r="26"/>
+      <text class="label" x="220" y="240">REVERSE</text>
+    </g>
+
+    <!-- Lower left radar box -->
+    <g id="left-radar">
+      <rect class="w" x="20" y="180" width="150" height="95"/>
+      <line class="w" x1="30" y1="265" x2="160" y2="190"/>
+      <line class="w" x1="30" y1="190" x2="160" y2="265"/>
+      <line class="w" x1="95" y1="180" x2="95" y2="275"/>
+      <line class="w" x1="20" y1="227" x2="170" y2="227"/>
+      <polyline class="w" points="28,257 44,240 60,232 76,220 92,216 108,211 124,209 140,206 156,202"/>
+      <g opacity="0.65">
+        <line class="w" x1="30" y1="200" x2="160" y2="200"/>
+        <line class="w" x1="30" y1="214" x2="160" y2="214"/>
+        <line class="w" x1="30" y1="241" x2="160" y2="241"/>
+        <line class="w" x1="30" y1="254" x2="160" y2="254"/>
+        <line class="w" x1="40" y1="188" x2="40" y2="265"/>
+        <line class="w" x1="58" y1="188" x2="58" y2="265"/>
+        <line class="w" x1="76" y1="188" x2="76" y2="265"/>
+        <line class="w" x1="114" y1="188" x2="114" y2="265"/>
+        <line class="w" x1="132" y1="188" x2="132" y2="265"/>
+        <line class="w" x1="150" y1="188" x2="150" y2="265"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- Center section -->
+  <g id="center-panel">
+    <!-- Stylized wing caps around title panel -->
+    <polyline class="w" points="400,10 470,10 520,40 470,68 470,90"/>
+    <polyline class="w" points="800,10 730,10 680,40 730,68 730,90"/>
+
+    <!-- Start / player selection block -->
+    <g id="start-panel">
+      <rect class="w" x="430" y="55" width="340" height="120"/>
+      <text class="label title" x="560" y="35">GAME</text>
+      <text class="label title" x="555" y="58">START</text>
+
+      <!-- White circular buttons -->
+      <circle class="wf" cx="475" cy="95" r="24"/>
+      <circle class="wf" cx="725" cy="95" r="24"/>
+
+      <!-- Blue centerpiece -->
+      <path d="M535,70 L665,70 L650,88 L650,112 L665,130 L535,130 L550,112 L550,88 Z" fill="#0c63ff"/>
+
+      <!-- Player labels -->
+      <text class="label" x="450" y="148">1 PLAYER</text>
+      <text class="label" x="665" y="148">2 PLAYERS</text>
+      <rect class="b" x="563" y="132" width="74" height="18"/>
+    </g>
+
+    <!-- Red explosion / artwork area -->
+    <g id="explosion-panel">
+      <rect class="w" x="430" y="175" width="340" height="105"/>
+      <polygon class="r" points="450,250 500,240 470,220 545,230 520,198 590,220 600,190 625,220 690,200 660,228 730,215 674,243 750,255 662,257 695,275 620,261 600,280 580,258 520,272 550,248"/>
+    </g>
+
+    <!-- Bottom center hyperspace bar -->
+    <g id="hyperspace-panel">
+      <rect class="w" x="420" y="280" width="350" height="95"/>
+      <rect class="b" x="432" y="292" width="326" height="26"/>
+      <rect class="b" x="432" y="320" width="326" height="18"/>
+      <rect class="b" x="432" y="340" width="326" height="22"/>
+      <circle class="wf" cx="595" cy="327" r="34"/>
+      <text class="label title" x="510" y="428">HYPERSPACE</text>
+    </g>
+  </g>
+
+  <!-- Right side cluster -->
+  <g id="right-panel">
+    <!-- Main box -->
+    <rect class="w" x="800" y="25" width="380" height="250"/>
+
+    <!-- Downward arrow accents -->
+    <polyline class="w" points="820,20 910,20 910,140 885,170 860,140 860,95 820,20" visibility="hidden"/>
+    <polygon class="w" points="820,25 900,25 900,140 885,155 870,140 870,25" fill="none"/>
+    <polygon class="w" points="790,60 835,60 835,215 810,240 785,215 785,100" fill="none"/>
+
+    <!-- Top color dashes -->
+    <rect class="y" x="860" y="10" width="12" height="18"/>
+    <rect class="y" x="1000" y="10" width="10" height="18"/>
+    <rect class="g" x="1030" y="10" width="8" height="18"/>
+    <rect class="r" x="1120" y="10" width="10" height="18"/>
+
+    <!-- Thrust and Fire control area -->
+    <g id="thrust-fire-controls">
+      <rect class="w" x="885" y="65" width="200" height="130"/>
+      <text class="label" x="900" y="95">THRUST</text>
+      <text class="label" x="1005" y="95">FIRE</text>
+      <circle class="wf" cx="950" cy="150" r="32"/>
+      <circle class="wf" cx="1050" cy="150" r="32"/>
+    </g>
+
+    <!-- Vertical meters on far right -->
+    <g id="right-meters">
+      <rect class="w" x="1100" y="55" width="38" height="120"/>
+      <rect class="w" x="1143" y="55" width="38" height="120"/>
+      <rect class="r" x="1102" y="76" width="34" height="24"/>
+      <rect class="g" x="1102" y="120" width="34" height="10"/>
+      <rect class="g" x="1102" y="135" width="34" height="8"/>
+      <rect class="r" x="1102" y="148" width="34" height="24"/>
+      <rect class="y" x="1145" y="76" width="34" height="28"/>
+      <rect class="r" x="1145" y="108" width="34" height="20"/>
+      <rect class="g" x="1145" y="148" width="34" height="10"/>
+    </g>
+
+    <!-- Smart bomb button -->
+    <g id="smart-bomb-control">
+      <circle class="wf" cx="835" cy="205" r="26"/>
+      <text class="label" x="805" y="235">SMART</text>
+      <text class="label" x="810" y="253">BOMB</text>
+    </g>
+
+    <!-- Crosshair display -->
+    <g id="crosshair-display">
+      <rect class="w" x="930" y="205" width="180" height="95" rx="6"/>
+      <circle class="w" cx="1020" cy="252" r="38"/>
+      <line class="w" x1="1020" y1="214" x2="1020" y2="290"/>
+      <line class="w" x1="982" y1="252" x2="1058" y2="252"/>
+      <line class="w" x1="955" y1="222" x2="1085" y2="282"/>
+      <line class="w" x1="1085" y1="222" x2="955" y2="282"/>
+      <polygon class="r" points="978,252 955,246 955,258"/>
+      <polygon class="r" points="1062,252 1085,246 1085,258"/>
+      <rect class="r" x="1016" y="220" width="8" height="28"/>
+      <rect class="r" x="1016" y="256" width="8" height="28"/>
+    </g>
+
+    <!-- Lower small indicator bank -->
+    <g id="lower-right-indicators">
+      <rect class="w" x="1100" y="220" width="34" height="34"/>
+      <rect class="w" x="1138" y="220" width="34" height="34"/>
+      <rect class="w" x="1176" y="220" width="4" height="34" visibility="hidden"/>
+      <rect class="w" x="1176" y="220" width="34" height="34" transform="translate(-4,0)"/>
+      <rect class="y" x="1103" y="230" width="28" height="10"/>
+      <rect class="g" x="1141" y="228" width="28" height="10"/>
+      <rect class="y" x="1141" y="242" width="28" height="8"/>
+      <rect class="r" x="1175" y="230" width="24" height="18"/>
+    </g>
+  </g>
+
+  <!-- Bottom keyboard-like controls -->
+  <g id="lower-control-strips">
+    <!-- Left bank -->
+    <polygon class="w" points="55,287 155,287 105,370 15,370"/>
+    <polygon class="w" points="175,287 220,287 190,370 145,370"/>
+    <polygon class="w" points="235,287 280,287 260,370 215,370"/>
+    <polygon class="w" points="295,287 330,287 330,370 285,370"/>
+    <polygon class="w" points="340,287 370,287 370,370 340,370"/>
+
+    <!-- Right bank -->
+    <polygon class="w" points="800,287 830,287 830,370 800,370"/>
+    <polygon class="w" points="842,287 885,287 905,370 860,370"/>
+    <polygon class="w" points="900,287 950,287 980,370 935,370"/>
+    <polygon class="w" points="960,287 1025,287 1080,370 1030,370"/>
+    <polygon class="w" points="1038,287 1110,287 1170,370 1108,370"/>
+
+    <!-- Corner blue fields -->
+    <rect class="b" x="12" y="287" width="48" height="56"/>
+    <rect class="b" x="1128" y="287" width="55" height="56"/>
+  </g>
+
+  <!-- Bottom red strip and tiny blue end caps -->
+  <g id="footer-strip">
+    <rect class="r" x="18" y="380" width="1164" height="35"/>
+    <rect class="b" x="10" y="390" width="14" height="25"/>
+    <rect class="b" x="1178" y="390" width="12" height="25"/>
+  </g>
+</svg>
