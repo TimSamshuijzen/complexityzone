@@ -51,7 +51,7 @@ text{font-family:Arial,Helvetica,sans-serif}
 </defs>
 <rect class="bg" x="0" y="0" width="1280" height="800"/>
 <rect x="10" y="10" width="1260" height="78" rx="6" class="panel"/>
-<text x="24" y="28" class="blabel" style="fill:#ffffff">CONTROL PANEL &amp; COIN DOOR</text>
+<text x="24" y="28" class="blabel" style="fill:#ffffff">CONTROL PANEL &amp; COIN</text>
 <text x="165" y="42" class="pin" text-anchor="middle">PA4</text>
 <text x="165" y="54" class="sw" text-anchor="middle">COIN</text>
 <circle cx="165" cy="66" r="6.5" fill="#fdcc05" class="btn"/>
@@ -342,13 +342,13 @@ text{font-family:Arial,Helvetica,sans-serif}
 <circle cx="925" cy="475" r="3" class="sd"/>
 <polyline points="925,475 925,487 938,487" class="snd" marker-end="url(#arrS)"/>
 <rect x="10" y="520" width="1260" height="270" rx="6" class="panel"/>
-<text x="24" y="537" class="blabel" style="fill:#ffffff">SOURCE → ASSEMBLER → ROMS (IN THE BROWSER, AT STARTUP)</text>
+<text x="24" y="537" class="blabel" style="fill:#ffffff">SOURCE → ASSEMBLER → ROMS</text>
 <rect x="24" y="578" width="170" height="104" rx="6" class="chip"/>
 <text x="109" y="604" class="ct" text-anchor="middle">GitHub</text>
 <text x="109" y="621" class="cs" text-anchor="middle">mwenge/defender</text>
 <text x="109" y="637" class="cm" text-anchor="middle">@ e740063</text>
 <text x="109" y="653" class="cm" text-anchor="middle">src/</text>
-<text x="109" y="670" class="pin" text-anchor="middle">fetch</text>
+<text x="109" y="670" class="pin" text-anchor="middle">fetch at startup</text>
 <polyline points="194,630 222,630" class="pbus"/>
 <polyline points="222,580 222,745" class="pbus"/>
 <polyline points="222,580 248,580" class="p" marker-end="url(#arrP)"/>
