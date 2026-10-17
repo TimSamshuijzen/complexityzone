@@ -6,263 +6,311 @@
   <defs>
     <style>
       .bg{fill:#000}
-      .w{fill:none;stroke:#f2f2f2;stroke-width:4;stroke-linejoin:miter;stroke-linecap:square}
-      .wf{fill:#f2f2f2}
-      .r{fill:#ff1238}
-      .y{fill:#ffd51e}
-      .g{fill:#39ff14}
-      .b{fill:#0c63ff}
-      .label{fill:#f2f2f2;font-family:"Arial Narrow",Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:1px}
-      .small{font-size:19px}
-      .title{font-size:31px;font-weight:900}
-      .tiny{font-size:10px}
+      .w{fill:none;stroke:#fefefe;stroke-width:5;stroke-linejoin:miter;stroke-linecap:square}
+      .wt{fill:none;stroke:#fefefe;stroke-width:3.4;stroke-linejoin:miter;stroke-linecap:square}
+      .wh{fill:none;stroke:#fefefe;stroke-width:1.6}
+      .k{fill:#000}
+      .wf{fill:#fefefe}
+      .r{fill:#f9011f}
+      .y{fill:#fdcc05}
+      .g{fill:#02f202}
+      .b{fill:#0058d8}
+      .rl{fill:none;stroke:#f9011f;stroke-width:1.6}
+      .rl2{fill:none;stroke:#f9011f;stroke-width:2.4}
+      .label{fill:#fefefe;font-family:"Arial Narrow",Arial,sans-serif;font-weight:700}
+      .dark{fill:#000}
     </style>
   </defs>
 
   <!-- Background -->
   <rect class="bg" x="0" y="0" width="1200" height="450"/>
 
-  <!-- Outer frame -->
-  <g id="outer-frame">
-    <rect class="w" x="12.5" y="23" width="1172.5" height="270" visibility="hidden"/>
-  </g>
-
-  <!-- Decorative color rails running behind the panels -->
+  <!-- Decorative color rails running behind the panels and the keys -->
   <g id="background-rails">
-    <rect class="y" x="406.5" y="126" width="28.5" height="23.5"/>
-    <rect class="g" x="758.5" y="136.5" width="28.5" height="14.5"/>
-    <rect class="r" x="758.5" y="190.5" width="28.5" height="9"/>
-    <rect class="y" x="767" y="331" width="28.5" height="19"/>
-    <rect class="r" x="767" y="357" width="28.5" height="21"/>
+    <!-- Between left panel and center column -->
+    <rect class="r" x="404.75" y="101.6" width="32.25" height="3.1"/>
+    <rect class="y" x="404.75" y="125.9" width="32.25" height="24.2"/>
+    <rect class="y" x="404.75" y="167.2" width="32.25" height="23.3"/>
+    <rect class="r" x="404.75" y="236" width="32.25" height="7.2"/>
+    <rect class="r" x="404.75" y="263.3" width="32.25" height="6.9"/>
 
-    <rect class="y" x="333" y="330.5" width="34" height="19.5"/>
-    <rect class="r" x="238" y="365.5" width="53" height="16.5"/>
-    <rect class="g" x="254" y="324" width="43" height="22.5"/>
+    <!-- Between center column and right panel -->
+    <rect class="y" x="756.3" y="103.9" width="32.65" height="25.7"/>
+    <rect class="g" x="756.3" y="136.4" width="32.65" height="15.4"/>
+    <rect class="r" x="756.3" y="190.6" width="32.65" height="9.3"/>
+    <rect class="y" x="756.3" y="221.4" width="32.65" height="19.5"/>
+    <rect class="y" x="756.3" y="246" width="32.65" height="6.9"/>
+    <rect class="r" x="756.3" y="263.9" width="32.65" height="6.6"/>
 
-    <rect class="y" x="914.5" y="333.5" width="42" height="16.5"/>
-    <rect class="r" x="1026" y="368" width="50" height="15"/>
-    <rect class="g" x="835.5" y="335" width="40" height="20"/>
-  </g>
+    <!-- Bands behind the left keys (the keys' black fill hides the overlap) -->
+    <rect class="r" x="146.3" y="316.6" width="93.9" height="16.7"/>
+    <rect class="y" x="119.6" y="342.4" width="107.7" height="12"/>
+    <rect class="r" x="103.3" y="359.4" width="116.1" height="6.7"/>
+    <rect class="g" x="234.5" y="323.9" width="80.6" height="22.9"/>
+    <rect class="r" x="223.4" y="351.8" width="89.4" height="7.6"/>
+    <rect class="r" x="213.3" y="365.2" width="97.5" height="17.6"/>
+    <rect class="r" x="317.4" y="312.2" width="63.4" height="4.4"/>
+    <rect class="y" x="314.5" y="330.4" width="66.5" height="20.2"/>
+    <rect class="r" x="311.9" y="356.7" width="69.2" height="14.1"/>
+    <rect class="r" x="310.4" y="376.1" width="70.8" height="3.2"/>
+    <rect class="g" x="381" y="341.5" width="59" height="20.5"/>
+    <rect class="y" x="381.1" y="367.9" width="58.9" height="2.6"/>
+    <rect class="y" x="381.2" y="376.1" width="58.8" height="2.9"/>
 
-  <!-- Bottom red strip and tiny blue end caps -->
-  <g id="footer-strip">
-    <rect class="r" x="31.5" y="396" width="1136.5" height="30.5"/>
-    <rect class="b" x="11" y="403" width="15" height="23.5"/>
-    <rect class="b" x="1172.5" y="397" width="14.5" height="29.5"/>
+    <!-- Bands behind the right keys -->
+    <rect class="y" x="753" y="330.4" width="62.7" height="20.2"/>
+    <rect class="r" x="753" y="357" width="63.8" height="22"/>
+    <rect class="r" x="814.7" y="314" width="71.9" height="3.5"/>
+    <rect class="g" x="815.9" y="335.1" width="80.5" height="20.2"/>
+    <rect class="y" x="817" y="362.9" width="88.8" height="20.8"/>
+    <rect class="r" x="887.3" y="315.4" width="74.2" height="5.3"/>
+    <rect class="y" x="895.3" y="333.2" width="83.6" height="17.3"/>
+    <rect class="g" x="903.8" y="356.7" width="93.5" height="20.8"/>
+    <rect class="y" x="965.1" y="321" width="95.2" height="3.8"/>
+    <rect class="y" x="985.5" y="340" width="103.3" height="22"/>
+    <rect class="r" x="1003.6" y="367.6" width="110.4" height="16.4"/>
   </g>
 
   <!-- Left side cluster -->
   <g id="left-panel">
     <!-- Main box -->
-    <rect class="w" x="12.5" y="23" width="392" height="269.5"/>
+    <rect class="w" x="12.7" y="23.1" width="392.05" height="269.7"/>
 
     <!-- Top-left vertical meters -->
     <g id="left-meters">
-      <rect class="w" x="31" y="58.5" width="34" height="149.5"/>
-      <rect class="w" x="73" y="58.5" width="34" height="149.5"/>
-      <rect class="w" x="115.5" y="58.5" width="34.5" height="149.5"/>
-      <rect class="r" x="33" y="104.5" width="30" height="33.5"/>
-      <rect class="g" x="33" y="171" width="30" height="6"/>
-      <rect class="g" x="33" y="189.5" width="30" height="5.5"/>
-      <rect class="y" x="75" y="104.5" width="30" height="33.5"/>
-      <rect class="r" x="75" y="188.5" width="30" height="5.5"/>
-      <rect class="r" x="75" y="176" width="30" height="6"/>
-      <rect class="g" x="117.5" y="72" width="30.5" height="9"/>
-      <rect class="y" x="117.5" y="104.5" width="30.5" height="8"/>
-      <rect class="g" x="117.5" y="166.5" width="30.5" height="6"/>
-      <rect class="g" x="117.5" y="186.5" width="30.5" height="6"/>
+      <rect class="r" x="30.9" y="104.2" width="33.55" height="34.5"/>
+      <rect class="g" x="30.9" y="171" width="33.55" height="6.9"/>
+      <rect class="g" x="30.9" y="189.2" width="33.55" height="6.4"/>
+      <rect class="y" x="72.95" y="104.2" width="34.3" height="34.2"/>
+      <rect class="r" x="72.95" y="175.7" width="34.3" height="6.9"/>
+      <rect class="r" x="72.95" y="188.6" width="34.3" height="6.1"/>
+      <rect class="g" x="115.45" y="72" width="34.4" height="9.6"/>
+      <rect class="y" x="115.45" y="104.2" width="34.4" height="9"/>
+      <rect class="g" x="115.45" y="166.3" width="34.4" height="6.6"/>
+      <rect class="g" x="115.45" y="186.5" width="34.4" height="6.4"/>
+      <rect class="w" x="30.9" y="58.55" width="33.55" height="149.5"/>
+      <rect class="w" x="72.95" y="58.55" width="34.3" height="149.5"/>
+      <rect class="w" x="115.45" y="58.55" width="34.4" height="149.5"/>
     </g>
 
-    <!-- Tall center indicator arrow -->
+    <!-- Tall center indicator arrow: outlined tips, filled shaft -->
     <g id="left-arrow-indicator">
-      <polygon class="w" points="174.5,56 200,30.5 225.5,56 225.5,215 200,240.5 174.5,215"/>
-      <polygon class="wf" points="174.5,57.5 225.5,57.5 225.5,213 174.5,213"/>
+      <polygon class="wt" points="200.25,30.8 225.9,56.45 225.9,213.8 199.8,241.4 173.7,213.6 173.7,57"/>
+      <polygon class="wf" points="173.7,57.4 225.9,57.4 225.9,213.4 173.7,213.4"/>
     </g>
 
     <!-- Small meter bank -->
     <g id="left-small-meters">
-      <rect class="w" x="284" y="59.5" width="33" height="96.5"/>
-      <rect class="w" x="324.5" y="59.5" width="32.5" height="96.5"/>
-      <rect class="w" x="365" y="59.5" width="32.5" height="96.5"/>
-      <rect class="w" x="386" y="55" width="0" height="0" visibility="hidden"/>
-      <rect class="w" x="275" y="55" width="0" height="0" visibility="hidden"/>
-      <rect class="w" x="386" y="55" width="0" height="0" visibility="hidden"/>
-      <rect class="w" x="243.5" y="59.5" width="32.5" height="96.5"/>
-      <rect class="y" x="245.5" y="85.5" width="28.5" height="21.5"/>
-      <rect class="g" x="245.5" y="111.5" width="28.5" height="7"/>
-      <rect class="r" x="245.5" y="126" width="28.5" height="17.5"/>
-      <rect class="y" x="286" y="75.5" width="29" height="20.5"/>
-      <rect class="r" x="286" y="103" width="29" height="6"/>
-      <rect class="g" x="286" y="118.5" width="29" height="12.5"/>
-      <rect class="g" x="286" y="137" width="29" height="10"/>
-      <rect class="r" x="326.5" y="89" width="28.5" height="25"/>
-      <rect class="y" x="326.5" y="118.5" width="28.5" height="15"/>
-      <rect class="r" x="326.5" y="139" width="28.5" height="6"/>
-      <rect class="y" x="367" y="94.5" width="28.5" height="23.5"/>
-      <rect class="r" x="367" y="124.5" width="28.5" height="14.5"/>
+      <rect class="y" x="243.75" y="84.9" width="32.5" height="22.6"/>
+      <rect class="g" x="243.75" y="111.5" width="32.5" height="7.6"/>
+      <rect class="r" x="243.75" y="125.9" width="32.5" height="17.9"/>
+      <rect class="y" x="284.05" y="75.2" width="32.8" height="21.4"/>
+      <rect class="r" x="284.05" y="103" width="32.8" height="6.5"/>
+      <rect class="g" x="284.05" y="118" width="32.8" height="14.1"/>
+      <rect class="g" x="284.05" y="136.7" width="32.8" height="10.8"/>
+      <rect class="r" x="324.5" y="88.4" width="32.65" height="26.1"/>
+      <rect class="y" x="324.5" y="118.6" width="32.65" height="15.2"/>
+      <rect class="r" x="324.5" y="138.8" width="32.65" height="6.5"/>
+      <rect class="y" x="365.05" y="94.2" width="32.35" height="24"/>
+      <rect class="r" x="365.05" y="124.4" width="32.35" height="15.2"/>
+      <rect class="r" x="365.05" y="142.9" width="32.35" height="4.1"/>
+      <rect class="wt" x="243.75" y="59.45" width="32.5" height="96.7"/>
+      <rect class="wt" x="284.05" y="59.45" width="32.8" height="96.7"/>
+      <rect class="wt" x="324.5" y="59.45" width="32.65" height="96.7"/>
+      <rect class="wt" x="365.05" y="59.45" width="32.35" height="96.7"/>
     </g>
 
     <!-- Reverse button -->
     <g id="reverse-button">
-      <circle class="wf" cx="302" cy="211" r="33.5"/>
-      <text class="label" x="261" y="277" textLength="91" lengthAdjust="spacingAndGlyphs">REVERSE</text>
+      <circle class="wf" cx="302.2" cy="211" r="33.4"/>
+      <text class="label" x="262" y="277.3" font-size="23.3" textLength="88.2" lengthAdjust="spacingAndGlyphs">REVERSE</text>
     </g>
 
-    <!-- Lower left radar box -->
+    <!-- Lower left radar box: red grid with two crossing curves -->
     <g id="left-radar">
-      <rect class="w" x="12.5" y="216" width="152.5" height="76.5"/>
-      <line class="w" x1="22" y1="290" x2="80" y2="243"/>
-      <line class="w" x1="80" y1="243" x2="162" y2="226"/>
-      <line class="w" x1="89.5" y1="216" x2="89.5" y2="292.5"/>
-      <line class="w" x1="12.5" y1="254" x2="165" y2="254"/>
-      <polyline class="w" points="16,236 27,226 38,221.5 50,219.5 64,220.5 84,226 111,240 135,260 161,288"/>
-      <g opacity="0.65">
-        <line class="w" x1="18" y1="237" x2="160" y2="237"/>
-        <line class="w" x1="18" y1="247" x2="160" y2="247"/>
-        <line class="w" x1="18" y1="264" x2="160" y2="264"/>
-        <line class="w" x1="18" y1="274" x2="160" y2="274"/>
-        <line class="w" x1="33" y1="220" x2="33" y2="288"/>
-        <line class="w" x1="50" y1="220" x2="50" y2="288"/>
-        <line class="w" x1="71" y1="220" x2="71" y2="288"/>
-        <line class="w" x1="107.5" y1="220" x2="107.5" y2="288"/>
-        <line class="w" x1="129" y1="220" x2="129" y2="288"/>
-        <line class="w" x1="147.5" y1="220" x2="147.5" y2="288"/>
+      <rect class="w" x="12.7" y="216.25" width="152.4" height="76.55"/>
+      <g>
+        <line class="rl" x1="15.2" y1="229.6" x2="162.6" y2="229.6"/>
+        <line class="rl" x1="15.2" y1="237" x2="162.6" y2="237"/>
+        <line class="rl" x1="15.2" y1="246.9" x2="162.6" y2="246.9"/>
+        <line class="rl" x1="15.2" y1="254.2" x2="162.6" y2="254.2"/>
+        <line class="rl" x1="15.2" y1="264" x2="162.6" y2="264"/>
+        <line class="rl" x1="15.2" y1="273.9" x2="162.6" y2="273.9"/>
+        <line class="rl" x1="15.2" y1="282" x2="162.6" y2="282"/>
+        <line class="rl" x1="32.9" y1="218.8" x2="32.9" y2="290.3"/>
+        <line class="rl" x1="50.4" y1="218.8" x2="50.4" y2="290.3"/>
+        <line class="rl" x1="71.1" y1="218.8" x2="71.1" y2="290.3"/>
+        <line class="rl" x1="89.6" y1="218.8" x2="89.6" y2="290.3"/>
+        <line class="rl" x1="107.7" y1="218.8" x2="107.7" y2="290.3"/>
+        <line class="rl" x1="129" y1="218.8" x2="129" y2="290.3"/>
+        <line class="rl" x1="147.7" y1="218.8" x2="147.7" y2="290.3"/>
       </g>
+      <polyline class="rl" points="16.5,236.2 25,227.5 33,222.5 41,220.6 50.5,219.4 60,220 71.2,222 80,224.4 89.8,228 98,232.3 107.8,238 118,245.5 129,254 138,263 147.8,272.5 155,280.5 162.5,289"/>
+      <polyline class="rl" points="22.5,289 25,286.1 34,275.5 41,268.8 50.5,262 60,254.6 71.2,248.3 80,243.3 89.8,240 98,237.3 107.8,234 118,231 129,229.5 138,227.6 147.8,227 155,226.6 162.5,226.4"/>
     </g>
   </g>
 
   <!-- Center section -->
   <g id="center-panel">
-    <!-- Stylized wing caps around title panel -->
-    <polyline class="w" points="404.5,23 452,23 502,48 452,75.5 437,75.5"/>
-    <polyline class="w" points="789,23 742,23 690.5,48 741.5,75.5 756.5,75.5"/>
+    <!-- Stylized wing caps around title panel, continuing down as the column sides -->
+    <polyline class="w" points="404.75,23.1 453,23.1 501.3,48.5 453,75.5 437,75.5 437,296.8"/>
+    <polyline class="w" points="788.95,23.1 740.9,23.1 691.1,48.5 739.4,74.7 756.3,74.7 756.3,296.8"/>
 
     <!-- Start / player selection block -->
     <g id="start-panel">
-      <rect class="w" x="437" y="75.5" width="319.5" height="123"/>
-      <text class="label title" x="550.5" y="46.3" textLength="89" lengthAdjust="spacingAndGlyphs">GAME</text>
-      <text class="label title" x="547.5" y="74.2" textLength="96" lengthAdjust="spacingAndGlyphs">START</text>
+      <text class="label" x="551.7" y="46.7" font-size="32" textLength="86.7" lengthAdjust="spacingAndGlyphs">GAME</text>
+      <text class="label" x="548.8" y="74.5" font-size="32" textLength="93.4" lengthAdjust="spacingAndGlyphs">START</text>
 
       <!-- White circular buttons -->
-      <circle class="wf" cx="505.5" cy="118" r="33"/>
-      <circle class="wf" cx="687.5" cy="118" r="33"/>
+      <circle class="wf" cx="505.7" cy="118.2" r="33.3"/>
+      <circle class="wf" cx="687.45" cy="118.2" r="33.3"/>
 
-      <!-- Blue centerpiece -->
-      <path d="M539.5,81.5 L654.5,81.5 L640.5,104 L640.5,134 L654.5,157 L538.5,157 L553,134 L553,104 Z" fill="#0c63ff"/>
+      <!-- Blue centerpiece with concave sides -->
+      <path class="b" d="M539.2,81.4 L654.6,81.4 Q621.6,119.2 654.6,157 L539.2,157 Q570.6,119.2 539.2,81.4 Z"/>
 
       <!-- Player labels -->
-      <text class="label" x="456" y="191.4" textLength="102" lengthAdjust="spacingAndGlyphs">1 PLAYER</text>
-      <text class="label" x="630" y="191.4" textLength="117" lengthAdjust="spacingAndGlyphs">2 PLAYERS</text>
-      <rect class="b" x="568" y="170" width="55.5" height="22"/>
+      <text class="label" x="457.3" y="191.7" font-size="25.3" textLength="98.5" lengthAdjust="spacingAndGlyphs">1 PLAYER</text>
+      <text class="label" x="631" y="191.7" font-size="25.3" textLength="113.4" lengthAdjust="spacingAndGlyphs">2 PLAYERS</text>
+      <rect class="b" x="568.1" y="169.9" width="55.6" height="22"/>
+
+      <line class="wt" x1="437" y1="198.65" x2="756.3" y2="198.65"/>
     </g>
 
-    <!-- Red explosion / artwork area -->
+    <!-- Red explosion / artwork area (traced from the original, holes via evenodd) -->
     <g id="explosion-panel">
-      <rect class="w" x="437" y="198.5" width="319.5" height="98.5"/>
-      <polygon class="r" points="441,263 492,252 461,232 538,242 513,209 584,232 595,201 620,232 687,211 656,240 728,227 670,256 748,268 658,270 692,288 615,274 595,294 574,271 513,285 543,261"/>
+      <path class="r" fill-rule="evenodd" d="M568.3,201.1 571.1,202.1 593.4,201.1 584.6,210.6 613.6,201 646.4,201 633.5,210.5 633.8,223.2 688.6,206.6
+        710,214.1 744.6,201.1 750.7,201.1 718,214.3 743.1,211.5 753.4,207.7 752.8,223.1 724.1,229.2 651.1,262.1
+        686.6,264.3 689.2,264.7 688.9,266.5 691.3,266.9 752.8,269.3 753.8,270 753.4,273.4 697.1,269.8 681.3,267.2
+        644.2,265.6 672.5,280.1 750.7,285.4 753.1,286.1 753.1,290.8 745.8,291.2 691.3,287.5 695.2,293.4 689.8,293.6
+        680.7,287.4 655.8,287.7 655.4,288.4 662.3,293.1 657,293.6 643.2,286.2 620.7,286.5 613.3,283.6 608.9,286.4
+        608.3,293.4 603.4,293.5 601.2,290.8 602.6,288.1 590.5,279 575.3,287.8 581.7,292.4 581.4,293.6 578.8,293.4
+        572.9,289.8 566.7,293.5 550.9,283.6 545.1,293.6 487.1,293.5 449,286.2 461.6,280.8 445.5,274.7 441.3,271.7
+        441.4,267.3 469.6,260 468,257.7 442.6,247.4 485,238.6 444.5,203.2 527.8,249.3 518.1,233 461.2,202.9
+        469.2,203.4 530.7,221.9 541.8,232.9 547.1,220 560,218.1Z
+        M480.3,209.2 523.1,232 525.2,231.9 523.7,228.8 528.7,226.6Z
+        M553.9,221.6 549,222.5 545.4,234.6 548.9,233.3 551.8,234.9 553,234.2 558.4,221.9Z
+        M648.8,223.3 604,229.8 588.9,238.9 608.3,238.7 649.7,224 650.2,223.4Z
+        M651.7,226.5 615.2,239.5 650.5,234.9 652.7,226.9Z
+        M710.9,231.5 670.2,240.3 626.7,258.5 632.6,261.2 628.8,262.6 629.2,263.6 642,263.3Z
+        M659.6,241.8 608.7,250.9 622.4,256.9 658.7,243.1 660.5,242.2Z
+        M482.1,249.4 471.9,252.4 485,254.6 483.9,250.3Z
+        M468.6,255.8 474.2,258.7 478.2,258 474.5,256.1Z
+        M506.7,262.6 500.3,272.9 505.8,279.2 520.5,273.3 528.8,267 530.1,263.2Z
+        M637.1,267 621.8,274.4 625.9,277.9 642.3,275.7 661.1,278.7Z
+        M527.5,273.1 522.5,274.9 517.2,278.8 520.8,279.4 523.1,278.2 529.1,274.1Z
+        M641.2,279.3 635,281 634.9,282 648.8,284.8 689.9,285.2 683.6,283.6Z
+        M536,281 529.5,283.7 521.6,289.6 530.7,289.9 540.2,282.9Z"/>
     </g>
 
-    <!-- Bottom center hyperspace bar -->
+    <!-- Bottom center hyperspace box -->
     <g id="hyperspace-panel">
-      <rect class="w" x="428.5" y="297" width="336.5" height="94.5"/>
-      <rect class="b" x="433.5" y="316" width="326.5" height="14.5"/>
-      <rect class="b" x="433.5" y="333.5" width="326.5" height="16"/>
-      <rect class="b" x="433.5" y="352.5" width="326.5" height="27.5"/>
-      <circle class="wf" cx="601" cy="344.5" r="33.5"/>
-      <text class="label title" x="511.5" y="422" textLength="180" lengthAdjust="spacingAndGlyphs">HYPERSPACE</text>
+      <rect class="bg" x="428.35" y="296.8" width="336.75" height="94.65"/>
+      <rect class="b" x="433.6" y="307.8" width="326.1" height="5.2"/>
+      <rect class="b" x="433.6" y="315.7" width="326.1" height="15"/>
+      <rect class="b" x="433.6" y="333.6" width="326.1" height="16.1"/>
+      <rect class="b" x="433.6" y="352.6" width="326.1" height="27.3"/>
+      <circle class="bg" cx="601.9" cy="344.7" r="49.2"/>
+      <circle class="wf" cx="601" cy="344.7" r="32.9"/>
+      <rect class="w" x="428.35" y="296.8" width="336.75" height="94.65"/>
     </g>
   </g>
 
   <!-- Right side cluster -->
   <g id="right-panel">
-    <!-- Main box -->
-    <rect class="w" x="789" y="23" width="396" height="270"/>
+    <!-- Top color dashes (behind the outlines) -->
+    <rect class="y" x="867.6" y="23.1" width="18.5" height="27.15"/>
+    <rect class="y" x="943.7" y="23.1" width="7.2" height="27.15"/>
+    <rect class="g" x="963.7" y="23.1" width="5.1" height="27.15"/>
+    <rect class="r" x="1027.8" y="23.1" width="7.8" height="27.15"/>
 
-    <!-- Downward arrow accents -->
-    <polyline class="w" points="820,20 910,20 910,140 885,170 860,140 860,95 820,20" visibility="hidden"/>
-    <polygon class="w" points="822,23 852.5,23 852.5,150 837.5,175.5 822,150 822,23" fill="none"/>
-    <polygon class="w" points="892.5,50 909.5,65 926,50 979,50 996,64.5 1012.5,50" fill="none"/>
+    <!-- Main outline (open at the crosshair display) -->
+    <path class="w" d="M897,293.7 H788.95 V23.1 H1185.05 V299"/>
+    <line class="wh" x1="1045" y1="299.6" x2="1185" y2="299.6"/>
 
-    <!-- Top color dashes -->
-    <rect class="y" x="868" y="26.5" width="18" height="21"/>
-    <rect class="y" x="944" y="26.5" width="7" height="21"/>
-    <rect class="g" x="964" y="26.5" width="4.5" height="21"/>
-    <rect class="r" x="1028" y="26.5" width="7.5" height="21"/>
+    <!-- Downward arrow accent, running on as the notched top edge of the button area -->
+    <polyline class="w" points="822.05,23.1 822.05,149.75 837.4,175.4 852.7,150.3 852.7,50.25 893.5,50.25 909.3,66 925,50.25 980.2,50.25 996,66 1011.7,50.25 1042.4,50.25 1042.4,23.1"/>
 
-    <!-- Thrust and Fire control area -->
+    <!-- Thrust and Fire controls -->
     <g id="thrust-fire-controls">
-      <rect class="w" x="852.5" y="23" width="190" height="27"/>
-      <text class="label" x="876" y="104.3" textLength="73" lengthAdjust="spacingAndGlyphs">THRUST</text>
-      <text class="label" x="980" y="104.3" textLength="42" lengthAdjust="spacingAndGlyphs">FIRE</text>
-      <circle class="wf" cx="910" cy="153.5" r="33"/>
-      <circle class="wf" cx="999" cy="153.5" r="33"/>
+      <text class="label" x="877" y="104.9" font-size="21.8" textLength="70.9" lengthAdjust="spacingAndGlyphs">THRUST</text>
+      <text class="label" x="981.1" y="104.9" font-size="21.8" textLength="39.9" lengthAdjust="spacingAndGlyphs">FIRE</text>
+      <circle class="wf" cx="910.15" cy="153.35" r="32.9"/>
+      <circle class="wf" cx="999" cy="153.35" r="33"/>
     </g>
 
     <!-- Vertical meters on far right -->
     <g id="right-meters">
-      <rect class="w" x="1096.5" y="58.5" width="32" height="150"/>
-      <rect class="w" x="1136" y="58.5" width="32.5" height="150"/>
-      <rect class="r" x="1098.5" y="75" width="28" height="23"/>
-      <rect class="g" x="1059" y="118.5" width="27" height="9.5"/>
-      <rect class="g" x="1098.5" y="138.5" width="28" height="7.5"/>
-      <rect class="r" x="1098.5" y="171" width="28" height="23"/>
-      <rect class="y" x="1138" y="81" width="28.5" height="31"/>
-      <rect class="r" x="1138" y="122" width="28.5" height="22.5"/>
-      <rect class="g" x="1138" y="191" width="28.5" height="7.5"/>
+      <rect class="g" x="1056.75" y="118.6" width="31.6" height="9.2"/>
+      <rect class="r" x="1096.4" y="74.9" width="31.85" height="23.6"/>
+      <rect class="y" x="1096.4" y="110.3" width="31.85" height="21.6"/>
+      <rect class="g" x="1096.4" y="138.1" width="31.85" height="8.1"/>
+      <rect class="r" x="1096.4" y="171" width="31.85" height="23.6"/>
+      <rect class="y" x="1136" y="80.8" width="32.5" height="31.5"/>
+      <rect class="r" x="1136" y="121.8" width="32.5" height="23.6"/>
+      <rect class="g" x="1136" y="190.9" width="32.5" height="7.8"/>
+      <rect class="w" x="1056.75" y="58.55" width="31.6" height="149.85"/>
+      <rect class="w" x="1096.4" y="58.55" width="31.85" height="149.85"/>
+      <rect class="w" x="1136" y="58.55" width="32.5" height="149.85"/>
+      <line class="w" x1="1136" y1="155.25" x2="1168.5" y2="155.25"/>
     </g>
 
     <!-- Smart bomb button -->
     <g id="smart-bomb-control">
-      <circle class="wf" cx="837.5" cy="217.5" r="33"/>
-      <text class="label small" x="803.5" y="270.6" textLength="67" lengthAdjust="spacingAndGlyphs">SMART</text>
-      <text class="label small" x="807.5" y="287.5" textLength="57.5" lengthAdjust="spacingAndGlyphs">BOMB</text>
+      <circle class="wf" cx="837.45" cy="217.5" r="33.1"/>
+      <text class="label" x="804.7" y="270.9" font-size="20.5" textLength="64.5" lengthAdjust="spacingAndGlyphs">SMART</text>
+      <text class="label" x="808.5" y="287.8" font-size="18.4" textLength="54.8" lengthAdjust="spacingAndGlyphs">BOMB</text>
     </g>
 
     <!-- Crosshair display -->
     <g id="crosshair-display">
-      <rect class="w" x="889" y="198.5" width="156" height="99.5" rx="6"/>
-      <circle class="w" cx="967.5" cy="250" r="56.5" pathLength="360" stroke-dasharray="55 70 110 70 55"/>
-      <line class="w" x1="967.5" y1="211" x2="967.5" y2="291"/>
-      <line class="w" x1="956" y1="218" x2="978" y2="218"/>
-      <line class="w" x1="900" y1="210" x2="1035.5" y2="291.5"/>
-      <line class="w" x1="1035.5" y1="210" x2="900" y2="291.5"/>
-      <polygon class="r" points="929.5,250.5 899,243 899,257.5"/>
-      <polygon class="r" points="1006.5,250.5 1037,243 1037,257.5"/>
-      <rect class="r" x="964.5" y="209" width="6" height="28.5"/>
-      <rect class="r" x="964.5" y="265" width="6" height="28.5"/>
+      <path class="wt" d="M889.2,293.7 V207 Q889.2,198.5 897.7,198.5 H1036.6 Q1045.15,198.5 1045.15,207 V298"/>
+      <line class="rl2" x1="901.25" y1="210.75" x2="1034.75" y2="290.7" stroke-dasharray="33.8 5.2 5.8 5.8 54.8 5.8 5.8 5.2 33.8"/>
+      <line class="rl2" x1="901.25" y1="290.35" x2="1034.75" y2="211.2" stroke-dasharray="33.8 5.2 5.8 5.8 54.8 5.8 5.8 5.2 33.8"/>
+      <path class="rl2" d="M937.5,207.5 A47.5,47.5 0 0 0 911.5,240.8 M911.5,259.8 A47.5,47.5 0 0 0 937.5,293 M997.5,207.5 A47.5,47.5 0 0 1 1023.5,240.8 M1023.5,259.8 A47.5,47.5 0 0 1 997.5,293"/>
+      <polygon class="r" points="898.8,243.3 930,250.5 898.8,256.2"/>
+      <polygon class="r" points="1037.2,243.7 1006.2,250.5 1037.2,255.7"/>
+      <rect class="r" x="965" y="208.9" width="4.8" height="28.9"/>
+      <rect class="r" x="953.8" y="215.9" width="27" height="3.8"/>
+      <rect class="r" x="965" y="264.8" width="4.8" height="28.7"/>
+      <rect class="r" x="953.8" y="283.7" width="27" height="3.8"/>
     </g>
 
     <!-- Lower small indicator bank -->
     <g id="lower-right-indicators">
-      <rect class="w" x="1058" y="243" width="32" height="49"/>
-      <rect class="w" x="1097.5" y="243" width="31.5" height="49"/>
-      <rect class="w" x="1176" y="220" width="4" height="34" visibility="hidden"/>
-      <rect class="w" x="1141" y="243" width="32" height="49" transform="translate(-4,0)"/>
-      <rect class="y" x="1060" y="252" width="28" height="12.5"/>
-      <rect class="g" x="1099.5" y="257.5" width="27.5" height="5.5"/>
-      <rect class="y" x="1099.5" y="269.5" width="27.5" height="15.5"/>
-      <rect class="r" x="1139" y="263" width="28" height="18.5"/>
+      <rect class="y" x="1057.95" y="251.9" width="32.05" height="13.1"/>
+      <rect class="g" x="1097.75" y="257.4" width="31.5" height="6.2"/>
+      <rect class="y" x="1097.75" y="269.4" width="31.5" height="16.1"/>
+      <rect class="r" x="1137.05" y="263" width="31.9" height="19.3"/>
+      <rect class="w" x="1057.95" y="242.85" width="32.05" height="49.05"/>
+      <rect class="w" x="1097.75" y="242.85" width="31.5" height="49.05"/>
+      <rect class="w" x="1137.05" y="242.85" width="31.9" height="49.05"/>
     </g>
   </g>
 
   <!-- Bottom keyboard-like controls -->
   <g id="lower-control-strips">
     <!-- Left bank -->
-    <polygon class="w" points="136,301 210.5,301 114,390 31,390"/>
-    <polygon class="w" points="175,287 220,287 190,370 145,370" visibility="hidden"/>
-    <polygon class="w" points="238.5,301 268,301 228.5,390 180.5,390"/>
-    <polygon class="w" points="302,301 335.5,301 327.5,390 290.5,390"/>
-    <polygon class="w" points="368,301 393,301 394.5,390 368.5,390"/>
+    <polygon class="wt k" points="136.2,300.9 210.9,300.9 113.8,390.1 30.5,390.1"/>
+    <polygon class="wt k" points="238.6,300.9 268.2,300.9 228.4,390.3 180.1,390.3"/>
+    <polygon class="wt k" points="302,300.9 335.7,300.9 327.6,390.8 290.2,390.8"/>
+    <polygon class="wt k" points="368.4,300.9 393.1,300.9 394.1,390.2 368.4,390.2"/>
 
     <!-- Right bank -->
-    <polygon class="w" points="796.5,301 832,301 837,390 798.5,390"/>
-    <polygon class="w" points="864,301 899,301 933.5,390 889.5,390"/>
-    <polygon class="w" points="932,301 966.5,301 1039,390 988.5,390"/>
-    <polygon class="w" points="960,287 1025,287 1080,370 1030,370" visibility="hidden"/>
-    <polygon class="w" points="1010,301 1066,301 1164.5,390 1090,390"/>
+    <polygon class="wt k" points="796.3,300.9 831.9,300.9 837.1,390.7 798.4,390.7"/>
+    <polygon class="wt k" points="864.2,300.9 899,300.9 933.5,390.6 889.8,390.6"/>
+    <polygon class="wt k" points="931.7,300.9 966.5,300.9 1039.5,390.4 989,390.4"/>
+    <polygon class="wt k" points="1009.4,300.5 1065.5,300.5 1165.2,390.3 1092.5,390.3"/>
 
     <!-- Corner blue fields -->
-    <rect class="b" x="11" y="310.5" width="42" height="55"/>
-    <rect class="b" x="1146" y="305" width="41" height="60"/>
+    <polygon class="b" points="10.8,310.2 115.7,310.2 50.9,365.5 10.8,365.5"/>
+    <polygon class="b" points="1078.7,305 1187,305 1187,365.4 1145.1,365.4"/>
+  </g>
+
+  <!-- Bottom red strip with a raised foot under each key, and tiny blue end caps -->
+  <g id="footer-strip">
+    <path class="r" d="M31.3,427 V395.2 H113.4 V405.6 H177.5 V395.2 H228.8 V405.6 H288.3 V395.2 H328.4 V405.6 H367.4 V395.2 H397.3 V405.6 H428 V395.2 H763.5 V405.6 H796.3 V395.2 H839.1 V405.6 H889.7 V395.2 H936 V405.6 H989.6 V395.2 H1043 V405.6 H1093.4 V395.2 H1167.8 V427 Z"/>
+    <rect class="b" x="10.8" y="403.1" width="15.3" height="23.5"/>
+    <rect class="b" x="1172.4" y="397" width="14.6" height="29.6"/>
+    <text class="label dark" x="512.9" y="422.3" font-size="30.7" textLength="176.9" lengthAdjust="spacingAndGlyphs">HYPERSPACE</text>
   </g>
 </svg>
