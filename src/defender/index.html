@@ -1813,10 +1813,6 @@
           <dt>Pause</dt>
           <dd>P</dd>
         </div>
-        <div>
-          <dt>Sound</dt>
-          <dd>M</dd>
-        </div>
       </dl>
     </aside>
     <div class="touch-controls" aria-label="Touch controls">
@@ -5633,7 +5629,6 @@
         input: null,
         sources: new Set(),
         time: 0,
-        on: true,
         starting: false,
       };
 
@@ -5835,13 +5830,13 @@
 
       // Browsers only start audio after a user gesture, so every input calls this.
       function unlockAudio() {
-        if (!audio.on || audio.starting) return;
+        if (audio.starting) return;
         if (!audio.context) enableSound();
         else if (audio.context.state === "suspended") audio.context.resume().catch(() => {});
       }
 
       function syncAudio() {
-        const active = audio.on && machineReady && !paused && !help.open && !document.hidden;
+        const active = machineReady && !paused && !help.open && !document.hidden;
         if (!active) stopAudio();
         game.setAudioActive?.(active);
       }
@@ -5857,7 +5852,7 @@
       }
 
       function queueAudio(samples) {
-        if (!audio.on || !samples.length || audio.context?.state !== "running") return;
+        if (!samples.length || audio.context?.state !== "running") return;
         const now = audio.context.currentTime;
         if (audio.time > now + 0.15) return;
         if (audio.time < now + 0.005) audio.time = now + 0.04;
