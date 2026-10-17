@@ -959,7 +959,6 @@
         <span class="crumb">Defender</span>
       </nav>
       <nav class="tools" aria-label="Game options">
-        <button id="sound-button" title="Sound · M" aria-pressed="false">SOUND OFF</button>
         <button id="pause-button" title="Pause · P" aria-pressed="false">PAUSE</button>
         <button id="view-button" title="Screen view · V" aria-pressed="false">SCREEN</button>
         <button id="fullscreen-button" title="Fullscreen · F">FULLSCREEN</button>
@@ -1855,7 +1854,6 @@
           <span>SHIFT / B · Smart bomb</span>
           <span>Z / ENTER · Hyperspace</span>
           <span>P · Pause</span>
-          <span>M · Sound</span>
           <span>V · Screen view</span>
           <span>F · Fullscreen</span>
           <span>H · Help</span>
@@ -5614,7 +5612,6 @@
         Digit2: "start2",
         Numpad2: "start2",
         KeyP: "pause",
-        KeyM: "sound",
         KeyV: "view",
         KeyF: "fullscreen",
         KeyH: "help",
@@ -5626,7 +5623,6 @@
         start1: () => startPlayer(1),
         start2: () => startPlayer(2),
         pause: () => setPaused(!paused),
-        sound: toggleSound,
         view: toggleView,
         fullscreen: toggleFullscreen,
         help: openHelp,
@@ -5642,8 +5638,7 @@
         input: null,
         sources: new Set(),
         time: 0,
-        on: false,
-        failed: false,
+        on: true,
         starting: false,
       };
 
@@ -5789,12 +5784,6 @@
         }
       }
 
-      function updateSoundButton() {
-        const button = byId("sound-button");
-        button.textContent = audio.on ? "SOUND ON" : audio.failed ? "ENABLE SOUND" : "SOUND OFF";
-        button.setAttribute("aria-pressed", String(audio.on));
-      }
-
       async function enableSound() {
         if (audio.starting) return;
         audio.starting = true;
@@ -5826,34 +5815,18 @@
             await game.attachAudio?.(context, input);
           }
           await audio.context.resume();
-          audio.on = true;
-          audio.failed = false;
         } catch (error) {
-          audio.failed = true;
           console.warn("Sound is unavailable:", error);
         }
         audio.starting = false;
-        updateSoundButton();
         syncAudio();
       }
 
+      // Browsers only start audio after a user gesture, so every input calls this.
       function unlockAudio() {
-        if (settings.sound === false || audio.starting) return;
-        if (!audio.on) enableSound();
+        if (!audio.on || audio.starting) return;
+        if (!audio.context) enableSound();
         else if (audio.context.state === "suspended") audio.context.resume().catch(() => {});
-      }
-
-      function toggleSound() {
-        if (audio.starting) return;
-        settings.sound = !audio.on;
-        writeSettings();
-        if (settings.sound) enableSound();
-        else {
-          audio.on = false;
-          updateSoundButton();
-          syncAudio();
-        }
-        focusGame();
       }
 
       function syncAudio() {
@@ -5873,7 +5846,7 @@
       }
 
       function queueAudio(samples) {
-        if (!audio.on || !samples.length || audio.context.state !== "running") return;
+        if (!audio.on || !samples.length || audio.context?.state !== "running") return;
         const now = audio.context.currentTime;
         if (audio.time > now + 0.15) return;
         if (audio.time < now + 0.005) audio.time = now + 0.04;
@@ -6204,7 +6177,6 @@
           });
       }
 
-      byId("sound-button").addEventListener("click", toggleSound);
       byId("pause-button").addEventListener("click", () => setPaused(!paused));
       byId("view-button").addEventListener("click", toggleView);
       byId("fullscreen-button").addEventListener("click", toggleFullscreen);
@@ -6300,7 +6272,6 @@
       // DOWNLOADLINKEND
 
       setScreenView(settings.screenView === true);
-      updateSoundButton();
       requestAnimationFrame(animate);
       loadROMs().then(boot).catch(reportError);
     </script>
