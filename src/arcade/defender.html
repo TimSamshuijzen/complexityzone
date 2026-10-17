@@ -35,7 +35,7 @@
         --dialog-text: #b5ac9c;
         --link: #edb778;
         --stage-width: 680px;
-        --stage-height: 1052px;
+        --stage-height: 977px;
       }
 
       * {
@@ -673,55 +673,9 @@
         pointer-events: none;
       }
 
-      .speaker-panel {
-        position: absolute;
-        top: 169px;
-        left: 22px;
-        right: 22px;
-        height: 55px;
-        background: linear-gradient(#191719, #0b0b0d);
-        border-bottom: 2px solid #494043;
-        box-shadow: inset 0 8px 12px #0009;
-      }
-
-      .speaker {
-        position: absolute;
-        width: 146px;
-        height: 31px;
-        left: calc(50% - 73px);
-        top: 9px;
-        border: 5px solid #1a181b;
-        border-radius: 6px;
-        background:
-          repeating-linear-gradient(0deg, transparent 0 3px, #000 3px 5px),
-          repeating-linear-gradient(90deg, #020203 0 3px, #302b2e 3px 5px);
-        box-shadow:
-          0 2px 2px #000,
-          inset 0 0 7px #000;
-      }
-
-      .speaker::before,
-      .speaker::after {
-        content: "";
-        position: absolute;
-        width: 3px;
-        height: 3px;
-        border-radius: 50%;
-        background: #645c5e;
-        top: 9px;
-      }
-
-      .speaker::before {
-        left: -3px;
-      }
-
-      .speaker::after {
-        right: -3px;
-      }
-
       .bezel {
         position: absolute;
-        top: 226px;
+        top: 169px;
         left: 24px;
         right: 24px;
         height: 445px;
@@ -787,7 +741,7 @@
         position: absolute;
         left: 9px;
         right: 9px;
-        top: 674px;
+        top: 617px;
         height: 259px;
         background: #06070a;
         border: 4px solid #3d393a;
@@ -1033,53 +987,14 @@
 
       .lower {
         position: absolute;
-        top: 935px;
+        top: 878px;
         left: 21px;
         right: 21px;
         bottom: 11px;
         background: linear-gradient(110deg, #202024, #121215 42%, #242026);
         border-top: 2px solid #070708;
-        overflow: hidden;
-      }
-
-      .lower::before,
-      .lower::after {
-        content: "";
-        position: absolute;
-        width: 154px;
-        height: 154px;
-        border: 13px solid #a6281b;
-        border-radius: 50%;
-        bottom: -132px;
-        box-shadow:
-          0 0 0 7px #08090b,
-          0 0 0 9px #e1a431;
-      }
-
-      .lower::before {
-        left: -53px;
-      }
-
-      .lower::after {
-        right: -53px;
-      }
-
-      .coin-door {
-        position: absolute;
-        width: 238px;
-        height: 75px;
-        top: 9px;
-        left: calc(50% - 119px);
-        border: 3px solid #424146;
-        border-radius: 12px;
-        background: linear-gradient(110deg, #26262a, #0e0e10 45%, #28262a);
-        box-shadow:
-          0 0 0 3px #09090b,
-          inset 0 0 0 2px #151519,
-          1px 3px 5px #000;
-        display: flex;
-        align-items: center;
-        justify-content: space-evenly;
+        display: grid;
+        place-items: center;
       }
 
       .coin {
@@ -1107,28 +1022,6 @@
       .coin:hover span,
       .coin.active span {
         background: #98521c;
-      }
-
-      .williams-badge {
-        width: 45px;
-        height: 45px;
-        border: 1px solid #645d52;
-        background: linear-gradient(130deg, #ddd9c5, #a9a699);
-        color: #b52b1b;
-        display: grid;
-        place-content: center;
-        font:
-          italic bold 23px Georgia,
-          serif;
-      }
-
-      .williams-badge span {
-        border: 2px solid;
-        border-radius: 50%;
-        width: 30px;
-        height: 27px;
-        text-align: center;
-        line-height: 24px;
       }
 
       .screen-only canvas {
@@ -1429,9 +1322,6 @@
               />
             </g>
           </svg>
-        </div>
-        <div class="speaker-panel">
-          <div class="speaker"></div>
         </div>
         <div class="bezel">
           <svg
@@ -1967,15 +1857,9 @@
           ></button>
         </div>
         <div class="lower">
-          <div class="coin-door">
-            <button class="coin" data-action="coin" title="Insert coin · C / 5">
-              <span>INSERT<br />COIN</span>
-            </button>
-            <div class="williams-badge" aria-hidden="true"><span>W</span></div>
-            <button class="coin" data-action="coin" title="Insert coin · C / 5">
-              <span>INSERT<br />COIN</span>
-            </button>
-          </div>
+          <button class="coin" data-action="coin" title="Insert coin · C / 5">
+            <span>INSERT<br />COIN</span>
+          </button>
         </div>
       </div>
       <div id="status" class="status" role="status"></div>
