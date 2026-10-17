@@ -503,7 +503,7 @@
 
       .screen {
         position: absolute;
-        inset: 24px 46px 25px;
+        inset: 14px 30px;
         overflow: hidden;
         border-radius: 19px / 24px;
       }
@@ -1112,16 +1112,20 @@
             <path
               d="M-10 68 25 51 31 35 46 41 63 23 78 28 91 11 118 18 130 5 160 0 125 24 101 28 99 36 78 36 72 48 51 52 45 67 20 74 13 91 -10 99Z"
               fill="#006bd2"
+              transform="scale(.65)"
             />
             <path
               d="M460 0 l28 11 26 -3 14 18 29 6 7 12 38 7 8 -5 10 27 v18 l-32 -26 -31 -9 -15 -13 -25 -5 -13 -16 -31 -9Z"
               fill="#0679de"
+              transform="translate(610 0) scale(.65) translate(-610 0)"
             />
-            <path d="M0 433 l37 -7 18 9 28 -3 17 8 38 -4 25 9 -163 0Z" fill="#bf162c" />
-            <path
-              d="M420 445 l29 -16 15 8 19 -17 17 7 27 -9 15 12 28 -6 40 16 0 5Z"
-              fill="#cb1f29"
-            />
+            <g transform="translate(0 445) scale(1 .6) translate(0 -445)">
+              <path d="M0 433 l37 -7 18 9 28 -3 17 8 38 -4 25 9 -163 0Z" fill="#bf162c" />
+              <path
+                d="M420 445 l29 -16 15 8 19 -17 17 7 27 -9 15 12 28 -6 40 16 0 5Z"
+                fill="#cb1f29"
+              />
+            </g>
           </svg>
           <div class="screen">
             <canvas
