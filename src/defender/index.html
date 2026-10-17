@@ -381,7 +381,6 @@
 
       .screen-only .cabinet,
       .screen-only .bezel,
-      .screen-only .screen-shell,
       .screen-only .screen {
         position: absolute;
         inset: 0;
@@ -397,7 +396,7 @@
       }
 
       .screen-only .cabinet > :not(.bezel),
-      .screen-only .bezel > :not(.screen-shell),
+      .screen-only .bezel > :not(.screen),
       .screen-only .side-note,
       .screen-only .legend {
         display: none;
@@ -609,25 +608,9 @@
         opacity: 0.58;
       }
 
-      .screen-shell {
+      .screen {
         position: absolute;
         inset: 24px 46px 25px;
-        padding: 11px 12px;
-        background: #070707;
-        border: 3px solid #252527;
-        border-radius: 36px / 30px;
-        box-shadow:
-          0 0 0 7px #050708,
-          0 0 0 9px #353237,
-          0 0 20px 15px #000d,
-          inset 0 0 14px #000;
-        overflow: hidden;
-      }
-
-      .screen {
-        position: relative;
-        width: 100%;
-        height: 100%;
         overflow: hidden;
         border-radius: 19px / 24px;
       }
@@ -639,8 +622,8 @@
 
       .glass {
         position: absolute;
-        inset: 9px;
-        border-radius: 24px;
+        inset: 0;
+        border-radius: inherit;
         pointer-events: none;
         background: repeating-linear-gradient(0deg, #0002 0 1px, transparent 1px 3px);
         box-shadow: inset 0 0 22px 10px #0005;
@@ -1280,30 +1263,28 @@
               fill="#cb1f29"
             />
           </svg>
-          <div class="screen-shell">
-            <div class="screen">
-              <canvas
-                id="game"
-                width="292"
-                height="240"
-                tabindex="0"
-                aria-label="Defender game screen. Insert a coin with C or 5, then press 1 to start."
-              ></canvas>
-              <section id="booting" class="overlay" hidden>
-                <h2 id="booting-title">POWERING UP</h2>
-              </section>
-              <section id="paused" class="overlay" hidden aria-label="Game paused">
-                <h2>PAUSED</h2>
-                <p>Your ship is standing by.</p>
-                <button id="resume-button">RESUME / P</button>
-              </section>
-              <section id="error" class="overlay" hidden aria-label="Game error">
-                <h2>PLEASE RESET</h2>
-                <p id="error-message">The machine could not start.</p>
-                <button id="reload-button">RELOAD MACHINE</button>
-              </section>
-            </div>
+          <div class="screen">
+            <canvas
+              id="game"
+              width="292"
+              height="240"
+              tabindex="0"
+              aria-label="Defender game screen. Insert a coin with C or 5, then press 1 to start."
+            ></canvas>
             <div class="glass"></div>
+            <section id="booting" class="overlay" hidden>
+              <h2 id="booting-title">POWERING UP</h2>
+            </section>
+            <section id="paused" class="overlay" hidden aria-label="Game paused">
+              <h2>PAUSED</h2>
+              <p>Your ship is standing by.</p>
+              <button id="resume-button">RESUME / P</button>
+            </section>
+            <section id="error" class="overlay" hidden aria-label="Game error">
+              <h2>PLEASE RESET</h2>
+              <p id="error-message">The machine could not start.</p>
+              <button id="reload-button">RELOAD MACHINE</button>
+            </section>
           </div>
         </div>
         <div class="console" aria-label="Original Defender controls">
