@@ -1,3 +1,4 @@
-See `src/arcade/defender.html`.
+See `src/arcade/img/defender_control_panel.svg`.
+It is a first approximation of image `src/arcade/img/defender_control_panel.png`.
 
-See side-note spec. The text "mwenge/defender" should be a link to https://github.com/mwenge/defender, opening in a new tab.
+
