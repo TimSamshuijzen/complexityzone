@@ -5653,6 +5653,7 @@
       const MAX_SCALE = 1.2;
       const SETTINGS_KEY = "arcade";
       const READY_MESSAGE = "INSERT COIN · C / 5   THEN START · 1 / 2";
+      const CREDIT_MESSAGE = "COIN INSERTED · PRESS 1 OR 2 TO START";
       const byId = (id) => document.getElementById(id);
       const stage = document.querySelector(".stage");
       const canvas = byId("game");
@@ -5989,7 +5990,7 @@
         unlockAudio();
         if (paused) setPaused(false);
         queuedCoins++;
-        setStatus("COIN INSERTED · PRESS 1 OR 2 TO START");
+        setStatus(CREDIT_MESSAGE);
         focusGame();
       }
 
@@ -6160,7 +6161,7 @@
         machineReady = true;
         shownActions = "";
         applyControls();
-        setStatus(READY_MESSAGE);
+        setStatus(game.credits?.(machine) > 0 ? CREDIT_MESSAGE : READY_MESSAGE);
         syncAudio();
       }
 
