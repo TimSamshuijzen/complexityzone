@@ -441,29 +441,16 @@
       .cabinet {
         position: absolute;
         inset: 5px 9px 20px;
-        border-radius: 10px 10px 5px 5px;
-        background: linear-gradient(
-          90deg,
-          #070809,
-          #373538 1%,
-          #121215 3%,
-          #151517 97%,
-          #454041 99%,
-          #08090a
-        );
-        box-shadow:
-          0 30px 70px #000c,
-          15px 8px 0 #050506,
-          -3px 0 0 #494044,
-          3px 0 0 #292629,
-          inset 0 0 0 2px #55504a;
+        border-radius: 8px;
+        background: #141416;
+        box-shadow: 0 30px 70px #000c;
       }
 
       .marquee {
         position: absolute;
         top: 18px;
-        left: 22px;
-        right: 22px;
+        left: 27px;
+        right: 27px;
         height: 139px;
         background: #020304;
         overflow: hidden;
@@ -499,13 +486,11 @@
 
       .bezel {
         position: absolute;
-        top: 169px;
-        left: 24px;
-        right: 24px;
-        height: 445px;
+        top: 172px;
+        left: 27px;
+        right: 27px;
+        height: 439px;
         background: #030609;
-        border: 3px solid #28292e;
-        border-bottom-color: #626062;
         overflow: hidden;
         box-shadow:
           inset 0 0 40px #000,
@@ -789,11 +774,9 @@
       .lower {
         position: absolute;
         top: 878px;
-        left: 21px;
-        right: 21px;
+        left: 22px;
+        right: 22px;
         bottom: 11px;
-        background: linear-gradient(110deg, #202024, #121215 42%, #242026);
-        border-top: 2px solid #070708;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -803,23 +786,21 @@
       .coin {
         width: 53px;
         height: 47px;
-        background: linear-gradient(90deg, #353331, #100f10 13%, #1c1612 87%, #68625a);
-        border: 2px solid #57534a;
-        padding: 4px;
-        box-shadow: 2px 2px 0 #070707;
+        background: none;
+        border: 0;
+        padding: 0;
       }
 
       .coin span {
         display: grid;
         place-content: center;
         height: 100%;
+        border-radius: 4px;
         background: #633615;
-        border: 1px solid #987348;
         color: #f6c776;
         font: bold 8px monospace;
         line-height: 1.4;
         text-shadow: 0 0 4px #ff931f;
-        box-shadow: inset 0 0 10px #241207;
       }
 
       .coin:hover span,
@@ -833,11 +814,8 @@
         display: grid;
         place-items: center;
         padding: 0 10px;
+        border-radius: 4px;
         background: #070708;
-        border: 2px solid #2b292a;
-        box-shadow:
-          inset 0 0 8px #000,
-          2px 2px 0 #070707;
         color: var(--muted);
         font: 9px monospace;
         letter-spacing: 1.5px;
