@@ -1677,7 +1677,7 @@
           <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
             >mwenge/defender</a
           >
-          on GitHub at startup into your browser and checked against the checksums in its Makefile.
+          on GitHub at startup into your browser and compiled with a built-in assembler.
           Defender logo is from <a href="https://commons.wikimedia.org/wiki/File:Defender_Logo.svg" target="_blank" rel="noopener">commons.wikimedia.org</a>.<br />
           Control panel artwork is traced from photographs of the original arcade cabinet.
         </p>
@@ -5874,7 +5874,7 @@
         machineReady = false;
         const showBooting = setTimeout(() => (byId("booting").hidden = false), 150);
         setStatus("POWERING UP");
-        machine = game.createMachine();
+        machine = game.createMachine(true);
         for (let frame = 1; frame <= game.bootFrames; frame++) {
           game.emulateFrame(machine, frame < game.bootFrames);
           if (frame % 100 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
