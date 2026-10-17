@@ -5576,6 +5576,7 @@
         },
 
         credits: (machine) => machine.ram[0xa037],
+        playing: (machine) => !(machine.ram[0xa0ba] & 0x80), // STATUS bit 7 is game over
         save: (machine) => localStorage.setItem(CMOS_KEY, JSON.stringify([...machine.cmos])),
       };
 
@@ -5583,6 +5584,7 @@
       const MAX_SCALE = 1.2;
       const SETTINGS_KEY = "arcade-cabinet-settings";
       const READY_MESSAGE = "INSERT COIN · C / 5   THEN START · 1 / 2";
+      const ONE_CREDIT_MESSAGE = "COIN INSERTED · PRESS 1 TO START";
       const CREDIT_MESSAGE = "COIN INSERTED · PRESS 1 OR 2 TO START";
       const byId = (id) => document.getElementById(id);
       const stage = document.querySelector(".stage");
@@ -5648,6 +5650,7 @@
       let joystickPointer = null;
       let joystickActions = [];
       let shownActions = "";
+      let shownMachineStatus = "";
       let framesSinceSave = 0;
 
       function decodeBase64(value) {
@@ -5682,6 +5685,20 @@
 
       function setStatus(text) {
         byId("status").textContent = text;
+      }
+
+      function updateMachineStatus() {
+        const credits = game.credits(machine);
+        const status = game.playing(machine)
+          ? game.playHint
+          : credits > 1
+            ? CREDIT_MESSAGE
+            : credits
+              ? ONE_CREDIT_MESSAGE
+              : READY_MESSAGE;
+        if (status === shownMachineStatus) return;
+        shownMachineStatus = status;
+        setStatus(status);
       }
 
       function reportError(error) {
@@ -5772,6 +5789,7 @@
             elapsed -= frameTime;
           }
           render();
+          updateMachineStatus();
         } catch (error) {
           reportError(error);
         }
@@ -5895,7 +5913,6 @@
         unlockAudio();
         if (paused) setPaused(false);
         queuedCoins++;
-        setStatus(CREDIT_MESSAGE);
         focusGame();
       }
 
@@ -5913,7 +5930,6 @@
           return;
         }
         pendingStart = players;
-        setStatus(game.playHint);
       }
 
       function setScreenView(on) {
@@ -6066,7 +6082,8 @@
         machineReady = true;
         shownActions = "";
         applyControls();
-        setStatus(game.credits?.(machine) > 0 ? CREDIT_MESSAGE : READY_MESSAGE);
+        shownMachineStatus = "";
+        updateMachineStatus();
         syncAudio();
       }
 
