@@ -6,7 +6,7 @@ It contains assembly code for the game and sound.
 
 Look at https://github.com/mwenge/defender
 
-I would like to create a variation of the html app to dynamically load the asembly code from https://raw.githubusercontent.com/mwenge/defender/master/src/ at startup.
+I would like to create a variation of the html app that dynamically loads the asembly code from mwenge at startup.
 
 Please investigate whether this is possible, and try to make it work.
 
