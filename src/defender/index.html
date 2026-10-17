@@ -16,9 +16,6 @@
         --page-glow: #48281c4d;
         --text: #eae4d3;
         --muted: #918b81;
-        --value: #e1d5b9;
-        --eyebrow: #c06647;
-        --rule: #8c3e29;
         --accent: #e35d37;
         --focus: #ffdf76;
         --tool: #171513;
@@ -154,81 +151,6 @@
         background: var(--nav-button-active);
       }
 
-      .side-note,
-      .legend {
-        --inner: calc(var(--stage-width) * var(--scale, 0.5) / 2 + 20px);
-        --outer: max(32px, min(calc(50% - 565px), calc(50% - var(--inner) - 185px)));
-        position: fixed;
-        top: 47%;
-        transform: translateY(-50%);
-      }
-
-      .side-note {
-        left: var(--outer);
-        right: calc(50% + var(--inner));
-      }
-
-      .legend {
-        left: calc(50% + var(--inner));
-        right: var(--outer);
-      }
-
-      .eyebrow {
-        color: var(--eyebrow);
-        font: 9px monospace;
-        letter-spacing: 3px;
-      }
-
-      .side-note h1 {
-        margin: 18px 0;
-        font-size: 28px;
-        line-height: 1.15;
-        letter-spacing: 1px;
-      }
-
-      .side-note p,
-      .legend p {
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.8;
-      }
-
-      .side-note .spec {
-        font: 10px/1.9 monospace;
-        letter-spacing: 1px;
-      }
-
-      .rule {
-        width: 36px;
-        height: 1px;
-        margin: 24px 0;
-        background: var(--rule);
-      }
-
-      .legend dl {
-        margin: 20px 0;
-      }
-
-      .legend dl div {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 10px 0;
-        border-bottom: 1px solid #ffffff0c;
-        font-size: 11px;
-      }
-
-      .legend dt {
-        color: var(--muted);
-      }
-
-      .legend dd {
-        margin: 0;
-        color: var(--value);
-        font-family: monospace;
-        text-align: right;
-      }
-
       .stage {
         position: fixed;
         z-index: 2;
@@ -339,8 +261,7 @@
         line-height: 1.6;
       }
 
-      .help-card a,
-      .side-note a {
+      .help-card a {
         color: var(--link);
       }
 
@@ -395,17 +316,8 @@
       }
 
       .screen-only .cabinet > :not(.bezel),
-      .screen-only .bezel > :not(.screen),
-      .screen-only .side-note,
-      .screen-only .legend {
+      .screen-only .bezel > :not(.screen) {
         display: none;
-      }
-
-      @media (max-width: 1120px) {
-        .side-note,
-        .legend {
-          display: none;
-        }
       }
 
       @media (max-width: 650px) {
@@ -962,19 +874,6 @@
         </button>
       </nav>
     </header>
-    <aside class="side-note">
-      <div class="eyebrow">CLASSIC ARCADE</div>
-      <h1>DEFENDER SIMULATOR</h1>
-      <div class="rule"></div>
-      <p>Insert a coin, then press 1 PLAYER.</p>
-      <div class="rule"></div>
-      <p class="spec">
-        Source:<br /><a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
-          >mwenge/defender</a
-        ><br />assembled at startup<br />ROM checksums:<br />
-        <span id="rom-check">not built yet</span>
-      </p>
-    </aside>
     <main class="stage" aria-label="Defender arcade cabinet">
       <div class="cabinet">
         <div class="marquee">
@@ -1769,47 +1668,6 @@
         </div>
       </div>
     </main>
-    <aside class="legend">
-      <div class="eyebrow">FLIGHT CONTROLS</div>
-      <dl>
-        <div>
-          <dt>Up / down</dt>
-          <dd>↑ ↓ / W S</dd>
-        </div>
-        <div>
-          <dt>Reverse</dt>
-          <dd>← / A</dd>
-        </div>
-        <div>
-          <dt>Thrust</dt>
-          <dd>→ / D</dd>
-        </div>
-        <div>
-          <dt>Fire</dt>
-          <dd>SPACE</dd>
-        </div>
-        <div>
-          <dt>Smart bomb</dt>
-          <dd>SHIFT / B</dd>
-        </div>
-        <div>
-          <dt>Hyperspace</dt>
-          <dd>Z / ENTER</dd>
-        </div>
-        <div>
-          <dt>Insert coin</dt>
-          <dd>C / 5</dd>
-        </div>
-        <div>
-          <dt>1 / 2 players</dt>
-          <dd>1 / 2</dd>
-        </div>
-        <div>
-          <dt>Pause</dt>
-          <dd>P</dd>
-        </div>
-      </dl>
-    </aside>
     <div class="touch-controls" aria-label="Touch controls">
       <button data-action="coin">COIN</button>
       <button data-action="start1" aria-label="Start one player">1P</button>
@@ -6054,8 +5912,6 @@
           if (md5(rom) !== sum) differing.push(name);
           roms[name] = rom;
         }
-        const count = Object.keys(roms).length;
-        byId("rom-check").textContent = `${count - differing.length} of ${count} match`;
         if (differing.length)
           console.warn(`ROMs that differ from the Makefile: ${differing.join(", ")}`);
         byId("booting-title").textContent = "POWERING UP";
