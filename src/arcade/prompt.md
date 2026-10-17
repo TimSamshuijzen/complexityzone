@@ -1,6 +1,8 @@
 
-See `src/arcade/img/defender_control_panel.svg`.
-It is a first approximation of image `src/arcade/img/defender_control_panel.png`.
+See `src/arcade/defender.html`.
+It is a simulation of classic arcade game Defender.
 
-I like the way the svg code is structured, and the approximations of the shapes are good enough, but the elements do not all align well with the original png image. Please adjust the svg elements until they align much better.
+See the console panel-art img.
+
+Please replace img with svg code. Use svg code in `src/arcade/img/defender_control_panel.svg`.
 
