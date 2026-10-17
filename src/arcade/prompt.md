@@ -1,3 +1,5 @@
 See `src/arcade/defender.html`.
 
-Give it an appropriate icon.
+Give it an icon. The icon should look like the space ship in Defender.
+
+
