@@ -255,6 +255,10 @@
         cursor: zoom-in;
       }
 
+      .circuit-scroll:focus {
+        outline: none;
+      }
+
       .circuit-scroll.zoomed {
         cursor: zoom-out;
       }
@@ -2685,10 +2689,10 @@
     <dialog id="circuit-view" class="circuit-view" aria-labelledby="circuit-view-title">
       <div class="circuit-view-bar">
         <h2 id="circuit-view-title">CIRCUIT</h2>
-        <span>CLICK THE DIAGRAM TO ZOOM</span>
-        <button id="close-circuit" autofocus>BACK TO GAME</button>
+        <span>CLICK TO ZOOM · GAME KEYS LIGHT THE INPUTS</span>
+        <button id="close-circuit">BACK TO GAME</button>
       </div>
-      <div class="circuit-scroll"></div>
+      <div class="circuit-scroll" tabindex="-1" autofocus></div>
     </dialog>
     <script>
       const dummypage = new Uint8Array(0x100).fill(0xff);
@@ -6413,6 +6417,8 @@
       const circuitInputs = [...circuitSvg.querySelectorAll("[data-input]")];
       const circuitView = byId("circuit-view");
       const circuitScroll = circuitView.querySelector(".circuit-scroll");
+      // Keys held while the circuit view is open: they only light the diagram, the game stays paused.
+      const circuitKeys = new Map();
       const joystick = byId("joystick");
       const stick = byId("stick");
       const controls = [...document.querySelectorAll("[data-action]")];
@@ -6552,8 +6558,7 @@
         shownActions = shown;
         for (const control of controls)
           control.classList.toggle("active", actions.has(control.dataset.action));
-        for (const input of circuitInputs)
-          input.classList.toggle("lit", actions.has(input.dataset.input));
+        if (!circuitView.open) lightCircuit(actions);
         if (!stick) return;
         const x = (actions.has("right") ? 1 : 0) - (actions.has("left") ? 1 : 0);
         const y = (actions.has("down") ? 1 : 0) - (actions.has("up") ? 1 : 0);
@@ -6566,6 +6571,13 @@
         joystickPointer = null;
         joystickActions = [];
         applyControls();
+        circuitKeys.clear();
+        if (circuitView.open) lightCircuit(new Set());
+      }
+
+      function lightCircuit(actions) {
+        for (const input of circuitInputs)
+          input.classList.toggle("lit", actions.has(input.dataset.input));
       }
 
       function stepFrame() {
@@ -6739,6 +6751,7 @@
         releaseControls();
         circuitScroll.append(circuitSvg);
         circuitView.showModal();
+        lightCircuit(new Set());
         circuit.setAttribute("aria-expanded", "true");
         syncAudio();
       }
@@ -6747,6 +6760,9 @@
         zoomCircuit(false);
         circuit.append(circuitSvg);
         circuit.setAttribute("aria-expanded", "false");
+        circuitKeys.clear();
+        shownActions = "";
+        applyControls();
         lastTime = 0;
         syncAudio();
         focusGame();
@@ -6972,9 +6988,14 @@
           const binding = keyBinding(event);
           if (!binding) return;
           if (dialogOpen()) {
+            const input = binding.action ?? binding.command;
             if (binding.command === "info" && info.open) {
               event.preventDefault();
               info.close();
+            } else if (circuitView.open && circuitInputs.some((el) => el.dataset.input === input)) {
+              event.preventDefault();
+              circuitKeys.set(event.code, input);
+              lightCircuit(new Set(circuitKeys.values()));
             }
             return;
           }
@@ -6995,6 +7016,7 @@
         "keyup",
         (event) => {
           if (heldKeys.delete(event.code)) applyControls();
+          if (circuitKeys.delete(event.code)) lightCircuit(new Set(circuitKeys.values()));
           if (!dialogOpen() && keyBinding(event)) event.preventDefault();
         },
         { capture: true },
