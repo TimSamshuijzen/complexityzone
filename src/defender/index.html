@@ -21,16 +21,14 @@
         --tool: #171513;
         --tool-border: #cfc6b4;
         --tool-active: #30241c;
-        --overlay: #050809ed;
-        --title: #ffe2a1;
-        --button: #edb778;
-        --button-text: #1b140e;
-        --nav-button: #eae4d3;
-        --nav-button-active: #edb778;
-        --dialog: #171514;
-        --dialog-border: #6e5640;
-        --dialog-text: #b5ac9c;
-        --link: #edb778;
+        --cyan: #80cccc;
+        --chrome: #13161bcc;
+        --chrome-line: #ffffff17;
+        --chrome-text: #c5ccd6;
+        --dialog: #12151a;
+        --dialog-line: #ffffff14;
+        --dialog-text: #b9c0ca;
+        --dialog-muted: #7d8590;
         --stage-width: 680px;
         --stage-height: 983px;
       }
@@ -129,26 +127,102 @@
         text-shadow: 0 0 10px #80cccc99;
       }
 
+      .site span {
+        color: #fff;
+      }
+
       .tools {
         display: flex;
-        gap: 7px;
+        gap: 2px;
+        padding: 4px;
+        border: 1px solid var(--chrome-line);
+        border-radius: 12px;
+        background: var(--chrome);
+        box-shadow:
+          0 10px 30px #0007,
+          inset 0 1px #ffffff0d;
+        backdrop-filter: blur(12px);
       }
 
       .tools button {
-        padding: 9px 12px;
-        border: 1px solid var(--nav-button);
-        border-radius: 3px;
-        background: var(--nav-button);
-        color: var(--button-text);
-        font: 10px monospace;
-        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 34px;
+        padding: 0 13px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--chrome-text);
+        font:
+          bold 11px Arial,
+          Helvetica,
+          sans-serif;
+        letter-spacing: 1.4px;
         white-space: nowrap;
+        transition:
+          color 0.15s,
+          background-color 0.15s,
+          border-color 0.15s;
       }
 
-      .tools button:hover,
-      .tools button[aria-pressed="true"] {
-        border-color: var(--nav-button-active);
-        background: var(--nav-button-active);
+      /* Icons are masks keyed on state, because the script rewrites the labels. */
+      .tools button::before {
+        content: "";
+        flex: none;
+        width: 15px;
+        height: 15px;
+        background: currentColor;
+        mask: var(--icon) center / contain no-repeat;
+      }
+
+      #pause-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='5.5' y='4' width='4.5' height='16' rx='1.2'/><rect x='14' y='4' width='4.5' height='16' rx='1.2'/></svg>");
+      }
+
+      #pause-button[aria-pressed="true"] {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 4.6v14.8a1.1 1.1 0 0 0 1.7.9l11.4-7.4a1.1 1.1 0 0 0 0-1.8L8.7 3.7A1.1 1.1 0 0 0 7 4.6z'/></svg>");
+      }
+
+      #view-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='12.5' rx='2'/><path d='M8 20.5h8M12 16.5v4'/></svg>");
+      }
+
+      #view-button[aria-pressed="true"] {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'><path d='M6 2.5h12v7l1.5 3v9h-15v-9l1.5-3z'/><path d='M8.5 5h7v4.5h-7zM8 15.5h8'/></svg>");
+      }
+
+      #fullscreen-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'/></svg>");
+      }
+
+      :root:fullscreen #fullscreen-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5'/></svg>");
+      }
+
+      #info-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'><circle cx='12' cy='12' r='9.5'/><path d='M12 11v6M12 7.3v.2'/></svg>");
+      }
+
+      .tools button:hover {
+        background: #ffffff10;
+        color: #fff;
+      }
+
+      .tools button:active {
+        background: #ffffff1a;
+      }
+
+      .tools button[aria-pressed="true"],
+      .tools button[aria-expanded="true"] {
+        border-color: #80cccc4d;
+        background: #80cccc1f;
+        color: #b9f2f2;
+      }
+
+      .tools button:focus-visible {
+        outline-offset: 1px;
       }
 
       .stage {
@@ -169,67 +243,171 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 16px;
-        padding: 22px;
-        background: var(--overlay);
+        gap: 14px;
+        padding: 28px;
+        background: radial-gradient(ellipse at 50% 45%, #181c23f2, #0a0c10f7 75%);
         text-align: center;
+      }
+
+      /* Same marquee accent as the info dialog, centred above the title. */
+      .overlay h2::before {
+        content: "";
+        display: block;
+        width: 64px;
+        height: 2px;
+        margin: 0 auto 16px;
+        border-radius: 2px;
+        background: linear-gradient(90deg, #2d7bf0, #e3342b 50%, #ffd23a);
       }
 
       .overlay h2 {
         margin: 0;
-        color: var(--title);
-        font-size: 25px;
+        color: #fff;
+        font-size: 24px;
         letter-spacing: 3px;
       }
 
       .overlay p {
-        max-width: 420px;
+        max-width: 400px;
         margin: 0;
+        color: var(--dialog-text);
         font-size: 12px;
-        line-height: 1.8;
+        line-height: 1.7;
       }
 
       .overlay .detail {
-        color: var(--muted);
-        font: 11px monospace;
+        color: var(--dialog-muted);
+        font-size: 11px;
         letter-spacing: 1.5px;
       }
 
       .overlay .failure {
         color: #ff8a70;
-        font: 11px monospace;
+        font-size: 11px;
         line-height: 1.6;
       }
 
       .overlay a {
-        color: var(--link);
+        color: var(--cyan);
+        text-decoration-color: #80cccc66;
+        text-underline-offset: 2px;
+      }
+
+      .overlay a:hover {
+        text-decoration-color: var(--cyan);
+      }
+
+      .overlay button {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 4px;
+      }
+
+      .overlay button::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        background: currentColor;
+        mask: var(--icon) center / contain no-repeat;
+      }
+
+      .overlay button kbd {
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-color: #0712142e;
+        background: #0712141f;
+        color: #071214;
+      }
+
+      #loadcode-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3.5v11M7 10l5 5 5-5M4.5 20h15'/></svg>");
+      }
+
+      #resume-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 4.6v14.8a1.1 1.1 0 0 0 1.7.9l11.4-7.4a1.1 1.1 0 0 0 0-1.8L8.7 3.7A1.1 1.1 0 0 0 7 4.6z'/></svg>");
+      }
+
+      #reload-button {
+        --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 3.5v5h5'/></svg>");
+      }
+
+      /* Indeterminate progress bar while the code loads and the machine powers up. */
+      #booting::after {
+        content: "";
+        width: 180px;
+        height: 3px;
+        border-radius: 2px;
+        background: linear-gradient(90deg, transparent, var(--cyan), transparent) #ffffff14;
+        background-size: 50% 100%;
+        background-repeat: no-repeat;
+        animation: booting 1.4s ease-in-out infinite;
+      }
+
+      @keyframes booting {
+        from {
+          background-position: -100% 0;
+        }
+        to {
+          background-position: 200% 0;
+        }
       }
 
       .overlay button,
       .info-actions button,
       .circuit-view button {
-        padding: 12px 17px;
-        border: 1px solid var(--button);
-        border-radius: 2px;
-        background: var(--button);
-        color: var(--button-text);
-        font: bold 11px monospace;
-        letter-spacing: 1px;
+        height: 40px;
+        padding: 0 18px;
+        border: 1px solid var(--cyan);
+        border-radius: 8px;
+        background: var(--cyan);
+        color: #071214;
+        font:
+          bold 11px Arial,
+          Helvetica,
+          sans-serif;
+        letter-spacing: 1.4px;
+        white-space: nowrap;
+        transition:
+          color 0.15s,
+          background-color 0.15s,
+          border-color 0.15s;
+      }
+
+      .overlay button:hover:not(:disabled),
+      .info-actions button:hover,
+      .circuit-view button:hover {
+        border-color: #a6e6e6;
+        background: #a6e6e6;
       }
 
       .info,
       .circuit-view {
-        width: min(440px, calc(100% - 36px));
+        width: min(540px, calc(100% - 36px));
         max-width: none;
         max-height: calc(100% - 36px);
         padding: 0;
         overflow: auto;
-        border: 1px solid var(--dialog-border);
-        border-radius: 5px;
+        border: 1px solid var(--dialog-line);
+        border-radius: 14px;
         color: var(--text);
-        background: var(--dialog);
-        box-shadow: 0 20px 70px #0008;
+        background: linear-gradient(180deg, #181c23, var(--dialog) 220px);
+        box-shadow:
+          0 30px 90px #000c,
+          inset 0 1px #ffffff0f;
         user-select: text;
+      }
+
+      .info[open] {
+        animation: dialog-in 0.18s ease-out;
+      }
+
+      @keyframes dialog-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.98);
+        }
       }
 
       .circuit-view {
@@ -252,7 +430,7 @@
 
       .circuit-view h2 {
         margin: 0;
-        color: var(--title);
+        color: #fff;
         font-size: 18px;
         letter-spacing: 2px;
       }
@@ -288,55 +466,141 @@
 
       .info::backdrop,
       .circuit-view::backdrop {
-        background: #000000d9;
+        background: #000000c4;
         backdrop-filter: blur(8px);
       }
 
       .info-card {
-        padding: 30px;
+        position: relative;
+        padding: 32px;
+      }
+
+      /* Marquee colours as a thin accent along the top edge. */
+      .info-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 32px;
+        right: 32px;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+        background: linear-gradient(90deg, #2d7bf0, #e3342b 50%, #ffd23a);
       }
 
       .info-card h2 {
-        margin: 12px 0 16px;
-        color: var(--title);
-        font-size: 26px;
+        margin: 4px 0 14px;
+        color: #fff;
+        font-size: 24px;
+        line-height: 1.2;
         letter-spacing: 2px;
       }
 
       .info-card p {
+        margin: 0;
         color: var(--dialog-text);
-        font-size: 12px;
-        line-height: 1.8;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .info-card p b {
+        color: #fff;
+      }
+
+      .info-card h3 {
+        margin: 24px 0 8px;
+        color: var(--cyan);
+        font-size: 10px;
+        letter-spacing: 2px;
       }
 
       .info-controls {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        padding: 16px 0;
-        font: 11px monospace;
+        column-gap: 28px;
+        font-size: 12px;
+        color: var(--dialog-text);
+      }
+
+      .info-controls > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 34px;
+        border-bottom: 1px solid var(--dialog-line);
+      }
+
+      .info-controls span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .info-controls i {
+        color: var(--dialog-muted);
+        font-style: normal;
+        font-size: 11px;
+        padding: 0 1px;
+      }
+
+      kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border: 1px solid #ffffff1f;
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        background: linear-gradient(#262b34, #1b1f26);
+        color: #e9eef5;
+        font:
+          bold 10px Arial,
+          Helvetica,
+          sans-serif;
+        letter-spacing: 0.5px;
       }
 
       .info-actions {
         display: flex;
         gap: 10px;
-        margin-top: 16px;
+        margin-top: 24px;
       }
 
       .info-actions #reset-button {
+        border-color: #ffffff2e;
         background: transparent;
         color: var(--text);
       }
 
+      .info-actions #reset-button:hover:not(:disabled) {
+        border-color: #ffffff5c;
+        background: #ffffff0d;
+      }
+
       .info-card .credits {
-        margin: 20px 0 0;
-        color: var(--muted);
-        font-size: 10px;
+        margin: 0;
+        padding-top: 14px;
+        color: var(--dialog-muted);
+        font-size: 11px;
         line-height: 1.6;
       }
 
+      .info-actions + .credits {
+        margin-top: 24px;
+        border-top: 1px solid var(--dialog-line);
+        padding-top: 20px;
+      }
+
       .info-card a {
-        color: var(--link);
+        color: var(--cyan);
+        text-decoration-color: #80cccc66;
+        text-underline-offset: 2px;
+      }
+
+      .info-card a:hover {
+        text-decoration-color: var(--cyan);
       }
 
       .touch-controls {
@@ -368,6 +632,7 @@
       }
 
       .touch-controls button:disabled,
+      .overlay button:disabled,
       .info-actions button:disabled {
         cursor: default;
         opacity: 0.4;
@@ -415,42 +680,56 @@
 
         .tools {
           width: 100%;
-          justify-content: space-between;
-          gap: 5px;
         }
 
         .tools button {
-          padding: 8px 9px;
-          font-size: 9px;
-          letter-spacing: 0;
+          flex: 1 1 auto;
+          gap: 6px;
+          padding: 0 6px;
+          font-size: 10px;
+          letter-spacing: 0.6px;
+        }
+
+        .tools button::before {
+          width: 13px;
+          height: 13px;
         }
 
         .info-card {
-          padding: 20px;
+          padding: 24px 20px;
+        }
+
+        .info-card::before {
+          left: 20px;
+          right: 20px;
         }
 
         .info-card h2 {
-          font-size: 22px;
+          font-size: 20px;
         }
 
         .info-card p {
-          font-size: 11px;
+          font-size: 12px;
           line-height: 1.65;
         }
 
         .info-controls {
-          gap: 10px;
-          font-size: 10px;
+          grid-template-columns: 1fr;
+        }
+
+        .info-controls > div {
+          min-height: 32px;
         }
 
         .info-actions button {
-          padding: 10px 11px;
+          flex: 1;
+          padding: 0 10px;
           font-size: 10px;
+          letter-spacing: 1px;
         }
 
         .info-card .credits {
-          margin-top: 16px;
-          font-size: 9px;
+          font-size: 10px;
         }
       }
 
@@ -469,34 +748,58 @@
         }
 
         .tools button {
-          padding: 6px 10px;
+          flex: none;
+          height: 28px;
+          padding: 0 10px;
         }
 
         .info {
-          width: min(650px, calc(100% - 36px));
+          width: min(720px, calc(100% - 36px));
         }
 
         .info-card {
-          padding: 14px 22px;
+          padding: 18px 24px;
+        }
+
+        .info-card::before {
+          left: 24px;
+          right: 24px;
         }
 
         .info-card h2 {
-          margin: 6px 0;
-          font-size: 22px;
+          margin: 2px 0 6px;
+          font-size: 20px;
+        }
+
+        .info-card h3 {
+          margin: 12px 0 2px;
         }
 
         .info-controls {
           grid-template-columns: 1fr 1fr 1fr;
-          padding: 6px 0;
-          gap: 8px;
+          column-gap: 20px;
         }
 
-        .info-card p {
-          margin: 6px 0;
+        .info-controls > div {
+          min-height: 30px;
+        }
+
+        .info-actions {
+          margin-top: 14px;
+        }
+
+        .info-actions button {
+          flex: none;
+          height: 34px;
+        }
+
+        .info-actions + .credits {
+          margin-top: 14px;
+          padding-top: 12px;
         }
 
         .info-card .credits {
-          margin-top: 10px;
+          padding-top: 8px;
         }
       }
 
@@ -901,18 +1204,38 @@
       }
 
       .status {
+        position: relative;
         width: 360px;
         height: 32px;
         display: grid;
         place-items: center;
-        padding: 0 10px;
-        border-radius: 4px;
-        background: #070708;
-        color: var(--muted);
-        font: 9px monospace;
-        letter-spacing: 1.5px;
+        padding: 0 22px;
+        border: 1px solid var(--chrome-line);
+        border-radius: 8px;
+        background: linear-gradient(#181c23, #101318);
+        box-shadow: inset 0 1px #ffffff0d;
+        color: var(--chrome-text);
+        font:
+          bold 9px Arial,
+          Helvetica,
+          sans-serif;
+        letter-spacing: 1.4px;
         text-align: center;
         white-space: pre-wrap;
+      }
+
+      /* Power LED. */
+      .status::before {
+        content: "";
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        margin-top: -2.5px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 6px var(--cyan);
       }
 
       .circuit {
@@ -1588,7 +1911,7 @@
             <section id="paused" class="overlay" hidden aria-label="Game paused">
               <h2>PAUSED</h2>
               <p>Your ship is standing by.</p>
-              <button id="resume-button">RESUME / P</button>
+              <button id="resume-button">RESUME <kbd>P</kbd></button>
             </section>
             <section id="error" class="overlay" hidden aria-label="Game error">
               <h2>PLEASE RESET</h2>
@@ -2792,19 +3115,44 @@
           Then insert a coin and press <b>1</b> to start. For two players, insert two coins and press
           <b>2</b>; players take turns.
         </p>
+        <h3>CONTROLS</h3>
         <div class="info-controls">
-          <span>C / 5 · Insert coin</span>
-          <span>1 / 2 · Start</span>
-          <span>↑ ↓ / W S · Up, down</span>
-          <span>← / A · Reverse</span>
-          <span>→ / D · Thrust</span>
-          <span>SPACE · Fire</span>
-          <span>SHIFT / B · Smart bomb</span>
-          <span>Z / ENTER · Hyperspace</span>
-          <span>P · Pause</span>
-          <span>V · Screen view</span>
-          <span>F · Fullscreen</span>
-          <span>I · Info</span>
+          <div>
+            Insert coin <span><kbd>C</kbd><i>/</i><kbd>5</kbd></span>
+          </div>
+          <div>
+            Start <span><kbd>1</kbd><i>/</i><kbd>2</kbd></span>
+          </div>
+          <div>
+            Up, down <span><kbd>↑</kbd><kbd>↓</kbd><i>/</i><kbd>W</kbd><kbd>S</kbd></span>
+          </div>
+          <div>
+            Reverse <span><kbd>←</kbd><i>/</i><kbd>A</kbd></span>
+          </div>
+          <div>
+            Thrust <span><kbd>→</kbd><i>/</i><kbd>D</kbd></span>
+          </div>
+          <div>
+            Fire <span><kbd>SPACE</kbd></span>
+          </div>
+          <div>
+            Smart bomb <span><kbd>SHIFT</kbd><i>/</i><kbd>B</kbd></span>
+          </div>
+          <div>
+            Hyperspace <span><kbd>Z</kbd><i>/</i><kbd>ENTER</kbd></span>
+          </div>
+          <div>
+            Pause <span><kbd>P</kbd></span>
+          </div>
+          <div>
+            Screen view <span><kbd>V</kbd></span>
+          </div>
+          <div>
+            Fullscreen <span><kbd>F</kbd></span>
+          </div>
+          <div>
+            Info <span><kbd>I</kbd></span>
+          </div>
         </div>
         <div class="info-actions">
           <button id="close-info" autofocus>BACK TO GAME</button>
