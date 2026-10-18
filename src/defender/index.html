@@ -1182,11 +1182,30 @@
         fill: currentColor;
       }
 
-      .circuit-art .chip.fetched {
+      .circuit-art .chip.fetched,
+      .circuit-art .rom.filled .chip {
         fill: #24202e;
         stroke: #b48cff;
         stroke-width: 2;
         filter: drop-shadow(0 0 5px #b48cff);
+      }
+
+      .circuit-art .rom {
+        opacity: 0.35;
+        transition: opacity 0.4s;
+      }
+
+      .circuit-art .rom.filled {
+        opacity: 1;
+      }
+
+      .circuit-art .rom.filled .notch {
+        stroke: #b48cff;
+        stroke-width: 2;
+      }
+
+      .circuit-art .rom.filled .cs {
+        fill: #fff;
       }
 
       .circuit-art .file {
@@ -1553,7 +1572,7 @@
                 <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
                   >mwenge/defender</a
                 >
-                on GitHub, assemble it and burn it into the ROMs.
+                on GitHub, assemble it in your browser and write it into the ROMs.
               </p>
               <p id="loadcode-error" class="failure" role="alert" hidden></p>
               <button id="loadcode-button">LOAD CODE</button>
@@ -2342,37 +2361,51 @@
               <rect class="group" x="215" y="222" width="290" height="131" rx="5" />
               <text class="glabel" x="223" y="236">BANKED ROM</text>
               <text class="pin" x="255" y="250" text-anchor="middle">BANK 1</text>
-              <rect class="chip" x="223" y="255" width="64" height="42" rx="3" />
-              <path class="notch" d="M249,255 a6,6 0 0 0 12,0" />
-              <text class="cs" x="255" y="275" text-anchor="middle">defend.9</text>
-              <text class="cm" x="255" y="288" text-anchor="middle">$C000</text>
-              <rect class="chip" x="223" y="303" width="64" height="42" rx="3" />
-              <path class="notch" d="M249,303 a6,6 0 0 0 12,0" />
-              <text class="cs" x="255" y="323" text-anchor="middle">defend.12</text>
-              <text class="cm" x="255" y="336" text-anchor="middle">$C800</text>
+              <g class="rom">
+                <rect class="chip" x="223" y="255" width="64" height="42" rx="3" />
+                <path class="notch" d="M249,255 a6,6 0 0 0 12,0" />
+                <text class="cs" x="255" y="275" text-anchor="middle">defend.9</text>
+                <text class="cm" x="255" y="288" text-anchor="middle">$C000</text>
+              </g>
+              <g class="rom">
+                <rect class="chip" x="223" y="303" width="64" height="42" rx="3" />
+                <path class="notch" d="M249,303 a6,6 0 0 0 12,0" />
+                <text class="cs" x="255" y="323" text-anchor="middle">defend.12</text>
+                <text class="cm" x="255" y="336" text-anchor="middle">$C800</text>
+              </g>
               <text class="pin" x="325" y="250" text-anchor="middle">BANK 2</text>
-              <rect class="chip" x="293" y="255" width="64" height="42" rx="3" />
-              <path class="notch" d="M319,255 a6,6 0 0 0 12,0" />
-              <text class="cs" x="325" y="275" text-anchor="middle">defend.8</text>
-              <text class="cm" x="325" y="288" text-anchor="middle">$C000</text>
-              <rect class="chip" x="293" y="303" width="64" height="42" rx="3" />
-              <path class="notch" d="M319,303 a6,6 0 0 0 12,0" />
-              <text class="cs" x="325" y="323" text-anchor="middle">defend.11</text>
-              <text class="cm" x="325" y="336" text-anchor="middle">$C800</text>
+              <g class="rom">
+                <rect class="chip" x="293" y="255" width="64" height="42" rx="3" />
+                <path class="notch" d="M319,255 a6,6 0 0 0 12,0" />
+                <text class="cs" x="325" y="275" text-anchor="middle">defend.8</text>
+                <text class="cm" x="325" y="288" text-anchor="middle">$C000</text>
+              </g>
+              <g class="rom">
+                <rect class="chip" x="293" y="303" width="64" height="42" rx="3" />
+                <path class="notch" d="M319,303 a6,6 0 0 0 12,0" />
+                <text class="cs" x="325" y="323" text-anchor="middle">defend.11</text>
+                <text class="cm" x="325" y="336" text-anchor="middle">$C800</text>
+              </g>
               <text class="pin" x="395" y="250" text-anchor="middle">BANK 3</text>
-              <rect class="chip" x="363" y="255" width="64" height="42" rx="3" />
-              <path class="notch" d="M389,255 a6,6 0 0 0 12,0" />
-              <text class="cs" x="395" y="275" text-anchor="middle">defend.7</text>
-              <text class="cm" x="395" y="288" text-anchor="middle">$C000</text>
-              <rect class="chip" x="363" y="303" width="64" height="42" rx="3" />
-              <path class="notch" d="M389,303 a6,6 0 0 0 12,0" />
-              <text class="cs" x="395" y="323" text-anchor="middle">defend.10</text>
-              <text class="cm" x="395" y="336" text-anchor="middle">$C800</text>
+              <g class="rom">
+                <rect class="chip" x="363" y="255" width="64" height="42" rx="3" />
+                <path class="notch" d="M389,255 a6,6 0 0 0 12,0" />
+                <text class="cs" x="395" y="275" text-anchor="middle">defend.7</text>
+                <text class="cm" x="395" y="288" text-anchor="middle">$C000</text>
+              </g>
+              <g class="rom">
+                <rect class="chip" x="363" y="303" width="64" height="42" rx="3" />
+                <path class="notch" d="M389,303 a6,6 0 0 0 12,0" />
+                <text class="cs" x="395" y="323" text-anchor="middle">defend.10</text>
+                <text class="cm" x="395" y="336" text-anchor="middle">$C800</text>
+              </g>
               <text class="pin" x="465" y="250" text-anchor="middle">BANK 7</text>
-              <rect class="chip" x="433" y="255" width="64" height="42" rx="3" />
-              <path class="notch" d="M459,255 a6,6 0 0 0 12,0" />
-              <text class="cs" x="465" y="275" text-anchor="middle">defend.6</text>
-              <text class="cm" x="465" y="288" text-anchor="middle">$C000</text>
+              <g class="rom">
+                <rect class="chip" x="433" y="255" width="64" height="42" rx="3" />
+                <path class="notch" d="M459,255 a6,6 0 0 0 12,0" />
+                <text class="cs" x="465" y="275" text-anchor="middle">defend.6</text>
+                <text class="cm" x="465" y="288" text-anchor="middle">$C000</text>
+              </g>
               <rect class="empty" x="433" y="303" width="64" height="42" rx="3" />
               <polyline class="a" points="330,222 330,194" />
               <circle class="ad" cx="330" cy="194" r="3" />
@@ -2380,22 +2413,30 @@
               <circle class="dd" cx="380" cy="208" r="3" />
               <rect class="group" x="515" y="222" width="300" height="131" rx="5" />
               <text class="glabel" x="523" y="236">FIXED ROM</text>
-              <rect class="chip" x="523" y="242" width="66" height="103" rx="3" />
-              <path class="notch" d="M550,242 a6,6 0 0 0 12,0" />
-              <text class="cs" x="556" y="291" text-anchor="middle">defend.1</text>
-              <text class="cm" x="556" y="304" text-anchor="middle">$D000</text>
-              <rect class="chip" x="596" y="242" width="66" height="103" rx="3" />
-              <path class="notch" d="M623,242 a6,6 0 0 0 12,0" />
-              <text class="cs" x="629" y="291" text-anchor="middle">defend.4</text>
-              <text class="cm" x="629" y="304" text-anchor="middle">$D800</text>
-              <rect class="chip" x="669" y="242" width="66" height="103" rx="3" />
-              <path class="notch" d="M696,242 a6,6 0 0 0 12,0" />
-              <text class="cs" x="702" y="291" text-anchor="middle">defend.2</text>
-              <text class="cm" x="702" y="304" text-anchor="middle">$E000</text>
-              <rect class="chip" x="742" y="242" width="66" height="103" rx="3" />
-              <path class="notch" d="M769,242 a6,6 0 0 0 12,0" />
-              <text class="cs" x="775" y="291" text-anchor="middle">defend.3</text>
-              <text class="cm" x="775" y="304" text-anchor="middle">$F000</text>
+              <g class="rom">
+                <rect class="chip" x="523" y="242" width="66" height="103" rx="3" />
+                <path class="notch" d="M550,242 a6,6 0 0 0 12,0" />
+                <text class="cs" x="556" y="291" text-anchor="middle">defend.1</text>
+                <text class="cm" x="556" y="304" text-anchor="middle">$D000</text>
+              </g>
+              <g class="rom">
+                <rect class="chip" x="596" y="242" width="66" height="103" rx="3" />
+                <path class="notch" d="M623,242 a6,6 0 0 0 12,0" />
+                <text class="cs" x="629" y="291" text-anchor="middle">defend.4</text>
+                <text class="cm" x="629" y="304" text-anchor="middle">$D800</text>
+              </g>
+              <g class="rom">
+                <rect class="chip" x="669" y="242" width="66" height="103" rx="3" />
+                <path class="notch" d="M696,242 a6,6 0 0 0 12,0" />
+                <text class="cs" x="702" y="291" text-anchor="middle">defend.2</text>
+                <text class="cm" x="702" y="304" text-anchor="middle">$E000</text>
+              </g>
+              <g class="rom">
+                <rect class="chip" x="742" y="242" width="66" height="103" rx="3" />
+                <path class="notch" d="M769,242 a6,6 0 0 0 12,0" />
+                <text class="cs" x="775" y="291" text-anchor="middle">defend.3</text>
+                <text class="cm" x="775" y="304" text-anchor="middle">$F000</text>
+              </g>
               <polyline class="a" points="640,222 640,194" />
               <circle class="ad" cx="640" cy="194" r="3" />
               <polyline class="d" points="690,222 690,208" />
@@ -2486,10 +2527,12 @@
               <circle class="ad" cx="965" cy="282" r="3" />
               <polyline class="d" points="1005,272 1005,294" />
               <circle class="dd" cx="1005" cy="294" r="3" />
-              <rect class="chip" x="1045" y="236" width="100" height="36" rx="3" />
-              <path class="notch" d="M1089,236 a6,6 0 0 0 12,0" />
-              <text class="ct" x="1095" y="253" text-anchor="middle">defend.snd</text>
-              <text class="cm" x="1095" y="266" text-anchor="middle">$F800</text>
+              <g class="rom">
+                <rect class="chip" x="1045" y="236" width="100" height="36" rx="3" />
+                <path class="notch" d="M1089,236 a6,6 0 0 0 12,0" />
+                <text class="ct" x="1095" y="253" text-anchor="middle">defend.snd</text>
+                <text class="cm" x="1095" y="266" text-anchor="middle">$F800</text>
+              </g>
               <polyline class="a" points="1070,272 1070,282" />
               <circle class="ad" cx="1070" cy="282" r="3" />
               <polyline class="d" points="1110,272 1110,294" />
@@ -6512,6 +6555,7 @@
       const circuit = document.querySelector(".circuit");
       const circuitSvg = circuit.querySelector("svg");
       const circuitInputs = [...circuitSvg.querySelectorAll("[data-input]")];
+      const circuitRoms = circuitSvg.querySelectorAll(".rom");
       const circuitView = byId("circuit-view");
       const circuitScroll = circuitView.querySelector(".circuit-scroll");
       // Held keys that light diagram inputs on their own: every input key while the circuit view is
@@ -6677,6 +6721,7 @@
         ROMS = null;
         byId("error").hidden = true;
         byId("circuit-source").classList.remove("fetched");
+        for (const rom of circuitRoms) rom.classList.remove("filled");
         context.fillStyle = "#000";
         context.fillRect(0, 0, canvas.width, canvas.height);
       }
@@ -7125,6 +7170,7 @@
         byId("booting-title").textContent = "POWERING UP";
         byId("booting-detail").textContent = "";
         ROMS = roms;
+        for (const rom of circuitRoms) rom.classList.add("filled");
       }
 
       async function boot() {
