@@ -183,9 +183,26 @@
       }
 
       .overlay p {
+        max-width: 420px;
         margin: 0;
         font-size: 12px;
         line-height: 1.8;
+      }
+
+      .overlay .detail {
+        color: var(--muted);
+        font: 11px monospace;
+        letter-spacing: 1.5px;
+      }
+
+      .overlay .failure {
+        color: #ff8a70;
+        font: 11px monospace;
+        line-height: 1.6;
+      }
+
+      .overlay a {
+        color: var(--link);
       }
 
       .overlay button,
@@ -348,6 +365,12 @@
 
       .touch-controls button.active {
         background: var(--tool-active);
+      }
+
+      .touch-controls button:disabled,
+      .info-actions button:disabled {
+        cursor: default;
+        opacity: 0.4;
       }
 
       .screen-only .stage {
@@ -836,13 +859,33 @@
         text-shadow: 0 0 4px #ff931f;
       }
 
-      .coin:hover span,
+      .coin:enabled:hover span,
       .coin.active span {
         background: #98521c;
       }
 
+      .coin.blue span {
+        background: #153a66;
+        color: #a8d4ff;
+        text-shadow: 0 0 4px #2f8fff;
+      }
+
+      .coin.blue:enabled:hover span {
+        background: #1f5799;
+      }
+
+      .coin:disabled {
+        cursor: default;
+        opacity: 0.4;
+      }
+
+      .machine-buttons {
+        display: flex;
+        gap: 6px;
+      }
+
       .status {
-        width: 400px;
+        width: 360px;
         height: 32px;
         display: grid;
         place-items: center;
@@ -1483,8 +1526,21 @@
               tabindex="0"
               aria-label="Defender game screen. Insert a coin with C or 5, then press 1 to start."
             ></canvas>
+            <section id="loadcode" class="overlay" hidden aria-label="Load game code">
+              <h2 id="loadcode-title">ROMS EMPTY</h2>
+              <p>
+                The ROMs are empty. Fetch the original 1981 source from
+                <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
+                  >mwenge/defender</a
+                >
+                on GitHub, assemble it and burn it into the ROMs.
+              </p>
+              <p id="loadcode-error" class="failure" role="alert" hidden></p>
+              <button id="loadcode-button">LOAD CODE</button>
+            </section>
             <section id="booting" class="overlay" hidden>
               <h2 id="booting-title">POWERING UP</h2>
+              <p id="booting-detail" class="detail"></p>
             </section>
             <section id="paused" class="overlay" hidden aria-label="Game paused">
               <h2>PAUSED</h2>
@@ -1494,7 +1550,7 @@
             <section id="error" class="overlay" hidden aria-label="Game error">
               <h2>PLEASE RESET</h2>
               <p id="error-message">The machine could not start.</p>
-              <button id="reload-button">RELOAD MACHINE</button>
+              <button id="reload-button">RESET MACHINE</button>
             </section>
           </div>
         </div>
@@ -1987,6 +2043,21 @@
             <span>INSERT<br />COIN</span>
           </button>
           <div id="status" class="status" role="status"></div>
+          <div class="machine-buttons">
+            <button id="empty-code-button" class="coin blue" title="Empty the code and ROMs">
+              <span>EMPTY<br />CODE</span>
+            </button>
+            <button
+              id="load-code-button"
+              class="coin blue"
+              title="Fetch, assemble and load the code"
+            >
+              <span>LOAD<br />CODE</span>
+            </button>
+            <button id="reset-machine-button" class="coin blue" title="Reset machine">
+              <span>RESET<br />MACHINE</span>
+            </button>
+          </div>
         </div>
         <div
           class="circuit"
@@ -2682,8 +2753,8 @@
           <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
             >mwenge/defender</a
           >
-          on GitHub into your browser and compiled with a built-in assembler. Defender
-          logo is from
+          on GitHub into your browser when you press LOAD CODE, and compiled with a built-in
+          assembler. Defender logo is from
           <a
             href="https://commons.wikimedia.org/wiki/File:Defender_Logo.svg"
             target="_blank"
@@ -6475,6 +6546,7 @@
       let machine = null;
       let machineReady = false;
       let failed = false;
+      let busy = false; // loading code or booting
       let paused = false;
       let lastTime = 0;
       let elapsed = 0;
@@ -6542,8 +6614,80 @@
         byId("booting").hidden = true;
         byId("error").hidden = false;
         byId("error-message").textContent = error?.message || String(error);
-        setStatus("MACHINE STOPPED · RELOAD TO TRY AGAIN");
+        setStatus("MACHINE STOPPED · RESET TO TRY AGAIN");
         console.error(error);
+      }
+
+      // Without code the ROMs are empty: only loading the code does anything.
+      function updateMachineButtons() {
+        const ready = Boolean(ROMS) && !busy;
+        byId("load-code-button").disabled = busy;
+        byId("loadcode-button").disabled = busy;
+        byId("empty-code-button").disabled = !ready;
+        byId("reset-machine-button").disabled = !ready;
+        byId("reset-button").disabled = !ready;
+        for (const button of document.querySelectorAll("[data-action='coin']"))
+          button.disabled = !ready;
+      }
+
+      function showLoadCode(error) {
+        byId("loadcode").hidden = false;
+        byId("loadcode-title").textContent = error ? "LOAD FAILED" : "ROMS EMPTY";
+        byId("loadcode-error").hidden = !error;
+        byId("loadcode-error").textContent = error ? error.message || String(error) : "";
+        byId("loadcode-button").textContent = error ? "TRY AGAIN" : "LOAD CODE";
+        setStatus(
+          error ? "LOAD FAILED · PRESS LOAD CODE TO TRY AGAIN" : "ROMS EMPTY · PRESS LOAD CODE",
+        );
+        if (error) console.error(error);
+      }
+
+      // Stops the machine and empties the ROMs.
+      function emptyMachine() {
+        info.close();
+        setPaused(false);
+        stopAudio();
+        queuedCoins = 0;
+        coinCooldown = 0;
+        pendingStart = 0;
+        pulses.clear();
+        releaseControls();
+        machineReady = false;
+        failed = false;
+        machine = null;
+        ROMS = null;
+        byId("error").hidden = true;
+        byId("circuit-source").classList.remove("fetched");
+        context.fillStyle = "#000";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function emptyCode() {
+        if (busy || !ROMS) return;
+        emptyMachine();
+        showLoadCode();
+        updateMachineButtons();
+        focusGame();
+      }
+
+      async function loadCode() {
+        if (busy) return;
+        emptyMachine();
+        busy = true;
+        byId("loadcode").hidden = true;
+        updateMachineButtons();
+        focusGame();
+        try {
+          await loadROMs();
+        } catch (error) {
+          busy = false;
+          byId("booting").hidden = true;
+          showLoadCode(error);
+          updateMachineButtons();
+          return;
+        }
+        busy = false;
+        await boot().catch(reportError);
       }
 
       function focusGame() {
@@ -6900,18 +7044,24 @@
       // Fetches the source from GitHub and builds the ROMs as mwenge's Makefile does: assembles
       // each file set, cuts the ROM chips from the output, patches them and checks their MD5 sums.
       async function loadROMs() {
-        byId("booting-title").textContent = "LOADING SOURCE";
+        const progress = (text) => {
+          setStatus(text);
+          byId("booting-detail").textContent = text;
+        };
+        byId("booting-title").textContent = "LOADING CODE";
         byId("booting").hidden = false;
         const names = [...new Set(Object.values(BUILDS).flatMap(([, ...sources]) => sources))];
         names.push("unknown.bin");
         const files = {};
         let fetched = 0;
-        setStatus(`FETCHING SOURCE · 0/${names.length}`);
+        progress(`FETCHING SOURCE · 0/${names.length}`);
+        // The first failure cancels the other fetches, so they cannot report progress after it.
+        const fetches = new AbortController();
         await Promise.all(
           names.map(async (name) => {
             let response;
             try {
-              response = await fetch(SOURCE_URL + name);
+              response = await fetch(SOURCE_URL + name, { signal: fetches.signal });
             } catch {
               throw new Error(`Could not reach GitHub to fetch ${name}.`);
             }
@@ -6920,13 +7070,16 @@
             files[name] = name.endsWith(".bin")
               ? new Uint8Array(await response.arrayBuffer())
               : await response.text();
-            setStatus(`FETCHING SOURCE · ${++fetched}/${names.length}`);
+            if (!fetches.signal.aborted) progress(`FETCHING SOURCE · ${++fetched}/${names.length}`);
           }),
-        );
+        ).catch((error) => {
+          fetches.abort();
+          throw error;
+        });
         byId("circuit-source").classList.add("fetched");
         const outputs = { "unknown.bin": files["unknown.bin"] };
         for (const [name, [cpu, ...sources]] of Object.entries(BUILDS)) {
-          setStatus(`ASSEMBLING ${sources.at(-1).toUpperCase()}`);
+          progress(`ASSEMBLING ${sources.at(-1).toUpperCase()}`);
           await new Promise((resolve) => setTimeout(resolve, 0));
           outputs[name] = assemble(
             name,
@@ -6951,19 +7104,29 @@
         if (differing.length)
           console.warn(`ROMs that differ from the Makefile: ${differing.join(", ")}`);
         byId("booting-title").textContent = "POWERING UP";
+        byId("booting-detail").textContent = "";
         ROMS = roms;
       }
 
       async function boot() {
         machineReady = false;
+        failed = false;
+        busy = true;
+        updateMachineButtons();
+        byId("error").hidden = true;
         const showBooting = setTimeout(() => (byId("booting").hidden = false), 150);
         setStatus("POWERING UP");
-        machine = game.createMachine(true);
-        for (let frame = 1; frame <= game.bootFrames; frame++) {
-          game.emulateFrame(machine, frame < game.bootFrames);
-          if (frame % 100 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
+        try {
+          machine = game.createMachine(true);
+          for (let frame = 1; frame <= game.bootFrames; frame++) {
+            game.emulateFrame(machine, frame < game.bootFrames);
+            if (frame % 100 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        } finally {
+          clearTimeout(showBooting);
+          busy = false;
+          updateMachineButtons();
         }
-        clearTimeout(showBooting);
         byId("booting").hidden = true;
         render();
         lastTime = 0;
@@ -6977,6 +7140,7 @@
       }
 
       function resetMachine() {
+        if (busy || !ROMS) return;
         info.close();
         setPaused(false);
         stopAudio();
@@ -6985,6 +7149,7 @@
         pendingStart = 0;
         pulses.clear();
         releaseControls();
+        focusGame();
         boot().catch(reportError);
       }
 
@@ -7092,7 +7257,11 @@
       byId("fullscreen-button").addEventListener("click", toggleFullscreen);
       byId("info-button").addEventListener("click", openInfo);
       byId("resume-button").addEventListener("click", () => setPaused(false));
-      byId("reload-button").addEventListener("click", () => location.reload());
+      byId("reload-button").addEventListener("click", resetMachine);
+      byId("loadcode-button").addEventListener("click", loadCode);
+      byId("empty-code-button").addEventListener("click", emptyCode);
+      byId("load-code-button").addEventListener("click", loadCode);
+      byId("reset-machine-button").addEventListener("click", resetMachine);
       byId("close-info").addEventListener("click", () => info.close());
       byId("reset-button").addEventListener("click", resetMachine);
       info.addEventListener("close", onInfoClosed);
@@ -7204,7 +7373,8 @@
 
       setScreenView(settings.screenView === true);
       requestAnimationFrame(animate);
-      loadROMs().then(boot).catch(reportError);
+      showLoadCode();
+      updateMachineButtons();
     </script>
   </body>
 </html>
