@@ -1173,7 +1173,7 @@
     <header class="topbar">
       <nav class="site" aria-label="Site">
         <a class="crumb" href="https://complexity.zone/">complexity.zone</a>
-        <span class="crumb">Defender Simulator</span>
+        <span class="crumb">Defender Arcade Cabinet Simulator</span>
       </nav>
       <nav class="tools" aria-label="Game options">
         <button id="pause-button" title="Pause · P" aria-pressed="false">PAUSE</button>
@@ -1996,7 +1996,7 @@
             role="img"
             aria-labelledby="circuit-title circuit-desc"
           >
-            <title id="circuit-title">Defender circuit</title>
+            <title id="circuit-title">circuit</title>
             <desc id="circuit-desc">
               Schematic of the simulated Williams Defender (1981) hardware and the ROM build. Source
               is fetched from github.com/mwenge/defender, assembled in the browser and put into the
@@ -2449,7 +2449,7 @@
             <text class="cs" x="109" y="80" text-anchor="middle">mwenge/defender</text>
             <text class="cm" x="109" y="95" text-anchor="middle">@ e740063</text>
             <text class="cm" x="109" y="110" text-anchor="middle">src/</text>
-            <text class="pin" x="109" y="123" text-anchor="middle">fetch 12 files at startup</text>
+            <text class="pin" x="109" y="123" text-anchor="middle">fetch 12 files</text>
             <polyline class="pbus" points="40,136 40,307" />
             <polyline class="p" points="40,164 64,164" marker-end="url(#circuit-arrow-p)" />
             <polyline class="p" points="40,177 64,177" marker-end="url(#circuit-arrow-p)" />
@@ -2675,7 +2675,7 @@
           <a href="https://github.com/mwenge/defender" target="_blank" rel="noopener"
             >mwenge/defender</a
           >
-          on GitHub at startup into your browser and compiled with a built-in assembler. Defender
+          on GitHub into your browser and compiled with a built-in assembler. Defender
           logo is from
           <a
             href="https://commons.wikimedia.org/wiki/File:Defender_Logo.svg"
@@ -7147,7 +7147,7 @@
       if (location.protocol === "https:") {
         const download = document.createElement("button");
         download.title =
-          "Download game html file, if you want to play it locally or tinker with the code.";
+          "Download html file, if you want to play it locally or tinker with the code.";
         download.setAttribute("aria-label", "Download html file");
         download.innerHTML =
           '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="#ffffff" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>';
