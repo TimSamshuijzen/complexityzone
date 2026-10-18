@@ -2689,7 +2689,7 @@
     <dialog id="circuit-view" class="circuit-view" aria-labelledby="circuit-view-title">
       <div class="circuit-view-bar">
         <h2 id="circuit-view-title">CIRCUIT</h2>
-        <span>CLICK TO ZOOM · GAME KEYS LIGHT THE INPUTS</span>
+        <span>CLICK TO ZOOM · GAME IS PAUSED</span>
         <button id="close-circuit">BACK TO GAME</button>
       </div>
       <div class="circuit-scroll" tabindex="-1" autofocus></div>
@@ -6417,8 +6417,10 @@
       const circuitInputs = [...circuitSvg.querySelectorAll("[data-input]")];
       const circuitView = byId("circuit-view");
       const circuitScroll = circuitView.querySelector(".circuit-scroll");
-      // Keys held while the circuit view is open: they only light the diagram, the game stays paused.
+      // Held keys that light diagram inputs on their own: every input key while the circuit view is
+      // open (the game stays paused), and coin / start keys in play, which act once and may be refused.
       const circuitKeys = new Map();
+      let gameActions = new Set();
       const joystick = byId("joystick");
       const stick = byId("stick");
       const controls = [...document.querySelectorAll("[data-action]")];
@@ -6558,7 +6560,8 @@
         shownActions = shown;
         for (const control of controls)
           control.classList.toggle("active", actions.has(control.dataset.action));
-        if (!circuitView.open) lightCircuit(actions);
+        gameActions = actions;
+        lightCircuit();
         if (!stick) return;
         const x = (actions.has("right") ? 1 : 0) - (actions.has("left") ? 1 : 0);
         const y = (actions.has("down") ? 1 : 0) - (actions.has("up") ? 1 : 0);
@@ -6572,12 +6575,18 @@
         joystickActions = [];
         applyControls();
         circuitKeys.clear();
-        if (circuitView.open) lightCircuit(new Set());
+        lightCircuit();
       }
 
-      function lightCircuit(actions) {
+      function lightCircuit() {
+        const lit = new Set(circuitKeys.values());
+        if (!circuitView.open) for (const action of gameActions) lit.add(action);
         for (const input of circuitInputs)
-          input.classList.toggle("lit", actions.has(input.dataset.input));
+          input.classList.toggle("lit", lit.has(input.dataset.input));
+      }
+
+      function isCircuitInput(action) {
+        return circuitInputs.some((input) => input.dataset.input === action);
       }
 
       function stepFrame() {
@@ -6751,7 +6760,7 @@
         releaseControls();
         circuitScroll.append(circuitSvg);
         circuitView.showModal();
-        lightCircuit(new Set());
+        lightCircuit();
         circuit.setAttribute("aria-expanded", "true");
         syncAudio();
       }
@@ -6992,17 +7001,22 @@
             if (binding.command === "info" && info.open) {
               event.preventDefault();
               info.close();
-            } else if (circuitView.open && circuitInputs.some((el) => el.dataset.input === input)) {
+            } else if (circuitView.open && isCircuitInput(input)) {
               event.preventDefault();
               circuitKeys.set(event.code, input);
-              lightCircuit(new Set(circuitKeys.values()));
+              lightCircuit();
             }
             return;
           }
           event.preventDefault();
           if (event.repeat) return;
-          if (binding.command) commands[binding.command]();
-          else if (machineReady && !paused) {
+          if (binding.command) {
+            if (isCircuitInput(binding.command)) {
+              circuitKeys.set(event.code, binding.command);
+              lightCircuit();
+            }
+            commands[binding.command]();
+          } else if (machineReady && !paused) {
             unlockAudio();
             heldKeys.delete(event.code);
             heldKeys.set(event.code, binding.action);
@@ -7016,7 +7030,7 @@
         "keyup",
         (event) => {
           if (heldKeys.delete(event.code)) applyControls();
-          if (circuitKeys.delete(event.code)) lightCircuit(new Set(circuitKeys.values()));
+          if (circuitKeys.delete(event.code)) lightCircuit();
           if (!dialogOpen() && keyBinding(event)) event.preventDefault();
         },
         { capture: true },
