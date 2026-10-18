@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" role="img" aria-labelledby="title desc">
-<title id="title">Defender ROM Build</title>
-<desc id="desc">Compact schematic of the Williams Defender (1981) hardware simulated in src/defender/index.html, with the ROM build: source fetched from github.com/mwenge/defender, assembled in the browser and cut into the ROM chips.</desc>
+<title id="title">Defender circuit</title>
+<desc id="desc">Schematic of the simulated Williams Defender (1981) hardware and the ROM build. Source is fetched from github.com/mwenge/defender, assembled in the browser and put into the ROM chips.</desc>
 <defs>
 <style>
 .bg{fill:#0b0e13}
