@@ -1094,6 +1094,31 @@
         stroke-width: 1.5;
       }
 
+      .circuit-art .input .btn {
+        fill: currentColor;
+        fill-opacity: 0.45;
+      }
+
+      .circuit-art .input.lit .btn {
+        fill-opacity: 1;
+        stroke: #fff;
+        filter: drop-shadow(0 0 5px currentColor) drop-shadow(0 0 2px currentColor);
+      }
+
+      .circuit-art .input.lit .sw,
+      .circuit-art .input.lit .pin {
+        fill: #fff;
+      }
+
+      .circuit-art .input.lit .swl {
+        stroke: currentColor;
+        stroke-width: 2.4;
+      }
+
+      .circuit-art .input.lit .wd {
+        fill: currentColor;
+      }
+
       .circuit-art .file {
         fill: #1b1d22;
         stroke: #b48cff;
@@ -2041,54 +2066,74 @@
               <rect class="panel" x="10" y="8" width="1260" height="48" rx="6" />
               <text class="blabel white" x="24" y="28">CONTROL PANEL</text>
               <text class="blabel white" x="24" y="42">&amp; COIN</text>
-              <text class="sw" x="165" y="24" text-anchor="middle">COIN</text>
-              <circle class="btn" cx="165" cy="34" r="6.5" fill="#fdcc05" />
-              <text class="pin" x="175" y="37">PA4</text>
-              <polyline class="swl" points="165,40.5 165,83" marker-end="url(#circuit-arrow-w)" />
-              <text class="sw" x="260" y="24" text-anchor="middle">UP</text>
-              <circle class="btn" cx="260" cy="34" r="6.5" fill="#e6e6e6" />
-              <text class="pin" x="270" y="37">PB0</text>
-              <polyline class="swl" points="260,40.5 260,83" marker-end="url(#circuit-arrow-w)" />
-              <text class="sw" x="372" y="24" text-anchor="middle">FIRE</text>
-              <circle class="btn" cx="372" cy="34" r="6.5" fill="#f9011f" />
-              <text class="pin" x="382" y="37">PA0</text>
-              <polyline class="swl" points="372,40.5 372,48" />
-              <circle class="wd" cx="372" cy="48" r="3" />
-              <text class="sw" x="444" y="24" text-anchor="middle">THRUST</text>
-              <circle class="btn" cx="444" cy="34" r="6.5" fill="#e6e6e6" />
-              <text class="pin" x="454" y="37">PA1</text>
-              <polyline class="swl" points="444,40.5 444,48" />
-              <circle class="wd" cx="444" cy="48" r="3" />
-              <text class="sw" x="516" y="24" text-anchor="middle">SMART BOMB</text>
-              <circle class="btn" cx="516" cy="34" r="6.5" fill="#e6e6e6" />
-              <text class="pin" x="526" y="37">PA2</text>
-              <polyline class="swl" points="516,40.5 516,48" />
-              <circle class="wd" cx="516" cy="48" r="3" />
-              <text class="sw" x="588" y="24" text-anchor="middle">HYPERSPACE</text>
-              <circle class="btn" cx="588" cy="34" r="6.5" fill="#e6e6e6" />
-              <text class="pin" x="598" y="37">PA3</text>
-              <polyline class="swl" points="588,40.5 588,48" />
-              <circle class="wd" cx="588" cy="48" r="3" />
-              <text class="sw" x="660" y="24" text-anchor="middle">2 PLAYER</text>
-              <circle class="btn" cx="660" cy="34" r="6.5" fill="#02f202" />
-              <text class="pin" x="670" y="37">PA4</text>
-              <polyline class="swl" points="660,40.5 660,48" />
-              <circle class="wd" cx="660" cy="48" r="3" />
-              <text class="sw" x="732" y="24" text-anchor="middle">1 PLAYER</text>
-              <circle class="btn" cx="732" cy="34" r="6.5" fill="#02f202" />
-              <text class="pin" x="742" y="37">PA5</text>
-              <polyline class="swl" points="732,40.5 732,48" />
-              <circle class="wd" cx="732" cy="48" r="3" />
-              <text class="sw" x="804" y="24" text-anchor="middle">REVERSE</text>
-              <circle class="btn" cx="804" cy="34" r="6.5" fill="#e6e6e6" />
-              <text class="pin" x="814" y="37">PA6</text>
-              <polyline class="swl" points="804,40.5 804,48" />
-              <circle class="wd" cx="804" cy="48" r="3" />
-              <text class="sw" x="876" y="24" text-anchor="middle">DOWN</text>
-              <circle class="btn" cx="876" cy="34" r="6.5" fill="#e6e6e6" />
-              <text class="pin" x="886" y="37">PA7</text>
-              <polyline class="swl" points="876,40.5 876,48" />
-              <circle class="wd" cx="876" cy="48" r="3" />
+              <g class="input" data-input="coin" style="color: #fdcc05">
+                <text class="sw" x="165" y="24" text-anchor="middle">COIN</text>
+                <circle class="btn" cx="165" cy="34" r="6.5" />
+                <text class="pin" x="175" y="37">PA4</text>
+                <polyline class="swl" points="165,40.5 165,83" marker-end="url(#circuit-arrow-w)" />
+              </g>
+              <g class="input" data-input="up" style="color: #e6e6e6">
+                <text class="sw" x="260" y="24" text-anchor="middle">UP</text>
+                <circle class="btn" cx="260" cy="34" r="6.5" />
+                <text class="pin" x="270" y="37">PB0</text>
+                <polyline class="swl" points="260,40.5 260,83" marker-end="url(#circuit-arrow-w)" />
+              </g>
+              <g class="input" data-input="fire" style="color: #f9011f">
+                <text class="sw" x="372" y="24" text-anchor="middle">FIRE</text>
+                <circle class="btn" cx="372" cy="34" r="6.5" />
+                <text class="pin" x="382" y="37">PA0</text>
+                <polyline class="swl" points="372,40.5 372,48" />
+                <circle class="wd" cx="372" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="thrust" style="color: #e6e6e6">
+                <text class="sw" x="444" y="24" text-anchor="middle">THRUST</text>
+                <circle class="btn" cx="444" cy="34" r="6.5" />
+                <text class="pin" x="454" y="37">PA1</text>
+                <polyline class="swl" points="444,40.5 444,48" />
+                <circle class="wd" cx="444" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="bomb" style="color: #e6e6e6">
+                <text class="sw" x="516" y="24" text-anchor="middle">SMART BOMB</text>
+                <circle class="btn" cx="516" cy="34" r="6.5" />
+                <text class="pin" x="526" y="37">PA2</text>
+                <polyline class="swl" points="516,40.5 516,48" />
+                <circle class="wd" cx="516" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="hyper" style="color: #e6e6e6">
+                <text class="sw" x="588" y="24" text-anchor="middle">HYPERSPACE</text>
+                <circle class="btn" cx="588" cy="34" r="6.5" />
+                <text class="pin" x="598" y="37">PA3</text>
+                <polyline class="swl" points="588,40.5 588,48" />
+                <circle class="wd" cx="588" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="start2" style="color: #02f202">
+                <text class="sw" x="660" y="24" text-anchor="middle">2 PLAYER</text>
+                <circle class="btn" cx="660" cy="34" r="6.5" />
+                <text class="pin" x="670" y="37">PA4</text>
+                <polyline class="swl" points="660,40.5 660,48" />
+                <circle class="wd" cx="660" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="start1" style="color: #02f202">
+                <text class="sw" x="732" y="24" text-anchor="middle">1 PLAYER</text>
+                <circle class="btn" cx="732" cy="34" r="6.5" />
+                <text class="pin" x="742" y="37">PA5</text>
+                <polyline class="swl" points="732,40.5 732,48" />
+                <circle class="wd" cx="732" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="reverse" style="color: #e6e6e6">
+                <text class="sw" x="804" y="24" text-anchor="middle">REVERSE</text>
+                <circle class="btn" cx="804" cy="34" r="6.5" />
+                <text class="pin" x="814" y="37">PA6</text>
+                <polyline class="swl" points="804,40.5 804,48" />
+                <circle class="wd" cx="804" cy="48" r="3" />
+              </g>
+              <g class="input" data-input="down" style="color: #e6e6e6">
+                <text class="sw" x="876" y="24" text-anchor="middle">DOWN</text>
+                <circle class="btn" cx="876" cy="34" r="6.5" />
+                <text class="pin" x="886" y="37">PA7</text>
+                <polyline class="swl" points="876,40.5 876,48" />
+                <circle class="wd" cx="876" cy="48" r="3" />
+              </g>
               <polyline
                 class="swbus"
                 points="876,48 300,48 300,83"
@@ -6365,6 +6410,7 @@
       const info = byId("info");
       const circuit = document.querySelector(".circuit");
       const circuitSvg = circuit.querySelector("svg");
+      const circuitInputs = [...circuitSvg.querySelectorAll("[data-input]")];
       const circuitView = byId("circuit-view");
       const circuitScroll = circuitView.querySelector(".circuit-scroll");
       const joystick = byId("joystick");
@@ -6506,6 +6552,8 @@
         shownActions = shown;
         for (const control of controls)
           control.classList.toggle("active", actions.has(control.dataset.action));
+        for (const input of circuitInputs)
+          input.classList.toggle("lit", actions.has(input.dataset.input));
         if (!stick) return;
         const x = (actions.has("right") ? 1 : 0) - (actions.has("left") ? 1 : 0);
         const y = (actions.has("down") ? 1 : 0) - (actions.has("up") ? 1 : 0);
