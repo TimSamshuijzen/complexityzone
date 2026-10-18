@@ -1123,6 +1123,13 @@
         fill: currentColor;
       }
 
+      .circuit-art .chip.fetched {
+        fill: #24202e;
+        stroke: #b48cff;
+        stroke-width: 2;
+        filter: drop-shadow(0 0 5px #b48cff);
+      }
+
       .circuit-art .file {
         fill: #1b1d22;
         stroke: #b48cff;
@@ -2444,7 +2451,7 @@
             <!-- Source, assembler and ROMs -->
             <rect class="panel" x="10" y="8" width="702" height="353" rx="6" />
             <text class="blabel white" x="24" y="28">SOURCE → ASSEMBLER → ROMS</text>
-            <rect class="chip" x="24" y="40" width="170" height="96" rx="6" />
+            <rect id="circuit-source" class="chip" x="24" y="40" width="170" height="96" rx="6" />
             <text class="ct" x="109" y="64" text-anchor="middle">GitHub</text>
             <text class="cs" x="109" y="80" text-anchor="middle">mwenge/defender</text>
             <text class="cm" x="109" y="95" text-anchor="middle">@ e740063</text>
@@ -6916,6 +6923,7 @@
             setStatus(`FETCHING SOURCE · ${++fetched}/${names.length}`);
           }),
         );
+        byId("circuit-source").classList.add("fetched");
         const outputs = { "unknown.bin": files["unknown.bin"] };
         for (const [name, [cpu, ...sources]] of Object.entries(BUILDS)) {
           setStatus(`ASSEMBLING ${sources.at(-1).toUpperCase()}`);
