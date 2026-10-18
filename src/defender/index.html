@@ -1183,7 +1183,7 @@
       }
 
       .circuit-art .chip.fetched,
-      .circuit-art .rom.filled .chip {
+      .circuit-art.filled .rom .chip {
         fill: #24202e;
         stroke: #b48cff;
         stroke-width: 2;
@@ -1195,16 +1195,16 @@
         transition: opacity 0.4s;
       }
 
-      .circuit-art .rom.filled {
+      .circuit-art.filled .rom {
         opacity: 1;
       }
 
-      .circuit-art .rom.filled .notch {
+      .circuit-art.filled .rom .notch {
         stroke: #b48cff;
         stroke-width: 2;
       }
 
-      .circuit-art .rom.filled .cs {
+      .circuit-art.filled .rom .cs {
         fill: #fff;
       }
 
@@ -1236,6 +1236,10 @@
         fill: none;
         stroke: #4fd18b;
         stroke-width: 1.5;
+      }
+
+      .circuit-art:not(.filled) .check {
+        display: none;
       }
 
       .circuit-art .screen {
@@ -6555,7 +6559,6 @@
       const circuit = document.querySelector(".circuit");
       const circuitSvg = circuit.querySelector("svg");
       const circuitInputs = [...circuitSvg.querySelectorAll("[data-input]")];
-      const circuitRoms = circuitSvg.querySelectorAll(".rom");
       const circuitView = byId("circuit-view");
       const circuitScroll = circuitView.querySelector(".circuit-scroll");
       // Held keys that light diagram inputs on their own: every input key while the circuit view is
@@ -6721,7 +6724,7 @@
         ROMS = null;
         byId("error").hidden = true;
         byId("circuit-source").classList.remove("fetched");
-        for (const rom of circuitRoms) rom.classList.remove("filled");
+        circuitSvg.classList.remove("filled");
         context.fillStyle = "#000";
         context.fillRect(0, 0, canvas.width, canvas.height);
       }
@@ -7170,7 +7173,7 @@
         byId("booting-title").textContent = "POWERING UP";
         byId("booting-detail").textContent = "";
         ROMS = roms;
-        for (const rom of circuitRoms) rom.classList.add("filled");
+        circuitSvg.classList.add("filled");
       }
 
       async function boot() {
