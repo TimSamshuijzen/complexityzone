@@ -568,17 +568,6 @@
         margin-top: 24px;
       }
 
-      .info-actions #reset-button {
-        border-color: #ffffff2e;
-        background: transparent;
-        color: var(--text);
-      }
-
-      .info-actions #reset-button:hover:not(:disabled) {
-        border-color: #ffffff5c;
-        background: #ffffff0d;
-      }
-
       .info-card .credits {
         margin: 0;
         padding-top: 14px;
@@ -3153,7 +3142,6 @@
         </div>
         <div class="info-actions">
           <button id="close-info" autofocus>BACK TO GAME</button>
-          <button id="reset-button">RESET MACHINE</button>
         </div>
         <p class="credits">
           This web application is NOT affiliated with Williams Electronics or Warner Bros. Games.<br />
@@ -7033,7 +7021,6 @@
         byId("loadcode-button").disabled = busy;
         byId("empty-code-button").disabled = !ready;
         byId("reset-machine-button").disabled = !ready;
-        byId("reset-button").disabled = !ready;
         for (const button of document.querySelectorAll("[data-action='coin']"))
           button.disabled = !ready;
       }
@@ -7673,7 +7660,6 @@
       byId("load-code-button").addEventListener("click", loadCode);
       byId("reset-machine-button").addEventListener("click", resetMachine);
       byId("close-info").addEventListener("click", () => info.close());
-      byId("reset-button").addEventListener("click", resetMachine);
       info.addEventListener("close", onInfoClosed);
 
       info.addEventListener("click", (event) => {
