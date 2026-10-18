@@ -32,7 +32,7 @@
         --dialog-text: #b5ac9c;
         --link: #edb778;
         --stage-width: 680px;
-        --stage-height: 907px;
+        --stage-height: 983px;
       }
 
       * {
@@ -440,7 +440,7 @@
 
       .cabinet {
         position: absolute;
-        inset: 5px 9px 20px;
+        inset: 5px 9px 8px;
         border-radius: 8px;
         background: #141416;
         box-shadow: 0 30px 70px #000c;
@@ -511,7 +511,7 @@
         left: 18px;
         right: 18px;
         top: 569px;
-        height: 239px;
+        height: 222px;
         background: #06070a;
         z-index: 6;
       }
@@ -658,43 +658,43 @@
 
       .reverse {
         left: 138px;
-        top: 93px;
+        top: 85px;
       }
 
       .start-one {
         left: 244px;
-        top: 45px;
+        top: 37px;
       }
 
       .start-two {
         left: 339px;
-        top: 45px;
+        top: 37px;
       }
 
       .thrust {
         left: 455px;
-        top: 63px;
+        top: 55px;
       }
 
       .fire {
         left: 502px;
-        top: 63px;
+        top: 55px;
       }
 
       .bomb {
         left: 417px;
-        top: 97px;
+        top: 89px;
       }
 
       .hyper {
         left: 294px;
-        top: 163px;
+        top: 155px;
       }
 
       .joystick {
         position: absolute;
         left: 80px;
-        top: 31px;
+        top: 23px;
         width: 48px;
         height: 95px;
         border: 0;
@@ -748,10 +748,10 @@
 
       .coinstatus {
         position: absolute;
-        top: 808px;
+        top: 791px;
         left: 18px;
         right: 18px;
-        bottom: 11px;
+        height: 40px;
         background: #000;
         display: flex;
         align-items: center;
@@ -760,8 +760,8 @@
       }
 
       .coin {
-        width: 53px;
-        height: 47px;
+        width: 50px;
+        height: 32px;
         background: none;
         border: 0;
         padding: 0;
@@ -786,7 +786,7 @@
 
       .status {
         width: 400px;
-        height: 47px;
+        height: 32px;
         display: grid;
         place-items: center;
         padding: 0 10px;
@@ -797,6 +797,278 @@
         letter-spacing: 1.5px;
         text-align: center;
         white-space: pre-wrap;
+      }
+
+      .circuit {
+        position: absolute;
+        top: 831px;
+        left: 18px;
+        right: 18px;
+      }
+
+      .circuit svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .circuit text {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .circuit .bg {
+        fill: #0b0e13;
+      }
+
+      .circuit .board {
+        fill: #0f2419;
+        stroke: #2f6b4b;
+        stroke-width: 1.6;
+      }
+
+      .circuit .panel {
+        fill: #16181d;
+        stroke: #4a4f58;
+        stroke-width: 1.2;
+      }
+
+      .circuit .group {
+        fill: none;
+        stroke: #5d8f74;
+        stroke-width: 1.1;
+        stroke-dasharray: 5 3;
+      }
+
+      .circuit .chip {
+        fill: #1b1d22;
+        stroke: #a3a9b3;
+        stroke-width: 1.3;
+      }
+
+      .circuit .notch {
+        fill: #0f2419;
+        stroke: #a3a9b3;
+        stroke-width: 1.3;
+      }
+
+      .circuit .empty {
+        fill: none;
+        stroke: #59606a;
+        stroke-width: 1.1;
+        stroke-dasharray: 4 3;
+      }
+
+      .circuit .crt {
+        fill: #05070a;
+        stroke: #a3a9b3;
+        stroke-width: 1.3;
+      }
+
+      .circuit .blabel {
+        fill: #7fd09f;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+      }
+
+      .circuit .glabel {
+        fill: #a6d8bb;
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+      }
+
+      .circuit .ct {
+        fill: #fff;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .circuit .cs {
+        fill: #c9ced6;
+        font-size: 10.5px;
+      }
+
+      .circuit .cm {
+        fill: #7fd3ff;
+        font-size: 10px;
+        font-family: Consolas, "DejaVu Sans Mono", monospace;
+      }
+
+      .circuit .pin {
+        fill: #b8c0ca;
+        font-size: 8.5px;
+        font-family: Consolas, "DejaVu Sans Mono", monospace;
+      }
+
+      .circuit .halo {
+        paint-order: stroke;
+        stroke: #0f2419;
+        stroke-width: 3px;
+        stroke-linejoin: round;
+      }
+
+      .circuit .phalo {
+        paint-order: stroke;
+        stroke: #16181d;
+        stroke-width: 3px;
+        stroke-linejoin: round;
+      }
+
+      .circuit .sw {
+        fill: #e6e6e6;
+        font-size: 8.5px;
+        font-weight: 700;
+      }
+
+      .circuit .white {
+        fill: #fff;
+      }
+
+      .circuit .a {
+        fill: none;
+        stroke: #4ea1ff;
+        stroke-width: 1.8;
+      }
+
+      .circuit .abus {
+        fill: none;
+        stroke: #4ea1ff;
+        stroke-width: 5;
+        stroke-linecap: round;
+      }
+
+      .circuit .d {
+        fill: none;
+        stroke: #ffaa3b;
+        stroke-width: 1.8;
+      }
+
+      .circuit .dbus {
+        fill: none;
+        stroke: #ffaa3b;
+        stroke-width: 5;
+        stroke-linecap: round;
+      }
+
+      .circuit .irq {
+        fill: none;
+        stroke: #ff5a5a;
+        stroke-width: 1.8;
+      }
+
+      .circuit .vid {
+        fill: none;
+        stroke: #f2d44b;
+        stroke-width: 1.8;
+      }
+
+      .circuit .vidbus {
+        fill: none;
+        stroke: #f2d44b;
+        stroke-width: 3.2;
+      }
+
+      .circuit .snd {
+        fill: none;
+        stroke: #4fd18b;
+        stroke-width: 1.8;
+      }
+
+      .circuit .sndbus {
+        fill: none;
+        stroke: #4fd18b;
+        stroke-width: 3.2;
+      }
+
+      .circuit .swl {
+        fill: none;
+        stroke: #e6e6e6;
+        stroke-width: 1.3;
+      }
+
+      .circuit .swbus {
+        fill: none;
+        stroke: #e6e6e6;
+        stroke-width: 3.2;
+      }
+
+      .circuit .p {
+        fill: none;
+        stroke: #b48cff;
+        stroke-width: 1.5;
+      }
+
+      .circuit .pbus {
+        fill: none;
+        stroke: #b48cff;
+        stroke-width: 3.2;
+      }
+
+      .circuit .ad {
+        fill: #4ea1ff;
+      }
+
+      .circuit .dd {
+        fill: #ffaa3b;
+      }
+
+      .circuit .sd {
+        fill: #4fd18b;
+      }
+
+      .circuit .wd {
+        fill: #e6e6e6;
+      }
+
+      .circuit .pd {
+        fill: #b48cff;
+      }
+
+      .circuit .btn {
+        stroke: #0b0e13;
+        stroke-width: 1.5;
+      }
+
+      .circuit .file {
+        fill: #1b1d22;
+        stroke: #b48cff;
+        stroke-width: 1;
+      }
+
+      .circuit .run {
+        fill: #24202e;
+        stroke: #b48cff;
+        stroke-width: 1;
+      }
+
+      .circuit .patch {
+        fill: #16181d;
+        stroke: #ffaa3b;
+        stroke-width: 1.3;
+      }
+
+      .circuit .md5 {
+        fill: #16181d;
+        stroke: #4fd18b;
+        stroke-width: 1.2;
+      }
+
+      .circuit .check {
+        fill: none;
+        stroke: #4fd18b;
+        stroke-width: 1.5;
+      }
+
+      .circuit .screen {
+        fill: #0a1020;
+        stroke: #3a3f48;
+      }
+
+      .circuit .terrain {
+        fill: none;
+        stroke: #7a4bd6;
+        stroke-width: 1.3;
       }
 
       .screen-only canvas {
@@ -1127,7 +1399,7 @@
           </div>
         </div>
         <div class="console" aria-label="Original Defender controls">
-          <svg class="panel-art" viewBox="0 -5.5 1200 458.5" aria-hidden="true">
+          <svg class="panel-art" viewBox="0 10 1200 426" aria-hidden="true">
             <!-- Background -->
             <rect class="bg" x="0" y="-5.5" width="1200" height="458.5" />
 
@@ -1615,6 +1887,618 @@
             <span>INSERT<br />COIN</span>
           </button>
           <div id="status" class="status" role="status"></div>
+        </div>
+        <div class="circuit">
+          <svg viewBox="0 0 1990 396" role="img" aria-labelledby="circuit-title circuit-desc">
+            <title id="circuit-title">Defender circuit</title>
+            <desc id="circuit-desc">
+              Schematic of the simulated Williams Defender (1981) hardware and the ROM build. Source
+              is fetched from github.com/mwenge/defender, assembled in the browser and put into the
+              ROM chips.
+            </desc>
+            <defs>
+              <marker
+                id="circuit-arrow-r"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="#ff5a5a" />
+              </marker>
+              <marker
+                id="circuit-arrow-v"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="#f2d44b" />
+              </marker>
+              <marker
+                id="circuit-arrow-s"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="#4fd18b" />
+              </marker>
+              <marker
+                id="circuit-arrow-w"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="#e6e6e6" />
+              </marker>
+              <marker
+                id="circuit-arrow-p"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="#b48cff" />
+              </marker>
+            </defs>
+            <rect class="bg" width="1990" height="396" />
+            <g transform="translate(710 0)">
+              <!-- Control panel -->
+              <rect class="panel" x="10" y="8" width="1260" height="48" rx="6" />
+              <text class="blabel white" x="24" y="28">CONTROL PANEL</text>
+              <text class="blabel white" x="24" y="42">&amp; COIN</text>
+              <text class="sw" x="165" y="24" text-anchor="middle">COIN</text>
+              <circle class="btn" cx="165" cy="34" r="6.5" fill="#fdcc05" />
+              <text class="pin" x="175" y="37">PA4</text>
+              <polyline class="swl" points="165,40.5 165,83" marker-end="url(#circuit-arrow-w)" />
+              <text class="sw" x="260" y="24" text-anchor="middle">UP</text>
+              <circle class="btn" cx="260" cy="34" r="6.5" fill="#e6e6e6" />
+              <text class="pin" x="270" y="37">PB0</text>
+              <polyline class="swl" points="260,40.5 260,83" marker-end="url(#circuit-arrow-w)" />
+              <text class="sw" x="372" y="24" text-anchor="middle">FIRE</text>
+              <circle class="btn" cx="372" cy="34" r="6.5" fill="#f9011f" />
+              <text class="pin" x="382" y="37">PA0</text>
+              <polyline class="swl" points="372,40.5 372,48" />
+              <circle class="wd" cx="372" cy="48" r="3" />
+              <text class="sw" x="444" y="24" text-anchor="middle">THRUST</text>
+              <circle class="btn" cx="444" cy="34" r="6.5" fill="#e6e6e6" />
+              <text class="pin" x="454" y="37">PA1</text>
+              <polyline class="swl" points="444,40.5 444,48" />
+              <circle class="wd" cx="444" cy="48" r="3" />
+              <text class="sw" x="516" y="24" text-anchor="middle">SMART BOMB</text>
+              <circle class="btn" cx="516" cy="34" r="6.5" fill="#e6e6e6" />
+              <text class="pin" x="526" y="37">PA2</text>
+              <polyline class="swl" points="516,40.5 516,48" />
+              <circle class="wd" cx="516" cy="48" r="3" />
+              <text class="sw" x="588" y="24" text-anchor="middle">HYPERSPACE</text>
+              <circle class="btn" cx="588" cy="34" r="6.5" fill="#e6e6e6" />
+              <text class="pin" x="598" y="37">PA3</text>
+              <polyline class="swl" points="588,40.5 588,48" />
+              <circle class="wd" cx="588" cy="48" r="3" />
+              <text class="sw" x="660" y="24" text-anchor="middle">2 PLAYER</text>
+              <circle class="btn" cx="660" cy="34" r="6.5" fill="#02f202" />
+              <text class="pin" x="670" y="37">PA4</text>
+              <polyline class="swl" points="660,40.5 660,48" />
+              <circle class="wd" cx="660" cy="48" r="3" />
+              <text class="sw" x="732" y="24" text-anchor="middle">1 PLAYER</text>
+              <circle class="btn" cx="732" cy="34" r="6.5" fill="#02f202" />
+              <text class="pin" x="742" y="37">PA5</text>
+              <polyline class="swl" points="732,40.5 732,48" />
+              <circle class="wd" cx="732" cy="48" r="3" />
+              <text class="sw" x="804" y="24" text-anchor="middle">REVERSE</text>
+              <circle class="btn" cx="804" cy="34" r="6.5" fill="#e6e6e6" />
+              <text class="pin" x="814" y="37">PA6</text>
+              <polyline class="swl" points="804,40.5 804,48" />
+              <circle class="wd" cx="804" cy="48" r="3" />
+              <text class="sw" x="876" y="24" text-anchor="middle">DOWN</text>
+              <circle class="btn" cx="876" cy="34" r="6.5" fill="#e6e6e6" />
+              <text class="pin" x="886" y="37">PA7</text>
+              <polyline class="swl" points="876,40.5 876,48" />
+              <circle class="wd" cx="876" cy="48" r="3" />
+              <polyline
+                class="swbus"
+                points="876,48 300,48 300,83"
+                marker-end="url(#circuit-arrow-w)"
+              />
+              <line class="swl" x1="296" y1="71" x2="304" y2="61" />
+              <text class="pin" x="305" y="61">8</text>
+              <!-- Main board -->
+              <path class="board" d="M10,62 H1270 V206 H830 V361 H10 Z" />
+              <text class="blabel" x="24" y="78">MAIN SYSTEM · CPU, ROM &amp; VIDEO</text>
+              <polyline class="abus" points="110,194 815,194" />
+              <polyline class="dbus" points="110,208 815,208" />
+              <text class="pin halo" x="128" y="188">A0–A15</text>
+              <text class="pin" x="128" y="221">D0–D7</text>
+              <rect class="chip" x="30" y="172" width="80" height="80" rx="3" />
+              <path class="notch" d="M46,172 a6,6 0 0 0 12,0" />
+              <text class="ct" x="70" y="224" text-anchor="middle">MC6809E</text>
+              <text class="cm" x="70" y="238" text-anchor="middle">1 MHz</text>
+              <text class="pin" x="80" y="183" text-anchor="middle">IRQ</text>
+              <text class="pin" x="106" y="197" text-anchor="end">A</text>
+              <text class="pin" x="106" y="211" text-anchor="end">D</text>
+              <rect class="chip" x="30" y="264" width="80" height="50" rx="3" />
+              <path class="notch" d="M64,264 a6,6 0 0 0 12,0" />
+              <text class="cs" x="70" y="293" text-anchor="middle">DECODER</text>
+              <polyline class="a" points="110,279 120,279 120,194" />
+              <circle class="ad" cx="120" cy="194" r="3" />
+              <rect class="chip" x="130" y="84" width="100" height="70" rx="3" />
+              <path class="notch" d="M204,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="180" y="111" text-anchor="middle">MC6821</text>
+              <text class="cs" x="180" y="125" text-anchor="middle">ROM PIA</text>
+              <text class="cm" x="180" y="137" text-anchor="middle">$CC00</text>
+              <text class="pin" x="165" y="94" text-anchor="middle">PA4</text>
+              <text class="pin" x="145" y="150" text-anchor="middle">CA1</text>
+              <text class="pin" x="168" y="150" text-anchor="middle">CB1</text>
+              <text class="pin" x="195" y="150" text-anchor="middle">RS</text>
+              <text class="pin" x="215" y="150" text-anchor="middle">D</text>
+              <polyline class="a" points="195,154 195,194" />
+              <circle class="ad" cx="195" cy="194" r="3" />
+              <polyline class="d" points="215,154 215,208" />
+              <circle class="dd" cx="215" cy="208" r="3" />
+              <text class="pin halo" x="124" y="102" text-anchor="end">PB0–5</text>
+              <text class="pin halo" x="124" y="138" text-anchor="end">IRQ</text>
+              <rect class="chip" x="245" y="84" width="100" height="70" rx="3" />
+              <path class="notch" d="M324,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="295" y="111" text-anchor="middle">MC6821</text>
+              <text class="cs" x="295" y="125" text-anchor="middle">WIDGET PIA</text>
+              <text class="cm" x="295" y="137" text-anchor="middle">$CC04</text>
+              <text class="pin" x="260" y="94" text-anchor="middle">PB0</text>
+              <text class="pin" x="300" y="94" text-anchor="middle">PA0–7</text>
+              <polyline class="a" points="275,154 275,194" />
+              <circle class="ad" cx="275" cy="194" r="3" />
+              <polyline class="d" points="320,154 320,208" />
+              <circle class="dd" cx="320" cy="208" r="3" />
+              <rect class="chip" x="360" y="84" width="90" height="70" rx="3" />
+              <path class="notch" d="M399,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="405" y="111" text-anchor="middle">5101</text>
+              <text class="cs" x="405" y="125" text-anchor="middle">CMOS RAM</text>
+              <text class="cm" x="405" y="137" text-anchor="middle">$C400</text>
+              <text class="pin" x="425" y="150" text-anchor="middle">D0–3</text>
+              <polyline class="a" points="385,154 385,194" />
+              <circle class="ad" cx="385" cy="194" r="3" />
+              <polyline class="d" points="425,154 425,208" />
+              <circle class="dd" cx="425" cy="208" r="3" />
+              <rect class="chip" x="465" y="84" width="90" height="70" rx="3" />
+              <path class="notch" d="M504,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="510" y="109" text-anchor="middle">VIDEO</text>
+              <text class="ct" x="510" y="123" text-anchor="middle">COUNTER</text>
+              <text class="cm" x="510" y="137" text-anchor="middle">$C800</text>
+              <text class="pin" x="540" y="150" text-anchor="middle">V</text>
+              <polyline class="a" points="485,154 485,194" />
+              <circle class="ad" cx="485" cy="194" r="3" />
+              <polyline class="d" points="510,154 510,208" />
+              <circle class="dd" cx="510" cy="208" r="3" />
+              <rect class="chip" x="570" y="84" width="120" height="70" rx="3" />
+              <path class="notch" d="M624,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="630" y="111" text-anchor="middle">48 KB RAM</text>
+              <text class="cs" x="630" y="125" text-anchor="middle">video + work</text>
+              <text class="cm" x="630" y="137" text-anchor="middle">$0000–$BFFF</text>
+              <polyline class="a" points="600,154 600,194" />
+              <circle class="ad" cx="600" cy="194" r="3" />
+              <polyline class="d" points="630,154 630,208" />
+              <circle class="dd" cx="630" cy="208" r="3" />
+              <rect class="chip" x="705" y="84" width="110" height="70" rx="3" />
+              <path class="notch" d="M754,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="760" y="111" text-anchor="middle">PALETTE</text>
+              <text class="cs" x="760" y="125" text-anchor="middle">16 × 8 bit</text>
+              <text class="cm" x="760" y="137" text-anchor="middle">$C000</text>
+              <polyline class="a" points="735,154 735,194" />
+              <circle class="ad" cx="735" cy="194" r="3" />
+              <polyline class="d" points="775,154 775,208" />
+              <circle class="dd" cx="775" cy="208" r="3" />
+              <rect class="chip" x="130" y="222" width="70" height="48" rx="3" />
+              <path class="notch" d="M159,222 a6,6 0 0 0 12,0" />
+              <text class="ct" x="165" y="242" text-anchor="middle">BANK</text>
+              <text class="ct" x="165" y="256" text-anchor="middle">LATCH</text>
+              <polyline class="d" points="185,222 185,208" />
+              <circle class="dd" cx="185" cy="208" r="3" />
+              <polyline class="irq" points="200,246 213,246" marker-end="url(#circuit-arrow-r)" />
+              <polyline
+                class="irq"
+                points="150,270 150,299 112,299"
+                marker-end="url(#circuit-arrow-r)"
+              />
+              <rect class="group" x="215" y="222" width="290" height="131" rx="5" />
+              <text class="glabel" x="223" y="236">BANKED ROM</text>
+              <text class="pin" x="255" y="250" text-anchor="middle">BANK 1</text>
+              <rect class="chip" x="223" y="255" width="64" height="42" rx="3" />
+              <path class="notch" d="M249,255 a6,6 0 0 0 12,0" />
+              <text class="cs" x="255" y="275" text-anchor="middle">defend.9</text>
+              <text class="cm" x="255" y="288" text-anchor="middle">$C000</text>
+              <rect class="chip" x="223" y="303" width="64" height="42" rx="3" />
+              <path class="notch" d="M249,303 a6,6 0 0 0 12,0" />
+              <text class="cs" x="255" y="323" text-anchor="middle">defend.12</text>
+              <text class="cm" x="255" y="336" text-anchor="middle">$C800</text>
+              <text class="pin" x="325" y="250" text-anchor="middle">BANK 2</text>
+              <rect class="chip" x="293" y="255" width="64" height="42" rx="3" />
+              <path class="notch" d="M319,255 a6,6 0 0 0 12,0" />
+              <text class="cs" x="325" y="275" text-anchor="middle">defend.8</text>
+              <text class="cm" x="325" y="288" text-anchor="middle">$C000</text>
+              <rect class="chip" x="293" y="303" width="64" height="42" rx="3" />
+              <path class="notch" d="M319,303 a6,6 0 0 0 12,0" />
+              <text class="cs" x="325" y="323" text-anchor="middle">defend.11</text>
+              <text class="cm" x="325" y="336" text-anchor="middle">$C800</text>
+              <text class="pin" x="395" y="250" text-anchor="middle">BANK 3</text>
+              <rect class="chip" x="363" y="255" width="64" height="42" rx="3" />
+              <path class="notch" d="M389,255 a6,6 0 0 0 12,0" />
+              <text class="cs" x="395" y="275" text-anchor="middle">defend.7</text>
+              <text class="cm" x="395" y="288" text-anchor="middle">$C000</text>
+              <rect class="chip" x="363" y="303" width="64" height="42" rx="3" />
+              <path class="notch" d="M389,303 a6,6 0 0 0 12,0" />
+              <text class="cs" x="395" y="323" text-anchor="middle">defend.10</text>
+              <text class="cm" x="395" y="336" text-anchor="middle">$C800</text>
+              <text class="pin" x="465" y="250" text-anchor="middle">BANK 7</text>
+              <rect class="chip" x="433" y="255" width="64" height="42" rx="3" />
+              <path class="notch" d="M459,255 a6,6 0 0 0 12,0" />
+              <text class="cs" x="465" y="275" text-anchor="middle">defend.6</text>
+              <text class="cm" x="465" y="288" text-anchor="middle">$C000</text>
+              <rect class="empty" x="433" y="303" width="64" height="42" rx="3" />
+              <polyline class="a" points="330,222 330,194" />
+              <circle class="ad" cx="330" cy="194" r="3" />
+              <polyline class="d" points="380,222 380,208" />
+              <circle class="dd" cx="380" cy="208" r="3" />
+              <rect class="group" x="515" y="222" width="300" height="131" rx="5" />
+              <text class="glabel" x="523" y="236">FIXED ROM</text>
+              <rect class="chip" x="523" y="242" width="66" height="103" rx="3" />
+              <path class="notch" d="M550,242 a6,6 0 0 0 12,0" />
+              <text class="cs" x="556" y="291" text-anchor="middle">defend.1</text>
+              <text class="cm" x="556" y="304" text-anchor="middle">$D000</text>
+              <rect class="chip" x="596" y="242" width="66" height="103" rx="3" />
+              <path class="notch" d="M623,242 a6,6 0 0 0 12,0" />
+              <text class="cs" x="629" y="291" text-anchor="middle">defend.4</text>
+              <text class="cm" x="629" y="304" text-anchor="middle">$D800</text>
+              <rect class="chip" x="669" y="242" width="66" height="103" rx="3" />
+              <path class="notch" d="M696,242 a6,6 0 0 0 12,0" />
+              <text class="cs" x="702" y="291" text-anchor="middle">defend.2</text>
+              <text class="cm" x="702" y="304" text-anchor="middle">$E000</text>
+              <rect class="chip" x="742" y="242" width="66" height="103" rx="3" />
+              <path class="notch" d="M769,242 a6,6 0 0 0 12,0" />
+              <text class="cs" x="775" y="291" text-anchor="middle">defend.3</text>
+              <text class="cm" x="775" y="304" text-anchor="middle">$F000</text>
+              <polyline class="a" points="640,222 640,194" />
+              <circle class="ad" cx="640" cy="194" r="3" />
+              <polyline class="d" points="690,222 690,208" />
+              <circle class="dd" cx="690" cy="208" r="3" />
+              <!-- Video -->
+              <polyline
+                class="vidbus"
+                points="650,84 650,72 905,72 905,83"
+                marker-end="url(#circuit-arrow-v)"
+              />
+              <rect class="chip" x="845" y="84" width="120" height="44" rx="3" />
+              <path class="notch" d="M899,84 a6,6 0 0 0 12,0" />
+              <text class="ct" x="905" y="104" text-anchor="middle">PIXEL</text>
+              <text class="ct" x="905" y="119" text-anchor="middle">SHIFTER</text>
+              <polyline class="vid" points="845,106 817,106" marker-end="url(#circuit-arrow-v)" />
+              <line class="vid" x1="827" y1="111" x2="835" y2="101" />
+              <text class="pin" x="836" y="101">4</text>
+              <rect class="chip" x="845" y="148" width="120" height="50" rx="3" />
+              <path class="notch" d="M899,148 a6,6 0 0 0 12,0" />
+              <text class="ct" x="905" y="169" text-anchor="middle">VIDEO</text>
+              <text class="ct" x="905" y="184" text-anchor="middle">TIMING</text>
+              <polyline class="vid" points="905,148 905,130" marker-end="url(#circuit-arrow-v)" />
+              <rect class="chip" x="990" y="112" width="110" height="50" rx="3" />
+              <path class="notch" d="M1039,112 a6,6 0 0 0 12,0" />
+              <text class="ct" x="1045" y="133" text-anchor="middle">RESISTOR</text>
+              <text class="ct" x="1045" y="148" text-anchor="middle">DAC</text>
+              <polyline
+                class="vidbus"
+                points="815,137 988,137"
+                marker-end="url(#circuit-arrow-v)"
+              />
+              <line class="vid" x1="956" y1="142" x2="964" y2="132" />
+              <text class="pin" x="965" y="132">8</text>
+              <polyline
+                class="vidbus"
+                points="1100,137 1123,137"
+                marker-end="url(#circuit-arrow-v)"
+              />
+              <rect class="crt" x="1125" y="84" width="135" height="96" rx="10" />
+              <rect class="screen" x="1135" y="92" width="115" height="66" rx="6" />
+              <path
+                class="terrain"
+                d="M1140,146.5 l12,-5 10,3.3 14,-7.4 11,5 13,-8.3 15,5.8 11,-3.3 16,6.6"
+              />
+              <path d="M1160,115 h10 l4,3 h-14 z" fill="#e6e6e6" />
+              <circle cx="1210" cy="110" r="2.2" fill="#02f202" />
+              <circle cx="1226" cy="125" r="2.2" fill="#f9011f" />
+              <text class="ct" x="1192" y="173" text-anchor="middle" style="font-size: 10px">
+                MONITOR
+              </text>
+              <polyline
+                class="vid"
+                points="845,164 540,164 540,155"
+                marker-end="url(#circuit-arrow-v)"
+              />
+              <polyline
+                class="vid"
+                points="845,172 145,172 145,155"
+                marker-end="url(#circuit-arrow-v)"
+              />
+              <polyline
+                class="vid"
+                points="845,180 168,180 168,155"
+                marker-end="url(#circuit-arrow-v)"
+              />
+              <polyline
+                class="irq"
+                points="130,142 80,142 80,171"
+                marker-end="url(#circuit-arrow-r)"
+              />
+              <!-- Sound board -->
+              <rect class="board" x="840" y="214" width="430" height="147" rx="8" />
+              <text class="blabel" x="854" y="230">SOUND BOARD</text>
+              <polyline class="abus" points="925,282 1150,282" />
+              <polyline class="dbus" points="925,294 1150,294" />
+              <rect class="chip" x="850" y="236" width="75" height="66" rx="3" />
+              <path class="notch" d="M881.5,236 a6,6 0 0 0 12,0" />
+              <text class="ct" x="887.5" y="258" text-anchor="middle">MC6808</text>
+              <text class="cm" x="887.5" y="272" text-anchor="middle">0.895 MHz</text>
+              <text class="pin" x="921" y="285" text-anchor="end">A</text>
+              <text class="pin" x="921" y="297" text-anchor="end">D</text>
+              <text class="pin" x="884" y="298" text-anchor="middle">IRQ</text>
+              <rect class="chip" x="940" y="236" width="90" height="36" rx="3" />
+              <path class="notch" d="M979,236 a6,6 0 0 0 12,0" />
+              <text class="ct" x="985" y="253" text-anchor="middle">RAM</text>
+              <text class="cm" x="985" y="266" text-anchor="middle">$0000</text>
+              <polyline class="a" points="965,272 965,282" />
+              <circle class="ad" cx="965" cy="282" r="3" />
+              <polyline class="d" points="1005,272 1005,294" />
+              <circle class="dd" cx="1005" cy="294" r="3" />
+              <rect class="chip" x="1045" y="236" width="100" height="36" rx="3" />
+              <path class="notch" d="M1089,236 a6,6 0 0 0 12,0" />
+              <text class="ct" x="1095" y="253" text-anchor="middle">defend.snd</text>
+              <text class="cm" x="1095" y="266" text-anchor="middle">$F800</text>
+              <polyline class="a" points="1070,272 1070,282" />
+              <circle class="ad" cx="1070" cy="282" r="3" />
+              <polyline class="d" points="1110,272 1110,294" />
+              <circle class="dd" cx="1110" cy="294" r="3" />
+              <rect class="chip" x="940" y="308" width="100" height="45" rx="3" />
+              <path class="notch" d="M950,308 a6,6 0 0 0 12,0" />
+              <text class="ct" x="998" y="327" text-anchor="middle">MC6821</text>
+              <text class="cm" x="998" y="341" text-anchor="middle">$0400</text>
+              <text class="pin" x="944" y="321">IRQ</text>
+              <text class="pin" x="1036" y="331" text-anchor="end">PA</text>
+              <text class="pin" x="960" y="349" text-anchor="middle">PB0–7</text>
+              <text class="pin" x="1025" y="349" text-anchor="middle">CB1</text>
+              <polyline class="a" points="990,308 990,282" />
+              <circle class="ad" cx="990" cy="282" r="3" />
+              <polyline class="d" points="1020,308 1020,294" />
+              <circle class="dd" cx="1020" cy="294" r="3" />
+              <polyline
+                class="irq"
+                points="940,318 884,318 884,304"
+                marker-end="url(#circuit-arrow-r)"
+              />
+              <rect class="chip" x="1065" y="308" width="70" height="42" rx="3" />
+              <path class="notch" d="M1094,308 a6,6 0 0 0 12,0" />
+              <text class="ct" x="1100" y="325" text-anchor="middle">MC1408</text>
+              <text class="cs" x="1100" y="339" text-anchor="middle">DAC</text>
+              <polyline
+                class="sndbus"
+                points="1040,328 1063,328"
+                marker-end="url(#circuit-arrow-s)"
+              />
+              <polyline class="snd" points="1135,328 1150,328" />
+              <path class="chip" d="M1150,314 L1150,342 L1176,328 Z" />
+              <polyline class="snd" points="1176,328 1190,328" />
+              <rect class="chip" x="1190" y="321" width="8" height="14" rx="0" />
+              <path class="chip" d="M1198,321 L1210,311 L1210,345 L1198,335 Z" />
+              <polyline
+                class="sndbus"
+                points="130,106 18,106 18,369 960,369 960,355"
+                marker-end="url(#circuit-arrow-s)"
+              />
+              <line class="snd" x1="66" y1="111" x2="74" y2="101" />
+              <text class="pin" x="75" y="101">6</text>
+              <circle class="sd" cx="960" cy="369" r="3" />
+              <polyline
+                class="snd"
+                points="960,369 1025,369 1025,355"
+                marker-end="url(#circuit-arrow-s)"
+              />
+            </g>
+            <!-- Source, assembler and ROMs -->
+            <rect class="panel" x="10" y="8" width="702" height="353" rx="6" />
+            <text class="blabel white" x="24" y="28">SOURCE → ASSEMBLER → ROMS</text>
+            <rect class="chip" x="24" y="40" width="170" height="96" rx="6" />
+            <text class="ct" x="109" y="64" text-anchor="middle">GitHub</text>
+            <text class="cs" x="109" y="80" text-anchor="middle">mwenge/defender</text>
+            <text class="cm" x="109" y="95" text-anchor="middle">@ e740063</text>
+            <text class="cm" x="109" y="110" text-anchor="middle">src/</text>
+            <text class="pin" x="109" y="123" text-anchor="middle">fetch 12 files at startup</text>
+            <polyline class="pbus" points="40,136 40,307" />
+            <polyline class="p" points="40,164 64,164" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,177 64,177" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,190 64,190" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,203 64,203" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,216 64,216" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,229 64,229" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,242 64,242" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,255 64,255" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,268 64,268" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,281 64,281" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,294 64,294" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="40,307 64,307" marker-end="url(#circuit-arrow-p)" />
+            <!-- Legend -->
+            <text class="glabel white" x="420" y="52">WIRES</text>
+            <polyline class="abus" points="422,67 446,67" />
+            <text class="cs" x="456" y="70">address bus</text>
+            <polyline class="dbus" points="422,85 446,85" />
+            <text class="cs" x="456" y="88">data bus</text>
+            <polyline class="irq" points="422,103 446,103" />
+            <text class="cs" x="456" y="106">interrupt</text>
+            <polyline class="vidbus" points="422,121 446,121" />
+            <text class="cs" x="456" y="124">video</text>
+            <polyline class="sndbus" points="562,67 586,67" />
+            <text class="cs" x="596" y="70">sound</text>
+            <polyline class="swbus" points="562,85 586,85" />
+            <text class="cs" x="596" y="88">controls</text>
+            <polyline class="pbus" points="562,103 586,103" />
+            <text class="cs" x="596" y="106">ROM build</text>
+            <text class="glabel white" x="111" y="154" text-anchor="middle">SOURCE</text>
+            <rect class="file" x="66" y="158.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="167">phr6.src</text>
+            <rect class="file" x="66" y="171.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="180">defa7.src</text>
+            <rect class="file" x="66" y="184.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="193">defb6.src</text>
+            <rect class="file" x="66" y="197.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="206">amode1.src</text>
+            <rect class="file" x="66" y="210.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="219">samexap7.src</text>
+            <rect class="file" x="66" y="223.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="232">blk71.src</text>
+            <rect class="file" x="66" y="236.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="245">mess0.src</text>
+            <rect class="file" x="66" y="249.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="258">romf8.src</text>
+            <rect class="file" x="66" y="262.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="271">romc0.src</text>
+            <rect class="file" x="66" y="275.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="284">romc8.src</text>
+            <rect class="file" x="66" y="288.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="297">vsndrm1.src</text>
+            <rect class="file" x="66" y="301.5" width="90" height="11" rx="2" />
+            <text class="pin" x="72" y="310">unknown.bin</text>
+            <rect class="chip" x="196" y="155" width="180" height="148" rx="4" />
+            <text class="glabel white" x="286" y="154" text-anchor="middle">ASSEMBLER</text>
+            <rect class="run" x="206" y="158.5" width="160" height="50" rx="2" />
+            <text class="cs white" x="286" y="181.5" text-anchor="middle">6809</text>
+            <text class="pin" x="286" y="193.5" text-anchor="middle">→ defa7-defb6-amode1</text>
+            <rect class="run" x="206" y="210.5" width="160" height="11" rx="2" />
+            <text class="pin white" x="212" y="219">6809</text>
+            <text class="pin" x="240" y="219">→ samexap7</text>
+            <rect class="run" x="206" y="223.5" width="160" height="11" rx="2" />
+            <text class="pin white" x="212" y="232">6309</text>
+            <text class="pin" x="240" y="232">→ blk71</text>
+            <rect class="run" x="206" y="236.5" width="160" height="50" rx="2" />
+            <text class="cs white" x="286" y="259.5" text-anchor="middle">6809</text>
+            <text class="pin" x="286" y="271.5" text-anchor="middle">→ roms</text>
+            <rect class="run" x="206" y="288.5" width="160" height="11" rx="2" />
+            <text class="pin white" x="212" y="297">6800</text>
+            <text class="pin" x="240" y="297">→ vsndrm1</text>
+            <polyline class="p" points="156,164 194,164" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,177 194,177" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,190 194,190" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,203 194,203" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,216 194,216" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,229 194,229" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,242 194,242" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,255 194,255" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,268 194,268" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,281 194,281" marker-end="url(#circuit-arrow-p)" />
+            <polyline class="p" points="156,294 194,294" marker-end="url(#circuit-arrow-p)" />
+            <circle class="pd" cx="176" cy="164" r="3" />
+            <polyline class="p" points="176,164 176,216" />
+            <circle class="pd" cx="176" cy="216" r="3" />
+            <polyline class="p" points="420,158 420,348" />
+            <polyline class="p" points="454,158 454,348" />
+            <polyline class="p" points="476,158 476,348" />
+            <polyline class="p" points="498,158 498,348" />
+            <polyline class="p" points="520,158 520,348" />
+            <polyline class="p" points="542,158 542,348" />
+            <polyline class="p" points="564,158 564,348" />
+            <polyline class="p" points="586,158 586,348" />
+            <polyline class="p" points="620,158 620,348" />
+            <polyline class="p" points="642,158 642,348" />
+            <polyline class="p" points="664,158 664,348" />
+            <polyline class="p" points="686,158 686,348" />
+            <polyline class="p" points="366,183.5 686,183.5" />
+            <circle class="pd" cx="454" cy="183.5" r="3" />
+            <circle class="pd" cx="476" cy="183.5" r="3" />
+            <circle class="pd" cx="620" cy="183.5" r="3" />
+            <circle class="pd" cx="642" cy="183.5" r="3" />
+            <circle class="pd" cx="664" cy="183.5" r="3" />
+            <circle class="pd" cx="686" cy="183.5" r="3" />
+            <polyline class="p" points="366,216 686,216" />
+            <circle class="pd" cx="686" cy="216" r="3" />
+            <polyline class="p" points="366,229 586,229" />
+            <circle class="pd" cx="586" cy="229" r="3" />
+            <polyline class="p" points="366,261.5 586,261.5" />
+            <circle class="pd" cx="498" cy="261.5" r="3" />
+            <circle class="pd" cx="520" cy="261.5" r="3" />
+            <circle class="pd" cx="542" cy="261.5" r="3" />
+            <circle class="pd" cx="564" cy="261.5" r="3" />
+            <circle class="pd" cx="586" cy="261.5" r="3" />
+            <polyline class="p" points="366,294 420,294" />
+            <circle class="pd" cx="420" cy="294" r="3" />
+            <polyline class="p" points="156,307 520,307" />
+            <circle class="pd" cx="520" cy="307" r="3" />
+            <text class="pin phalo" x="405" y="154" text-anchor="end">defend.</text>
+            <text class="pin phalo white" x="420" y="154" text-anchor="middle">snd</text>
+            <text class="pin phalo white" x="454" y="154" text-anchor="middle">9</text>
+            <text class="pin phalo white" x="476" y="154" text-anchor="middle">12</text>
+            <text class="pin phalo white" x="498" y="154" text-anchor="middle">8</text>
+            <text class="pin phalo white" x="520" y="154" text-anchor="middle">11</text>
+            <text class="pin phalo white" x="542" y="154" text-anchor="middle">7</text>
+            <text class="pin phalo white" x="564" y="154" text-anchor="middle">10</text>
+            <text class="pin phalo white" x="586" y="154" text-anchor="middle">6</text>
+            <text class="pin phalo white" x="620" y="154" text-anchor="middle">1</text>
+            <text class="pin phalo white" x="642" y="154" text-anchor="middle">4</text>
+            <text class="pin phalo white" x="664" y="154" text-anchor="middle">2</text>
+            <text class="pin phalo white" x="686" y="154" text-anchor="middle">3</text>
+            <text class="pin" x="405" y="323" text-anchor="end">patch</text>
+            <path class="patch" d="M586,315 l5,5 -5,5 -5,-5 z" />
+            <path class="patch" d="M564,315 l5,5 -5,5 -5,-5 z" />
+            <path class="patch" d="M664,315 l5,5 -5,5 -5,-5 z" />
+            <path class="patch" d="M420,315 l5,5 -5,5 -5,-5 z" />
+            <text class="pin" x="405" y="337" text-anchor="end">MD5</text>
+            <circle class="md5" cx="420" cy="334" r="5.5" />
+            <path class="check" d="M417,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="454" cy="334" r="5.5" />
+            <path class="check" d="M451,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="476" cy="334" r="5.5" />
+            <path class="check" d="M473,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="498" cy="334" r="5.5" />
+            <path class="check" d="M495,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="520" cy="334" r="5.5" />
+            <path class="check" d="M517,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="542" cy="334" r="5.5" />
+            <path class="check" d="M539,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="564" cy="334" r="5.5" />
+            <path class="check" d="M561,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="586" cy="334" r="5.5" />
+            <path class="check" d="M583,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="620" cy="334" r="5.5" />
+            <path class="check" d="M617,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="642" cy="334" r="5.5" />
+            <path class="check" d="M639,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="664" cy="334" r="5.5" />
+            <path class="check" d="M661,334 l2,2.5 4,-5" />
+            <circle class="md5" cx="686" cy="334" r="5.5" />
+            <path class="check" d="M683,334 l2,2.5 4,-5" />
+            <polyline class="pbus" points="454,348 700,348" />
+            <polyline
+              class="pbus"
+              points="700,348 700,378 1375,378 1375,355"
+              marker-end="url(#circuit-arrow-p)"
+            />
+            <circle class="pd" cx="1070" cy="378" r="3" />
+            <polyline class="pbus" points="1070,378 1070,355" marker-end="url(#circuit-arrow-p)" />
+            <polyline
+              class="pbus"
+              points="420,348 420,387 1965,387 1965,252 1857,252"
+              marker-end="url(#circuit-arrow-p)"
+            />
+          </svg>
         </div>
       </div>
     </main>
@@ -5755,9 +6639,9 @@
       function resize() {
         const width = document.documentElement.clientWidth;
         const height = document.documentElement.clientHeight;
-        const top = document.querySelector(".topbar").getBoundingClientRect().bottom + 16;
+        const top = document.querySelector(".topbar").getBoundingClientRect().bottom + 8;
         const touchBar = document.querySelector(".touch-controls").getBoundingClientRect();
-        const bottom = touchBar.height ? height - touchBar.top + 12 : 18;
+        const bottom = touchBar.height ? height - touchBar.top + 12 : 8;
         const availableWidth = Math.max(100, width - 24);
         const availableHeight = Math.max(100, height - top - bottom);
         const scale = Math.min(
