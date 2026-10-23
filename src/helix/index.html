@@ -197,6 +197,7 @@
 
   <h2>Helix</h2>
   <div class="stepper"><label>rods <i>N</i></label><button id="bNm">−</button><output id="oN"></output><button id="bNp">+</button></div>
+  <div class="slider"><label></label><input type="range" id="rN" min="6" max="128" step="1" value="128"></div>
   <div class="stepper"><label>harmonic <i>n</i> <span style="font-size:12px">(turns of the twist)</span></label><button id="bnm">−</button><output id="on"></output><button id="bnp">+</button></div>
   <div class="note" id="twistNote"></div>
 
@@ -228,8 +229,8 @@
   <h2>Bearing &amp; lock</h2>
   <div class="row grid2"><button id="bLock" class="on">Locked<span class="kbd">Space</span></button><button id="bHome">Turn to 0°</button></div>
   <div class="row grid2"><button id="bTm">↶ turn −15°</button><button id="bTp">turn +15° ↷</button></div>
-  <div class="slider"><label>friction</label><input type="range" id="rFric" min="0" max="2" step="0.01" value="0.15"><output id="oFric"></output></div>
-  <div class="slider"><label>damping</label><input type="range" id="rDamp" min="0" max="8" step="0.05" value="2.5"><output id="oDamp"></output></div>
+  <div class="slider"><label>friction</label><input type="range" id="rFric" min="0" max="1" step="0.005" value="0.01"><output id="oFric"></output></div>
+  <div class="slider"><label>damping ζ</label><input type="range" id="rDamp" min="0" max="1.5" step="0.01" value="0.5"><output id="oDamp"></output></div>
   <div class="status"><span class="pill" id="sLock"></span><span class="pill" id="sRec"></span><span class="pill" id="sDial"></span><span class="pill" id="sTau"></span></div>
 
   <h2>View</h2>
@@ -280,7 +281,7 @@ const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); retu
 const wrap360 = d => ((d % 360) + 360) % 360;
 const fin = Number.isFinite;
 const fmt = (x, d = 3) => !fin(x) ? '—' : (x < -0.5 * 10 ** -d ? '−' : '') + Math.abs(x).toFixed(d);
-const fmtDeg = (x, d = 1) => !fin(x) ? '—' : wrap360(x).toFixed(d) + '°';
+const fmtDeg = (x, d = 1) => { if (!fin(x)) return '—'; const v = Math.round(wrap360(x) * 10 ** d) / 10 ** d; return (v >= 360 ? v - 360 : v).toFixed(d) + '°'; };
 
 /* =====================================================================
    Dimensions (millimetres) and physical constants
@@ -290,6 +291,7 @@ const L = 320;            // one period on the paper == length of the helix
 const H = 125;            // axis height above the desk
 const R = 100;            // rod half length
 const AX_R = 5;           // steel axis radius
+const COL_R = 6.5;        // rod collars turning on the axis
 const PAPER_W = 420, PAPER_H = 297;
 const UPR_X = 246;        // upright centre planes
 const DIAL_R = 60, DIAL_X = 264;
@@ -300,14 +302,14 @@ const G = 9.81, RHO_STEEL = 7.85e-6, RHO_BRASS = 8.5e-6;   // kg / mm^3
    State
    ===================================================================== */
 const S = {
-  N: 20, n: 1, nCur: 1,
+  N: 128, n: 1, nCur: 1,
   alpha: 0, omega: 0, locked: true, hand: false, leverT: 0,
   red: [], blue: [], circle: null, active: -1, mode: 'record',
   sig: { preset: 'square', amp: 1, phase: 0, offset: 0 },
-  marks: {}, friction: 0.15, damping: 2.5, speed: 1,
+  marks: {}, friction: 0.01, damping: 0.5, speed: 1,
   restTime: 0, settled: false, drawMode: false,
 };
-const H_ = { rb: 6, collar: 9, smax: 90, mBall: 0, Ifix: 1e-3 };
+const H_ = { rb: 6, rod: 0.9, collar: 6, smax: 90, mBall: 0, Ifix: 1e-3 };
 const phiRad = [];
 const tK = k => (k + 0.5) / S.N;
 const xK = k => -L / 2 + tK(k) * L;
@@ -336,7 +338,7 @@ const coef = (a, b, n) => ({ a, b, A: n === 0 ? Math.abs(a) : Math.hypot(a, b), 
 
 let exact = [];
 function computeExact() {
-  const M = 4096, NM = 24, a = new Float64Array(NM + 1), b = new Float64Array(NM + 1);
+  const M = 4096, NM = 64, a = new Float64Array(NM + 1), b = new Float64Array(NM + 1);
   for (let i = 0; i < M; i++) {
     const t = (i + 0.5) / M, v = f(t);
     for (let n = 0; n <= NM; n++) { const p = TAU * n * t; a[n] += v * Math.cos(p); b[n] += v * Math.sin(p); }
@@ -361,8 +363,6 @@ renderer.setSize(app.clientWidth, app.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -391,10 +391,6 @@ camera.position.set(...VIEWS.overview.pos);
 const keyLight = new THREE.DirectionalLight(0xfff0dc, 2.3);
 keyLight.position.set(-280, 640, 420);
 keyLight.target.position.set(0, 40, 0);
-keyLight.castShadow = true;
-keyLight.shadow.mapSize.set(4096, 4096);
-Object.assign(keyLight.shadow.camera, { left: -460, right: 460, top: 460, bottom: -460, near: 200, far: 1700 });
-keyLight.shadow.bias = -0.0002; keyLight.shadow.normalBias = 0.35;
 scene.add(keyLight, keyLight.target);
 const fillLight = new THREE.DirectionalLight(0xdfe7ff, 0.55); fillLight.position.set(500, 260, -380); scene.add(fillLight);
 scene.add(new THREE.HemisphereLight(0xfff6ea, 0x3a2c1e, 0.35));
@@ -435,10 +431,11 @@ function woodTexture() {
       const p = Math.floor(y / ph), py = y - p * ph, tint = 0.86 + 0.24 * n2(p * 7.3, 0.5);
       for (let x = 0; x < S2; x++) {
         const xx = x + p * 313;
-        const warp = fbm(n1, xx * 0.004, y * 0.022) * 11;
-        const ring = 0.5 + 0.5 * Math.sin((py * 0.105 + warp + n2(xx * 0.0016, p * 3.1) * 7) * 2.1);
-        const t = 0.5 * ring * ring * ring + 0.32 * fbm(n1, xx * 0.012, y * 0.16) + 0.18 * n3(xx * 0.06, y * 1.3);
-        let r = lerp(203, 108, t) * tint, gg = lerp(150, 64, t) * tint, b = lerp(95, 33, t) * tint;
+        // mahogany: fine, nearly straight ribbon grain in deep red-brown
+        const warp = fbm(n1, xx * 0.003, y * 0.03) * 6;
+        const ring = 0.5 + 0.5 * Math.sin((py * 0.19 + warp + n2(xx * 0.0012, p * 3.1) * 5) * 2.0);
+        const t = 0.42 * ring * ring + 0.33 * fbm(n1, xx * 0.01, y * 0.2) + 0.25 * n3(xx * 0.05, y * 1.6);
+        let r = lerp(128, 50, t) * tint, gg = lerp(56, 19, t) * tint, b = lerp(33, 11, t) * tint;
         if (py < 1.4 || py > ph - 1.4) { r *= 0.45; gg *= 0.45; b *= 0.45; }
         const i = (y * S2 + x) * 4; D[i] = r; D[i + 1] = gg; D[i + 2] = b; D[i + 3] = 255;
       }
@@ -512,8 +509,8 @@ const M = {
   steel: new THREE.MeshPhysicalMaterial({ color: 0xd5d8dc, metalness: 1, roughness: 0.15 }),
   steelDark: new THREE.MeshPhysicalMaterial({ color: 0x83878c, metalness: 1, roughness: 0.32 }),
   gap: new THREE.MeshStandardMaterial({ color: 0x0c0b0a, roughness: 0.6 }),
-  red: new THREE.MeshPhysicalMaterial({ color: 0xb3121d, metalness: 0.72, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.07 }),
-  blue: new THREE.MeshPhysicalMaterial({ color: 0x1b3fb4, metalness: 0.72, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.07 }),
+  red: new THREE.MeshPhysicalMaterial({ color: 0xc0141f, emissive: 0x3a0306, metalness: 0.7, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.07 }),
+  blue: new THREE.MeshPhysicalMaterial({ color: 0x1e45c4, emissive: 0x050f3a, metalness: 0.7, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.07 }),
   ebony: new THREE.MeshPhysicalMaterial({ color: 0x15110e, metalness: 0, roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.15 }),
   proxy: new THREE.MeshBasicMaterial({ visible: false }),
 };
@@ -522,7 +519,7 @@ M.knurl = new THREE.MeshPhysicalMaterial({ color: 0xd9b05c, metalness: 1, roughn
 M.dial = new THREE.MeshStandardMaterial({ map: dialTexture(), metalness: 0.5, roughness: 0.42 });
 M.plaque = new THREE.MeshStandardMaterial({ map: plaqueTexture(), metalness: 0.85, roughness: 0.32 });
 const woodTex = woodTexture(); woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping; woodTex.repeat.set(2.4, 1.3);
-M.wood = new THREE.MeshPhysicalMaterial({ map: woodTex, roughness: 0.5, clearcoat: 0.35, clearcoatRoughness: 0.35 });
+M.wood = new THREE.MeshPhysicalMaterial({ map: woodTex, roughness: 0.45, clearcoat: 0.7, clearcoatRoughness: 0.2 });
 // parts at the +x end fade out when looking along the axis from that side
 M.brassE = M.brass.clone(); M.brassPlateE = M.brassPlate.clone(); M.steelE = M.steel.clone(); M.ebonyE = M.ebony.clone(); M.dialE = M.dial.clone();
 const fadeMats = [M.brassE, M.brassPlateE, M.steelE, M.ebonyE, M.dialE];
@@ -569,10 +566,12 @@ function drawPaper() {
   }
   // sample positions t_k (one per rod)
   g.strokeStyle = 'rgba(120,84,30,.5)'; g.lineWidth = 2.6; g.setLineDash([1.2 * k, 1.2 * k]);
-  for (let i = 0; i < S.N; i++) line(px(xK(i)), pz(-100), px(xK(i)), pz(100));
+  const every = S.N <= 48 ? 1 : 4;
+  for (let i = 0; i < S.N; i += every) line(px(xK(i)), pz(-100), px(xK(i)), pz(100));
   g.setLineDash([]);
+  for (let i = 0; i < S.N; i++) line(px(xK(i)), pz(-1.2), px(xK(i)), pz(1.2));
   g.fillStyle = 'rgba(100,70,22,.95)'; g.font = `${3 * k}px "Times New Roman", serif`; g.textAlign = 'center'; g.textBaseline = 'top';
-  const step = S.N <= 24 ? 1 : S.N <= 36 ? 2 : 4;
+  const step = S.N <= 24 ? 1 : S.N <= 48 ? 4 : 8;
   for (let i = 0; i < S.N; i += step) g.fillText(String(i), px(xK(i)), pz(102));
   g.textAlign = 'left'; g.font = `italic ${2.8 * k}px "Times New Roman", serif`; g.fillText('k', px(L / 2 + 6), pz(102));
   // axes
@@ -614,7 +613,7 @@ function drawPaper() {
       labels.push(['h' + sub(nn), vy(splineAt(m.v, 0.999)), 'rgba(30,62,170,.95)']);
     }
     g.fillStyle = 'rgba(30,62,160,.95)';
-    for (let i = 0; i < S.N; i++) if (fin(m.v[i])) { g.beginPath(); g.arc(tx(tK(i)), vy(m.v[i]), 1.3 * k, 0, TAU); g.fill(); }
+    for (let i = 0; i < S.N; i++) if (fin(m.v[i])) { g.beginPath(); g.arc(tx(tK(i)), vy(m.v[i]), Math.min(1.3, 0.42 * L / S.N) * k, 0, TAU); g.fill(); }
   }
   if ($('cSum').checked && joined.length >= 2) {
     g.strokeStyle = 'rgba(91,58,140,.95)'; g.lineWidth = 0.85 * k; g.beginPath();
@@ -648,8 +647,8 @@ const drawPaperSoon = () => { paperDirty = true; };
 /* =====================================================================
    Static construction: desk, paper, brass frame, uprights, lock lever
    ===================================================================== */
-function mesh(geo, mat, parent, { cast = true, receive = true, kind = 'static' } = {}) {
-  const m = new THREE.Mesh(geo, mat); m.castShadow = cast; m.receiveShadow = receive; m.userData.kind = kind;
+function mesh(geo, mat, parent, { kind = 'static' } = {}) {
+  const m = new THREE.Mesh(geo, mat); m.userData.kind = kind;
   if (parent) parent.add(m);
   return m;
 }
@@ -657,9 +656,9 @@ const alongX = geo => geo.rotateZ(Math.PI / 2);   // cylinders are built along y
 const pickables = [];
 const stand = new THREE.Group(); scene.add(stand);
 
-const desk = mesh(new THREE.BoxGeometry(2600, 40, 1400), M.wood, scene, { cast: false });
+const desk = mesh(new THREE.BoxGeometry(2600, 40, 1400), M.wood, scene);
 desk.position.set(0, -20, 160); desk.userData.kind = 'desk';
-const paper = mesh(new THREE.PlaneGeometry(PAPER_W, PAPER_H).rotateX(-Math.PI / 2), M.paper, scene, { cast: false, kind: 'paper' });
+const paper = mesh(new THREE.PlaneGeometry(PAPER_W, PAPER_H).rotateX(-Math.PI / 2), M.paper, scene, { kind: 'paper' });
 paper.position.y = 0.25;
 
 function uprightGeometry() {
@@ -704,7 +703,7 @@ function buildStand() {
     for (const z of [-161, 161]) screw(stand, M.brass, x, 6, z, 'up');
     for (const z of [-80, 80]) screw(stand, M.brass, x + (x > 0 ? 9 : -9), 13, z, 'up');
   }
-  const plaque = mesh(new THREE.PlaneGeometry(150, 15).rotateX(-Math.PI / 2), M.plaque, stand, { cast: false });
+  const plaque = mesh(new THREE.PlaneGeometry(150, 15).rotateX(-Math.PI / 2), M.plaque, stand);
   plaque.position.set(0, 6.08, 161);
   const upGeo = uprightGeometry();
   const bossGeo = alongX(new THREE.CylinderGeometry(22, 22, 17, 56));
@@ -716,7 +715,7 @@ function buildStand() {
     mesh(bossGeo, brass, stand).position.set(x, H, 0);
     mesh(raceGeo, steel, stand).position.set(x, H, 0);
     for (const s2 of [-1, 1]) {
-      const ring = mesh(gapGeo, M.gap, stand, { cast: false }); ring.rotation.y = s2 * Math.PI / 2; ring.position.set(x + s2 * 8.95, H, 0);
+      const ring = mesh(gapGeo, M.gap, stand); ring.rotation.y = s2 * Math.PI / 2; ring.position.set(x + s2 * 8.95, H, 0);
       for (let i = 0; i < 3; i++) { const a = (90 + 120 * i) * DEG; screw(stand, steel, x + s2 * 8.5, H + 17.5 * Math.sin(a), 17.5 * Math.cos(a), s2 > 0 ? '+x' : '-x'); }
     }
   }
@@ -785,7 +784,7 @@ function buildBody() {
   // dial: brass disc, silvered graduated face, bezel, hub and nut
   const hub = mesh(alongX(new THREE.CylinderGeometry(11, 13, 7, 40)), M.brassE, body); hub.position.x = 258.5;
   const disc = mesh(alongX(new THREE.CylinderGeometry(DIAL_R, DIAL_R, 4, 120)), M.brassE, body); disc.position.x = DIAL_X;
-  const face = mesh(new THREE.CircleGeometry(DIAL_R - 1.2, 120), M.dialE, body, { cast: false }); face.rotation.y = Math.PI / 2; face.position.x = DIAL_X + 2.06;
+  const face = mesh(new THREE.CircleGeometry(DIAL_R - 1.2, 120), M.dialE, body); face.rotation.y = Math.PI / 2; face.position.x = DIAL_X + 2.06;
   const bezel = mesh(new THREE.TorusGeometry(DIAL_R - 1.1, 1.5, 14, 120), M.brassE, body); bezel.rotation.y = Math.PI / 2; bezel.position.x = DIAL_X + 2;
   const nut = mesh(alongX(new THREE.CylinderGeometry(7.5, 7.5, 5, 6)), M.brassE, body); nut.position.x = 268.5;
   for (const m of [hub, disc, face, bezel, nut]) m.userData = { ...rot };
@@ -801,24 +800,24 @@ function buildHelix() {
   helix.traverse(o => { if (o.isMesh) { o.geometry.dispose(); const i = pickables.indexOf(o); if (i >= 0) pickables.splice(i, 1); } });
   helix.clear(); rods = [];
   const N = S.N, dx = L / N;
-  H_.rb = clamp(dx * 0.4, 3, 6.5);
-  H_.collar = Math.min(dx - 1.2, 9);
+  // everything scales with the rod pitch: 16 mm at N = 20, 2.5 mm at N = 128
+  H_.rb = clamp(dx * 0.7, 1.6, 6.5);
+  H_.rod = clamp(dx * 0.2, 0.45, 0.9);
+  H_.collar = Math.min(dx - 0.5, 6);
   H_.smax = R - H_.rb - 1.5;
   H_.mBall = RHO_STEEL * 4 / 3 * Math.PI * H_.rb ** 3;
-  const mRod = RHO_BRASS * Math.PI * 1.25 ** 2 * 2 * R, mCol = RHO_BRASS * Math.PI * (8 ** 2 - AX_R ** 2) * H_.collar;
-  H_.Ifix = I_STATIC + N * (mRod * (2 * R) ** 2 / 12 + 0.5 * mCol * (8 ** 2 + AX_R ** 2)) * 1e-6;
-  const rodGeo = new THREE.CylinderGeometry(1.25, 1.25, 2 * R, 12, 1);
-  const tipGeo = new THREE.SphereGeometry(1.25, 12, 8);
-  const colGeo = alongX(new THREE.CylinderGeometry(8, 8, H_.collar, 36));
-  const scrGeo = new THREE.CylinderGeometry(1.6, 1.6, 2.2, 12).rotateX(Math.PI / 2).translate(0, 0, 8.6);
-  const ballGeo = new THREE.SphereGeometry(H_.rb, 36, 24);
-  const proxyGeo = new THREE.CylinderGeometry(4.5, 4.5, 2 * R, 6);
+  const mRod = RHO_BRASS * Math.PI * H_.rod ** 2 * 2 * R, mCol = RHO_BRASS * Math.PI * (COL_R ** 2 - AX_R ** 2) * H_.collar;
+  H_.Ifix = I_STATIC + N * (mRod * (2 * R) ** 2 / 12 + 0.5 * mCol * (COL_R ** 2 + AX_R ** 2)) * 1e-6;
+  const rodGeo = new THREE.CylinderGeometry(H_.rod, H_.rod, 2 * R, 10, 1);
+  const colGeo = alongX(new THREE.CylinderGeometry(COL_R, COL_R, H_.collar, 32));
+  const scrGeo = dx >= 6 ? new THREE.CylinderGeometry(1.1, 1.1, 1.8, 10).rotateX(Math.PI / 2).translate(0, 0, COL_R + 0.6) : null;
+  const ballGeo = N > 64 ? new THREE.SphereGeometry(H_.rb, 16, 12) : new THREE.SphereGeometry(H_.rb, 32, 20);
+  const pr = clamp(dx * 0.5, 1.5, 4.5), proxyGeo = new THREE.CylinderGeometry(pr, pr, 2 * R, 6);
   for (let k = 0; k < N; k++) {
     const g = new THREE.Group(); g.position.x = xK(k); helix.add(g);
     const rod = mesh(rodGeo, M.rod, g, { kind: 'rod' }); rod.userData.k = k;
-    for (const y of [-R, R]) mesh(tipGeo, M.rod, g, { cast: false }).position.y = y;
     const col = mesh(colGeo, M.brass, g, { kind: 'rotor' });
-    mesh(scrGeo, M.steelDark, g, { cast: false, kind: 'rotor' });
+    if (scrGeo) mesh(scrGeo, M.steelDark, g, { kind: 'rotor' });
     const red = mesh(ballGeo, M.red, g, { kind: 'ball' }); red.userData = { kind: 'ball', k, color: 'red' }; red.visible = false;
     const blue = mesh(ballGeo, M.blue, g, { kind: 'ball' }); blue.userData = { kind: 'ball', k, color: 'blue' }; blue.visible = false;
     const proxy = new THREE.Mesh(proxyGeo, M.proxy); proxy.userData = { kind: 'rod', k, proxy: true }; g.add(proxy);
@@ -862,7 +861,10 @@ const torqueAt = a => G * (PH.Sy * Math.sin(a) + PH.Sz * Math.cos(a)) * 1e-3;   
 function physics(dt) {
   moments();
   if (S.locked || S.hand) { if (S.locked) S.omega = 0; S.restTime = 0; S.settled = false; return; }
-  const steps = Math.ceil(dt / 0.0005), h = dt / steps, tc = S.friction * 1e-3, c = S.damping * 1e-3;
+  // damping is given as the damping ratio ζ of the swing under the red sliders, so tiny sliders on 128 rods
+  // settle as readily as big ones on 20 rods; the Coulomb friction of the bearings stays absolute
+  const kRef = Math.max(G * H_.mBall * Math.hypot(PH.ry, PH.rz) * 1e-3, 2e-4);
+  const steps = Math.ceil(dt / 0.0005), h = dt / steps, tc = S.friction * 1e-3, c = 2 * S.damping * Math.sqrt(kRef * PH.I);
   for (let i = 0; i < steps; i++) {
     let tau = torqueAt(S.alpha);
     if (S.omega === 0) {
@@ -873,8 +875,8 @@ function physics(dt) {
     if (w0 !== 0 && Math.sign(w1) !== Math.sign(w0)) w1 = 0;   // friction stops, never reverses
     S.omega = w1; S.alpha += w1 * h;
   }
-  if (Math.abs(S.omega) < 2e-3) S.restTime += dt; else S.restTime = 0;
-  S.settled = S.restTime > 0.6;
+  if (Math.abs(S.omega) < 1e-3) S.restTime += dt; else S.restTime = 0;
+  S.settled = S.restTime > 1;
 }
 function setLock(on) {
   if (S.locked === on) return;
@@ -956,21 +958,36 @@ async function recordNext(t) {
   if (k < 0) { say('<b>Recorded</b> — every rod carries a red slider. Go on with <b>ii · Analyse</b>.'); return; }
   await recordRod(t, k, false);
 }
+// one continuous turn of the axis: each slider slides out as its rod passes the flat position
 async function recordAll(t) {
-  for (let k = 0; k < S.N; k++) await recordRod(t, k, true);
+  setLock(true);
+  const N = S.N, d = 360 * S.n / N, a0 = nearestDeg(phiRad[0] / DEG);
+  const s0 = S.red.map(v => fin(v) ? v : 0), s1 = Array.from({ length: N }, (_, k) => clampS(f(tK(k)) * UNIT));
+  if (s1.some((s, k) => Math.abs(f(tK(k)) * UNIT) > H_.smax)) toast('parts of the signal reach beyond the rods — clamped');
+  say(`<b>Recording</b> — the axis is turned ${S.n ? `through ${S.n} full turn${S.n > 1 ? 's' : ''}` : 'nowhere (all rods are parallel)'}; as each rod lies flat over the paper, its <span class="r">red slider</span> is moved to where the rod crosses the curve.`);
+  await turnTo(t, a0, 0.6);
+  const lag = Math.max(2, N / 16);   // slide-out time, counted in rods
+  await animate(t, 2 + N * 0.03, e => {
+    const u = ease(e) * (N - 1 + lag);
+    S.alpha = (a0 + d * Math.min(u, N - 1)) * DEG; S.active = Math.min(N - 1, Math.floor(u));
+    for (let k = 0; k <= S.active; k++) S.red[k] = lerp(s0[k], s1[k], ease(clamp((u - k) / lag, 0, 1)));
+  });
+  for (let k = 0; k < N; k++) S.red[k] = s1[k];
   S.active = -1;
   say(`<b>Recorded</b> — the helix now carries the signal: slider <i>k</i> sits at distance <i>f</i>(<i>t<sub>k</sub></i>) along a rod that points at φ<sub><i>k</i></sub> = <i>n</i>ω<i>t<sub>k</sub></i>. Seen along the axis the sliders draw <i>f</i> in polar form. Next: <b>ii · Analyse</b>.`);
 }
 
 /* ---------- II. analysis ---------- */
 function dialBottom() { return wrap360(S.alpha / DEG + 90); }
+// the dial phase in the sine convention of the original page, h = A sin(nωt + φ), φ = 90° − θ, signed
+function sinePhase() { const p = Math.round((((90 - dialBottom()) % 360 + 540) % 360 - 180) * 10) / 10; return `${p < 0 ? '−' : '+'} ${Math.abs(p).toFixed(1)}°`; }
 async function releaseAndSettle(t) {
   if (!PH.nr) { say('There are no sliders on the helix yet — record the signal first.'); return false; }
   setLock(false);
   say('<b>Phase</b> — lock released. Gravity pulls the centre of mass of the sliders, ½(<i>a<sub>n</sub></i>, <i>b<sub>n</sub></i>), to the bottom…');
   const ok = await until(t, () => S.settled, 40);
   const id = helixIdeal(S.n);
-  if (ok) say(`<b>Phase</b> — at rest. The <b>bottom</b> index of the dial reads θ̃ = ${fmtDeg(dialBottom())}; the sum over the rods gives θ<sub>${S.n}</sub> = ${fmtDeg(id.th)}. In sine form <i>h</i> = <i>A</i> sin(<i>n</i>ω<i>t</i> + ${fmtDeg(90 - dialBottom(), 1)}).`);
+  if (ok) say(`<b>Phase</b> — at rest. The <b>bottom</b> index of the dial reads θ̃ = ${fmtDeg(dialBottom())}; the sum over the rods gives θ<sub>${S.n}</sub> = ${fmtDeg(id.th)}. In sine form <i>h</i> = <i>A</i> sin(<i>n</i>ω<i>t</i> ${sinePhase()}).`);
   return ok;
 }
 function placeCircle(D) {
@@ -1035,8 +1052,20 @@ async function readNext(t) {
   await readRod(t, k, false);
 }
 async function readAll(t) {
-  for (let k = 0; k < S.N; k++) if (!(await readRod(t, k, true))) return false;
-  S.active = -1; return true;
+  const N = S.N;
+  if (S.blue.some(v => !fin(v))) { say('Some rods have no blue slider. Place the blue circle in <b>ii · Analyse</b> first.'); return false; }
+  setLock(true);
+  const d = 360 * S.n / N, a0 = nearestDeg(phiRad[0] / DEG + 180), m = marksFor(S.n);
+  say('<b>Synthesis</b> — the axis is turned once more, every rod lying flat half a turn from its recording position (pointing towards you), and the paper is marked straight below each <span class="b">blue slider</span>: <i>h</i>(<i>t<sub>k</sub></i>) = −<i>d<sub>k</sub></i>.');
+  await turnTo(t, a0, 0.6);
+  let done = 0;
+  const mark = upto => { for (; done <= upto && done < N; done++) m.v[done] = -S.blue[done] / UNIT; m.joined = false; drawPaperSoon(); };
+  await animate(t, 2 + N * 0.03, e => {
+    const u = ease(e) * (N - 1);
+    S.alpha = (a0 + d * u) * DEG; S.active = Math.round(u);
+    mark(Math.floor(u + 1e-9));
+  });
+  mark(N - 1); S.active = -1; updateUI(); return true;
 }
 function joinDots() {
   const m = S.marks[S.n];
@@ -1057,7 +1086,7 @@ async function twistTo(t, n) {
     ? '<b><i>n</i> = 0</b> — all rods turned parallel, like an abacus. The centre of mass is now simply the mean of the samples: the constant term <i>a</i><sub>0</sub>.'
     : `<b><i>n</i> = ${n}</b> — the rods turn on their collars until they make ${n} full turn${n > 1 ? 's' : ''} along the axis (φ<sub><i>k</i></sub> = ${n}·360°·<i>t<sub>k</sub></i>/<i>T</i>). The red sliders stay where they are, so the same recording now yields harmonic ${n}.`);
   const n0 = S.nCur;
-  await animate(t, 0.7 + 0.35 * Math.abs(n - n0), e => { S.nCur = lerp(n0, n, ease(e)); });
+  await animate(t, Math.min(3, 0.7 + 0.35 * Math.abs(n - n0)), e => { S.nCur = lerp(n0, n, ease(e)); });
   S.nCur = n;
 }
 
@@ -1117,7 +1146,7 @@ function drawPolar() {
   // rods
   for (let k = 0; k < S.N; k++) {
     const [x0, y0] = bodyPt(-R, phiRad[k]), [x1, y1] = bodyPt(R, phiRad[k]);
-    g.strokeStyle = k === S.active ? 'rgba(170,120,10,1)' : 'rgba(160,120,50,.5)'; g.lineWidth = k === S.active ? 2.2 : 1;
+    g.strokeStyle = k === S.active ? 'rgba(170,120,10,1)' : S.N > 48 ? 'rgba(160,120,50,.25)' : 'rgba(160,120,50,.5)'; g.lineWidth = k === S.active ? 2.2 : 1;
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
   }
   // ideal circle through the axis, from the rods' Fourier sum: r = A cos(φ − θ)
@@ -1133,13 +1162,16 @@ function drawPolar() {
     g.beginPath(); g.arc(cx, cy, S.circle.D / 2 * sc, 0, TAU); g.stroke();
   }
   // sliders
-  const rbp = Math.max(2.2, H_.rb * sc);
+  const rbp = Math.max(1.8, H_.rb * sc);
   for (const [arr, col] of [[S.red, '#b3121d'], [S.blue, '#1b3fb4']]) {
     for (let k = 0; k < S.N; k++) if (fin(arr[k])) {
       const [x, y] = bodyPt(arr[k], phiRad[k]);
-      const grd = g.createRadialGradient(x - rbp * 0.35, y - rbp * 0.35, rbp * 0.1, x, y, rbp);
-      grd.addColorStop(0, '#ffffffaa'); grd.addColorStop(0.35, col); grd.addColorStop(1, col);
-      g.fillStyle = grd; g.globalAlpha = 0.9; g.beginPath(); g.arc(x, y, rbp, 0, TAU); g.fill(); g.globalAlpha = 1;
+      if (rbp >= 3.5) {
+        const grd = g.createRadialGradient(x - rbp * 0.35, y - rbp * 0.35, rbp * 0.1, x, y, rbp);
+        grd.addColorStop(0, '#ffffffaa'); grd.addColorStop(0.35, col); grd.addColorStop(1, col);
+        g.fillStyle = grd;
+      } else g.fillStyle = col;
+      g.globalAlpha = 0.9; g.beginPath(); g.arc(x, y, rbp, 0, TAU); g.fill(); g.globalAlpha = 1;
     }
   }
   // centre-of-mass vectors  r̄ = (1/N) Σ d_k û(φ_k)
@@ -1277,7 +1309,14 @@ renderer.domElement.addEventListener('pointerdown', e => {
   const ud = hit.object.userData;
   if (!['ball', 'rod', 'rotor', 'lever'].includes(ud.kind)) return;
   if (current) stopTask();
-  if (ud.kind === 'ball') { drag = { kind: 'ball', k: ud.k, color: ud.color }; S.active = ud.k; }
+  // with many rods the sliders are tiny: a press on a rod close to its slider grabs the slider
+  let grabCol = ud.kind === 'ball' ? ud.color : null;
+  if (ud.kind === 'rod' && S.mode !== 'synth') {
+    const col = S.mode === 'record' ? 'red' : 'blue', d = S[col][ud.k];
+    setRay(e); const s = rodParam(ud.k);
+    if (fin(d) && s != null && Math.abs(s - d) < Math.max(4, 2 * H_.rb)) grabCol = col;
+  }
+  if (grabCol) { drag = { kind: 'ball', k: ud.k, color: grabCol }; S.active = ud.k; }
   else if (ud.kind === 'rod' && ((S.mode === 'record' && !fin(S.red[ud.k])) || (S.mode === 'analyse' && !fin(S.blue[ud.k])))) {
     setRay(e); const s = rodParam(ud.k); const col = S.mode === 'record' ? 'red' : 'blue';
     S[col][ud.k] = clampS(s ?? 0); S.active = ud.k;
@@ -1503,7 +1542,7 @@ function updateUI() {
   $('bRelease').textContent = S.locked ? 'Release the lock' : 'Lock it';
   $('bStop').disabled = !current;
   $('oN').textContent = S.N; $('on').textContent = S.n;
-  $('bNm').disabled = S.N <= 6; $('bNp').disabled = S.N >= 48;
+  $('bNm').disabled = S.N <= 6; $('bNp').disabled = S.N >= 128; $('rN').value = S.N;
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
   $('oRod').innerHTML = S.active >= 0 ? `rod ${S.active} <span style="color:var(--dim)">/ ${S.N}</span>` : `— <span style="color:var(--dim)">/ ${S.N}</span>`;
   $('twistNote').innerHTML = S.n === 0 ? 'All rods parallel (φ<sub><i>k</i></sub> = 0): the helix measures the mean <i>a</i><sub>0</sub>.'
@@ -1564,7 +1603,7 @@ function signalChanged() {
   if (had) say('The signal changed, so the sliders came off. Record it again (<b>R</b>, or <b>Record all rods</b>).');
 }
 function setN(N) {
-  stopTask(); S.N = clamp(N, 6, 48); S.n = Math.min(S.n, nMax()); S.nCur = S.n;
+  stopTask(); S.N = clamp(N, 6, 128); S.n = Math.min(S.n, nMax()); S.nCur = S.n;
   buildHelix(); computeExact(); refreshMath(); drawPaperSoon(); updateUI();
   say(`<b><i>N</i> = ${S.N}</b> rods, one every ${fmt(L / S.N, 1)} mm. More rods sample the signal more finely and push aliasing to higher harmonics.`);
 }
@@ -1583,6 +1622,7 @@ $('rPhase').addEventListener('input', e => { S.sig.phase = +e.target.value; sync
 $('rOff').addEventListener('input', e => { S.sig.offset = +e.target.value; syncSignalUI(); signalChanged(); });
 bind('bDraw', () => { S.drawMode = !S.drawMode; updateUI(); if (S.drawMode) { goView('top'); say('Draw <i>f</i>(<i>t</i>) on the paper: drag across the graph. Each stroke replaces the curve under it; the helix is ignored while drawing.'); } else say(''); });
 bind('bNm', () => setN(S.N - 1)); bind('bNp', () => setN(S.N + 1));
+$('rN').addEventListener('input', e => setN(+e.target.value));
 bind('bnm', () => run(t => twistTo(t, Math.max(0, S.n - 1))));
 bind('bnp', () => run(t => twistTo(t, Math.min(nMax(), S.n + 1))));
 for (const b of document.querySelectorAll('#modeTabs [data-mode]')) b.addEventListener('click', () => { stopTask(); setMode(b.dataset.mode); });
@@ -1618,7 +1658,7 @@ bind('bLock', toggleLock);
 bind('bHome', () => run(t => turnTo(t, nearestDeg(0), 0.8)));
 bind('bTm', () => run(t => turnTo(t, S.alpha / DEG - 15, 0.4)));
 bind('bTp', () => run(t => turnTo(t, S.alpha / DEG + 15, 0.4)));
-$('rFric').addEventListener('input', e => { S.friction = +e.target.value; $('oFric').textContent = fmt(S.friction, 2) + ' mN·m'; S.restTime = 0; });
+$('rFric').addEventListener('input', e => { S.friction = +e.target.value; $('oFric').textContent = fmt(S.friction, 3) + ' mN·m'; S.restTime = 0; });
 $('rDamp').addEventListener('input', e => { S.damping = +e.target.value; $('oDamp').textContent = fmt(S.damping, 2); });
 $('rSpeed').addEventListener('input', e => { S.speed = +e.target.value; $('oSpeed').textContent = '×' + S.speed.toFixed(1); });
 for (const b of document.querySelectorAll('#viewBtns [data-view]')) b.addEventListener('click', () => goView(b.dataset.view));
@@ -1626,12 +1666,12 @@ bind('bDemo', () => run(demoAll));
 bind('bStop', () => { stopTask(); say('Stopped.'); });
 bind('bReset', () => {
   stopTask(); Object.assign(S.sig, { preset: 'square', amp: 1, phase: 0, offset: 0 }); S.drawMode = false;
-  S.alpha = 0; S.omega = 0; S.locked = true; S.n = 1; S.nCur = 1; setN(20); syncSignalUI(); setMode('record'); goView('overview');
+  S.alpha = 0; S.omega = 0; S.locked = true; S.n = 1; S.nCur = 1; setN(128); syncSignalUI(); setMode('record'); goView('overview');
 });
 bind('bHelp', () => { const h = $('help'); h.style.display = h.style.display === 'block' ? 'none' : 'block'; });
 bind('bHelpX', () => { $('help').style.display = 'none'; });
 for (const el of document.querySelectorAll('[data-collapse]')) el.addEventListener('click', () => { $(el.dataset.collapse).classList.toggle('collapsed'); layout(); });
-$('oFric').textContent = fmt(S.friction, 2) + ' mN·m'; $('oDamp').textContent = fmt(S.damping, 2); $('oSpeed').textContent = '×1.0'; $('oD').textContent = fmt(0, 3);
+$('oFric').textContent = fmt(S.friction, 3) + ' mN·m'; $('oDamp').textContent = fmt(S.damping, 2); $('oSpeed').textContent = '×1.0'; $('oD').textContent = fmt(0, 3);
 
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
