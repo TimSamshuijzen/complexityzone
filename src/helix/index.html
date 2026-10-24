@@ -309,6 +309,7 @@ const UPR_X = 246;        // upright centre planes
 const DIAL_R = 60, DIAL_X = 264;
 const LEVER_FREE = 14 * DEG;
 const DISH = { x: 360, z: 70 };   // dish of spare sliders on the desk
+const DESK = { w: 1100, d: 620, z: 20 };   // the desk top: room for the stand, the dish and the pencils
 const G = 9.81, RHO_STEEL = 7.85e-6, RHO_BRASS = 8.5e-6;   // kg / mm^3
 
 /* =====================================================================
@@ -534,8 +535,9 @@ for (const m of [M.brass, M.brassSatin, M.brassPlate, M.rod, M.rodHi]) m.envMapI
 M.knurl = new THREE.MeshPhysicalMaterial({ color: 0xd9b05c, metalness: 1, roughness: 0.32, bumpMap: knurlTexture(), bumpScale: 1.2, envMapIntensity: 1.45 });
 M.dial = new THREE.MeshStandardMaterial({ map: dialTexture(), metalness: 0.5, roughness: 0.42 });
 M.plaque = new THREE.MeshStandardMaterial({ map: plaqueTexture(), metalness: 0.85, roughness: 0.32 });
-const woodTex = woodTexture(); woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping; woodTex.repeat.set(2.4, 1.3);
+const woodTex = woodTexture(); woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping; woodTex.repeat.set(DESK.w / 1080, DESK.d / 1080);
 M.wood = new THREE.MeshPhysicalMaterial({ map: woodTex, roughness: 0.45, clearcoat: 0.7, clearcoatRoughness: 0.2 });
+M.woodEdge = new THREE.MeshPhysicalMaterial({ color: 0x4a1b10, roughness: 0.5, clearcoat: 0.6, clearcoatRoughness: 0.25 });
 // parts at the +x end fade out when looking along the axis from that side
 M.brassE = M.brass.clone(); M.brassPlateE = M.brassPlate.clone(); M.steelE = M.steel.clone(); M.ebonyE = M.ebony.clone(); M.dialE = M.dial.clone();
 const fadeMats = [M.brassE, M.brassPlateE, M.steelE, M.ebonyE, M.dialE];
@@ -676,8 +678,9 @@ const alongX = geo => geo.rotateZ(Math.PI / 2);   // cylinders are built along y
 const pickables = [];
 const stand = new THREE.Group(); scene.add(stand);
 
-const desk = mesh(new THREE.BoxGeometry(2600, 40, 1400), M.wood, scene);
-desk.position.set(0, -20, 160); desk.userData.kind = 'desk';
+// the top carries the grain; the four sides and the bottom are plain varnished mahogany
+const desk = mesh(new THREE.BoxGeometry(DESK.w, 40, DESK.d), [M.woodEdge, M.woodEdge, M.wood, M.woodEdge, M.woodEdge, M.woodEdge], scene);
+desk.position.set(0, -20, DESK.z); desk.userData.kind = 'desk';
 const paper = mesh(new THREE.PlaneGeometry(PAPER_W, PAPER_H).rotateX(-Math.PI / 2), M.paper, scene, { kind: 'paper' });
 paper.position.y = 0.25;
 
@@ -1548,7 +1551,7 @@ function endDrawing() {
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(...VIEWS.overview.tgt);
 controls.enableDamping = true; controls.dampingFactor = 0.08;
-controls.minDistance = 120; controls.maxDistance = 3200;
+controls.minDistance = 120; controls.maxDistance = 2400;
 controls.maxPolarAngle = Math.PI / 2 + 0.02;
 controls.update();
 let camAnim = null;
