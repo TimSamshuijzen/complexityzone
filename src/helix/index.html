@@ -176,10 +176,8 @@
   <div class="row"><button id="bDraw" style="flex:1">✎ Draw <i>f</i>(<i>t</i>) on the paper</button></div>
 
   <h2>Helix</h2>
-  <div class="stepper"><label>rods <i>N</i></label><button id="bNm">−</button><output id="oN"></output><button id="bNp">+</button></div>
-  <div class="slider"><label></label><input type="range" id="rN" min="6" max="128" step="1" value="128"></div>
+  <div class="slider"><label>rods <i>N</i></label><input type="range" id="rN" min="6" max="128" step="1" value="128"><output id="oN"></output></div>
   <div class="stepper"><label>harmonic <i>n</i> <span style="font-size:12px">(turns of the twist)</span></label><button id="bnm">−</button><output id="on"></output><button id="bnp">+</button></div>
-  <div class="note" id="twistNote"></div>
 
   <h2>Procedure</h2>
   <div class="tabs" id="modeTabs">
@@ -1642,11 +1640,9 @@ function updateUI() {
   $('bRelease').textContent = S.locked ? 'Release the lock' : 'Lock it';
   $('bStop').disabled = !current;
   $('oN').textContent = S.N; $('on').textContent = S.n;
-  $('bNm').disabled = S.N <= 6; $('bNp').disabled = S.N >= 128; $('rN').value = S.N;
+  $('rN').value = S.N;
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
   $('oRod').innerHTML = S.active >= 0 ? `rod ${S.active} <span style="color:var(--dim)">/ ${S.N}</span>` : `— <span style="color:var(--dim)">/ ${S.N}</span>`;
-  $('twistNote').innerHTML = S.n === 0 ? 'All rods parallel (φ<sub><i>k</i></sub> = 0): the helix measures the mean <i>a</i><sub>0</sub>.'
-    : `φ<sub><i>k</i></sub> = ${S.n}·360°·(<i>k</i> + ½)/${S.N} — successive rods ${fmt(360 * S.n / S.N, 1)}° apart; <i>n</i> = 0 … ${nMax()}.`;
   const m = S.marks[S.n];
   $('bJoin').disabled = !m || m.v.some(v => !fin(v));
   $('bBalance').disabled = $('bTest').disabled = !S.circle;
@@ -1722,7 +1718,6 @@ $('rAmp').addEventListener('input', e => { S.sig.amp = +e.target.value; syncSign
 $('rPhase').addEventListener('input', e => { S.sig.phase = +e.target.value; syncSignalUI(); signalChanged(); });
 $('rOff').addEventListener('input', e => { S.sig.offset = +e.target.value; syncSignalUI(); signalChanged(); });
 bind('bDraw', () => { S.drawMode = !S.drawMode; updateUI(); if (S.drawMode) { goView('top'); say('Draw <i>f</i>(<i>t</i>) on the paper: drag across the graph. Each stroke replaces the curve under it; the helix is ignored while drawing.'); } else say(''); });
-bind('bNm', () => setN(S.N - 1)); bind('bNp', () => setN(S.N + 1));
 $('rN').addEventListener('input', e => setN(+e.target.value));
 bind('bnm', () => run(t => twistTo(t, Math.max(0, S.n - 1))));
 bind('bnp', () => run(t => twistTo(t, Math.min(nMax(), S.n + 1))));
