@@ -50,9 +50,10 @@
   .ph h2 { border: 0; padding: 0; }
   h2 i, .ph h2 i { font-variant: normal; letter-spacing: 0; color: var(--dim); font-size: 13px; }
 
-  #polarPanel { flex: 0 0 auto; }
-  #polarBody { padding: 0 12px 10px; }
-  #polar { width: min(100%, calc(100vh - 430px)); min-width: 220px; aspect-ratio: 1 / 1; display: block; border-radius: 4px; margin: 0 auto; }
+  #topviewPanel, #polarPanel { flex: 0 0 auto; }
+  #topviewBody, #polarBody { padding: 0 12px 10px; }
+  #topview { width: 100%; height: clamp(140px, 22vh, 240px); display: block; border-radius: 4px; }
+  #polar { width: min(100%, max(200px, calc(100vh - 780px))); aspect-ratio: 1 / 1; display: block; border-radius: 4px; margin: 0 auto; }
   .readout { font-size: 13px; color: var(--ink); line-height: 1.45; margin-top: 4px; }
   .readout .r { color: var(--red); } .readout .b { color: var(--blue); }
 
@@ -127,7 +128,7 @@
   }
   @media (max-width: 820px) {
     #leftCol { width: auto; right: 12px; bottom: auto; }
-    #polarPanel, #fourierPanel { display: none; }
+    #topviewPanel, #polarPanel, #fourierPanel { display: none; }
     #title .sub { display: none; }
     #side { width: auto; left: 10px; right: 10px; top: auto; bottom: 10px; max-height: 40%; }
     #caption { display: none !important; }
@@ -148,6 +149,13 @@
       <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
       <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
       <button id="bHelp" class="mini" title="Help">?</button>
+    </div>
+  </div>
+  <div id="topviewPanel" class="panel">
+    <div class="ph" data-collapse="topviewPanel"><h2>Top view <i>looking down on the paper</i></h2><span class="tog">▾</span></div>
+    <div id="topviewBody">
+      <canvas id="topview"></canvas>
+      <div class="readout" id="topRead"></div>
     </div>
   </div>
   <div id="polarPanel" class="panel">
@@ -537,6 +545,8 @@ const pg = paperCanvas.getContext('2d');
 const PXMM = PAPER_PX / PAPER_W;
 const px = x => (x + PAPER_W / 2) * PXMM, pz = z => (z + PAPER_H / 2) * PXMM;
 const tx = t => px(-L / 2 + t * L), vy = v => pz(-v * UNIT);
+const paperThumb = document.createElement('canvas');
+paperThumb.width = 840; paperThumb.height = Math.round(840 * PAPER_H / PAPER_W);
 const paperTex = new THREE.CanvasTexture(paperCanvas);
 paperTex.colorSpace = THREE.SRGBColorSpace; paperTex.anisotropy = MAXANI;
 M.paper = new THREE.MeshStandardMaterial({ map: paperTex, roughness: 0.95, envMapIntensity: 0.6 });
@@ -642,6 +652,8 @@ function drawPaper() {
   g.textAlign = 'right'; g.font = `${3.4 * k}px "Times New Roman", serif`; g.fillStyle = 'rgba(17,19,26,.8)';
   g.fillText('T. Samshuijzen, 2006', px(200), pz(132));
   paperTex.needsUpdate = true;
+  const tg = paperThumb.getContext('2d'); tg.imageSmoothingQuality = 'high';
+  tg.drawImage(paperCanvas, 0, 0, paperThumb.width, paperThumb.height);
 }
 let paperDirty = true, paperLast = 0;
 const drawPaperSoon = () => { paperDirty = true; };
@@ -1136,13 +1148,84 @@ async function demoAll(t) {
 }
 
 /* =====================================================================
+   Top view (2-D canvas): the desk seen from straight above, x to the right, the front at the bottom
+   ===================================================================== */
+const tvc = $('topview'), tvx = tvc.getContext('2d');
+function drawTopView() {
+  const W = tvc.clientWidth, Hc = tvc.clientHeight; if (!W || $('topviewPanel').classList.contains('collapsed')) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  if (tvc.width !== Math.round(W * dpr) || tvc.height !== Math.round(Hc * dpr)) { tvc.width = Math.round(W * dpr); tvc.height = Math.round(Hc * dpr); }
+  const g = tvx; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const sc = Math.min(W / 580, Hc / 350), cx = W / 2, cy = Hc / 2;   // px per mm; shows x ±290, z ±175
+  const X = x => cx + x * sc, Z = z => cy + z * sc;
+  const rect = (x0, z0, x1, z1, fill) => { g.fillStyle = fill; g.fillRect(X(x0), Z(z0), (x1 - x0) * sc, (z1 - z0) * sc); };
+  const brass = '#c99f4c', brassD = '#94702c', steel = '#c8ccd0';
+  g.fillStyle = '#4a2117'; g.fillRect(0, 0, W, Hc);
+  for (const z of [-161, 161]) rect(-237, z - 9, 237, z + 9, brassD);
+  for (const x of [-UPR_X, UPR_X]) rect(x - 9, -170, x + 9, 170, brassD);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(paperThumb, X(-PAPER_W / 2), Z(-PAPER_H / 2), PAPER_W * sc, PAPER_H * sc);
+  // uprights (footprint, plate, bearing boss), knob, dial and the steel axis
+  for (const x of [-UPR_X, UPR_X]) { rect(x - 13, -89, x + 13, 89, brassD); rect(x - 5, -80, x + 5, 80, brass); rect(x - 8.5, -22, x + 8.5, 22, brass); }
+  rect(-280, -15, -262, 15, '#a98535');
+  rect(DIAL_X - 2, -DIAL_R, DIAL_X + 2, DIAL_R, brass);
+  rect(-262, -AX_R, 272, AX_R, steel);
+  g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(X(-262), Z(-1), 534 * sc, Math.max(1, 1.5 * sc));
+  // rods: a rod at angle a from flat shows R·cos a of its length on either side of the axis
+  const a0 = S.alpha;
+  for (let k = 0; k < S.N; k++) {
+    const c = R * Math.cos(a0 - phiRad[k]), on = k === S.active;
+    g.strokeStyle = on ? '#ffe08a' : 'rgba(222,182,98,.85)'; g.lineWidth = Math.max(on ? 1.8 : 0.7, 2 * H_.rod * sc);
+    g.beginPath(); g.moveTo(X(xK(k)), Z(-c)); g.lineTo(X(xK(k)), Z(c)); g.stroke();
+  }
+  rect(xK(0) - H_.collar / 2, -COL_R, xK(S.N - 1) + H_.collar / 2, COL_R, brass);
+  for (const x of [-232, 232]) rect(x - 3, -9, x + 3, 9, brass);
+  // sliders, lowest first so the higher ones cover them
+  const balls = [];
+  for (let k = 0; k < S.N; k++) {
+    const a = a0 - phiRad[k];
+    if (fin(S.red[k])) balls.push([xK(k), -S.red[k] * Math.cos(a), S.red[k] * Math.sin(a), '#c0141f']);
+    if (fin(S.blue[k])) balls.push([xK(k), -S.blue[k] * Math.cos(a), S.blue[k] * Math.sin(a), '#1e45c4']);
+  }
+  balls.sort((p, q) => p[2] - q[2]);
+  const rp = Math.max(1.4, H_.rb * sc);
+  for (const [x, z, , col] of balls) {
+    if (rp >= 3) {
+      const grd = g.createRadialGradient(X(x) - rp * 0.35, Z(z) - rp * 0.35, rp * 0.1, X(x), Z(z), rp);
+      grd.addColorStop(0, '#ffffffb0'); grd.addColorStop(0.35, col); grd.addColorStop(1, col); g.fillStyle = grd;
+    } else g.fillStyle = col;
+    g.beginPath(); g.arc(X(x), Z(z), rp, 0, TAU); g.fill();
+  }
+  // where the active rod has to put its slider while recording
+  if (S.mode === 'record' && S.active >= 0 && S.active < S.N) {
+    g.strokeStyle = '#11131a'; g.lineWidth = 1.2;
+    g.beginPath(); g.arc(X(xK(S.active)), Z(-clampV(f(tK(S.active))) * UNIT), Math.max(3.2, 4 * sc), 0, TAU); g.stroke();
+  }
+  // scale bar
+  g.strokeStyle = g.fillStyle = 'rgba(245,232,205,.85)'; g.lineWidth = 1;
+  const yb = Hc - 7, x0 = 8, x1 = 8 + 100 * sc;
+  g.beginPath(); g.moveTo(x0, yb - 3); g.lineTo(x0, yb); g.lineTo(x1, yb); g.lineTo(x1, yb - 3); g.stroke();
+  g.font = '11px "Times New Roman", serif'; g.textAlign = 'left'; g.textBaseline = 'bottom'; g.fillText('100 mm', x1 + 4, yb + 2);
+}
+function topReadout() {
+  const k = S.active;
+  if (k < 0 || k >= S.N) return 'Seen from straight above, a rod lying flat shows its full length, and its slider sits right over the paper value it stands for.';
+  const a = S.alpha - phiRad[k], tilt = Math.asin(Math.abs(Math.sin(a))) / DEG;
+  const col = S.mode === 'synth' ? 'blue' : 'red', d = S[col][k];
+  let t = `Rod ${k} ${tilt < 0.5 ? 'lies flat' : `is ${fmt(tilt, 0)}° from flat`}; `;
+  t += fin(d) ? `its <span class="${col === 'red' ? 'r' : 'b'}">${col} slider</span> is over ${v2(d * Math.cos(a) / UNIT)}` : `it has no ${col} slider yet`;
+  if (S.mode === 'record') t += `, the curve is at <i>f</i>(<i>t</i><sub>${k}</sub>) = ${v2(f(tK(k)))}`;
+  return t + '.';
+}
+
+/* =====================================================================
    Polar end view (2-D canvas)
    ===================================================================== */
 const pc = $('polar'), pcx = pc.getContext('2d');
 function drawPolar() {
   const css = pc.clientWidth; if (!css || $('polarPanel').classList.contains('collapsed')) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2), W = css;
-  if (pc.width !== Math.round(css * dpr)) { pc.width = pc.height = Math.round(css * dpr); }
+  if (pc.width !== Math.round(css * dpr) || pc.height !== Math.round(css * dpr)) { pc.width = pc.height = Math.round(css * dpr); }
   const g = pcx; g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const c = W / 2, sc = (W / 2 - 14) / (R + 6);
   // world (y, z) → screen, looking along −x from the dial end: right = −z (the paper's +f side), up = +y
@@ -1594,6 +1677,7 @@ function updateLive() {
   $('gFill').style.width = (magR > 0 ? clamp(Math.sqrt(mag / magR), 0, 1) * 100 : 0) + '%';
   $('oBias').textContent = `|r̄| ${fmt(mag, 2)} mm`;
   const idl = helixIdeal(n);
+  $('topRead').innerHTML = topReadout();
   $('polarRead').innerHTML = PH.nr
     ? `<span class="r">red</span> |r̄| = ${fmt(magR, 1)} mm → ${n === 0 ? '|<i>a</i><sub>0</sub>| = |r̄|' : '<i>A</i> = 2|r̄|'} = ${fmt((n === 0 ? 1 : 2) * magR / UNIT)}` + (magR > 0.05 ? `, arg r̄ = ${fmtDeg(Math.atan2(redB(), redA()) / DEG)}` : '') +
       (PH.nb ? `<br><span class="b">blue</span> |r̄| = ${fmt(Math.hypot(PH.by, PH.bz) / N, 1)} mm · black: total ${fmt(mag, 2)} mm`
@@ -1719,6 +1803,7 @@ function frame(now) {
   updateCamera(dt);
   if (paperDirty && now - paperLast > 60) { paperDirty = false; paperLast = now; drawPaper(); }
   renderer.render(scene, camera);
+  drawTopView();
   drawPolar();
   hover();
   liveT += dt; if (liveT > 0.1) { liveT = 0; updateLive(); }
@@ -1727,7 +1812,7 @@ function frame(now) {
 
 custom.set(Array.from({ length: CUST_N }, (_, i) => Math.sin(TAU * i / CUST_N)));
 buildHelix(); computeExact(); syncSignalUI(); refreshMath(); setMode('record');
-say('<b>Welcome</b> — this helix of brass rods on a steel axis is a Fourier analyser. Follow the three steps by hand with the panel on the right, or press <b>▶ Whole procedure</b>.');
+say('This helix of brass rods on a steel axis is a Fourier analyser. Follow the three steps by hand with the panel on the right, or press <b>▶ Whole procedure</b>.');
 layout();
 { const { pos, tgt } = viewPose('overview'); camera.position.copy(pos); controls.target.copy(tgt); controls.update(); }
 requestAnimationFrame(frame);
