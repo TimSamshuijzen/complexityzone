@@ -34,12 +34,13 @@
 
   #title { padding: 11px 14px 11px; }
   #title h1 { margin: 0; font-weight: normal; font-variant: small-caps; letter-spacing: 2.5px; font-size: 25px; line-height: 1.1; }
-  #title .sub { color: var(--dim); font-size: 13px; font-style: italic; margin: 2px 0 9px; }
+  #title .subrow { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  #title .sub { flex: 1; color: var(--dim); font-size: 13px; font-style: italic; }
   .tabs { display: flex; gap: 5px; }
   .tabs button { flex: 1; font-size: 14px; }
   .tabs button .num { font-variant: small-caps; color: var(--brass); margin-right: 3px; }
   .tabs button.on .num { color: #fff3cf; }
-  .tabs .mini { flex: 0 0 auto; padding: 4px 10px; }
+  .mini { flex: 0 0 auto; margin-left: auto; padding: 0 8px; }
 
   .ph { display: flex; align-items: baseline; justify-content: space-between; cursor: pointer; user-select: none; padding: 8px 14px 4px; }
   .ph h2 { margin: 0; }
@@ -144,13 +145,7 @@
 <div id="leftCol">
   <div id="title" class="panel">
     <h1>Helix Harmonic Analyzer</h1>
-    <div class="sub">a mechanical Fourier analyser — gravity does the summing</div>
-    <div class="tabs" id="modeTabs">
-      <button data-mode="record" class="on" title="Key 1"><span class="num">i</span> Record</button>
-      <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
-      <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
-      <button id="bHelp" class="mini" title="How it works, the formulas, and the controls">?</button>
-    </div>
+    <div class="subrow"><div class="sub">a mechanical Fourier analyser — gravity does the summing</div><button id="bHelp" class="mini" title="How it works, the formulas, and the controls">?</button></div>
   </div>
   <div id="topviewPanel" class="panel">
     <div class="ph" data-collapse="topviewPanel"><h2>Top view <i>looking down on the paper</i></h2><span class="tog">▾</span></div>
@@ -181,6 +176,13 @@
   <div class="slider"><label></label><input type="range" id="rN" min="6" max="128" step="1" value="128"></div>
   <div class="stepper"><label>harmonic <i>n</i> <span style="font-size:12px">(turns of the twist)</span></label><button id="bnm">−</button><output id="on"></output><button id="bnp">+</button></div>
   <div class="note" id="twistNote"></div>
+
+  <h2>Procedure</h2>
+  <div class="tabs" id="modeTabs">
+    <button data-mode="record" class="on" title="Key 1"><span class="num">i</span> Record</button>
+    <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
+    <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
+  </div>
 
   <div id="procRecord" class="proc show">
     <h2>i · Record the signal</h2>
