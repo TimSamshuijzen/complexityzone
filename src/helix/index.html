@@ -1507,6 +1507,7 @@ function hover() {
 
 /* ---------- drawing f(t) on the paper ---------- */
 let drawPrev = null, drawRedrawT = 0;
+let hasDrawing = false;   // once something is drawn, the Drawn preset keeps it while other signals are tried
 function bakeCustom() {
   if (S.sig.preset === 'custom' && S.sig.amp === 1 && S.sig.phase === 0 && S.sig.offset === 0) return;
   const vals = Array.from({ length: CUST_N }, (_, i) => f(i / CUST_N));
@@ -1523,16 +1524,16 @@ function drawsAt(e) {
   return k === 'ball' || k === 'lever' ? null : p;
 }
 function startDrawing(p) {
-  bakeCustom(); drag = { kind: 'draw' }; drawPrev = null;
+  bakeCustom(); hasDrawing = true; drag = { kind: 'draw' }; drawPrev = null;
   S.red.fill(NaN); clearBlue(); S.marks = {};
   drawAt(p);
 }
 function drawAt(p) {
-  const t = clamp((p.x + L / 2) / L, 0, 0.99999), v = clamp(-p.z / UNIT, -1.5, 1.5);
-  const i1 = Math.round(t * CUST_N) % CUST_N;
+  // a stroke beyond either end of the graph stays on the last sample there, rather than wrapping round
+  const i1 = Math.min(CUST_N - 1, Math.round(clamp((p.x + L / 2) / L, 0, 1) * CUST_N)), v = clamp(-p.z / UNIT, -1.5, 1.5);
   if (drawPrev) {
     const [i0, v0] = drawPrev, n = Math.abs(i1 - i0);
-    for (let j = 0; j <= n; j++) { const i = i0 + Math.sign(i1 - i0) * j; custom[((i % CUST_N) + CUST_N) % CUST_N] = lerp(v0, v, n ? j / n : 1); }
+    for (let j = 0; j <= n; j++) custom[i0 + Math.sign(i1 - i0) * j] = lerp(v0, v, n ? j / n : 1);
   } else custom[i1] = v;
   drawPrev = [i1, v];
   const now = performance.now(); if (now - drawRedrawT > 70) { drawRedrawT = now; drawPaperSoon(); }
@@ -1729,7 +1730,7 @@ function bind(id, fn) { $(id).addEventListener('click', fn); }
 for (const [id, name] of PRESETS) {
   const b = document.createElement('button'); b.textContent = name; b.dataset.p = id;
   b.addEventListener('click', () => {
-    if (id === 'custom') bakeCustom();
+    if (id === 'custom' && !hasDrawing) bakeCustom();   // the first time, drawing starts from the curve on the paper
     S.sig.preset = id; syncSignalUI(); signalChanged();
     // "Drawn" switches drawing on; it stays on until another signal, mode or procedure step is chosen
     S.drawMode = id === 'custom';
