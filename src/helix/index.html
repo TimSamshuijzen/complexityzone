@@ -173,7 +173,6 @@
   <div class="slider"><label>amplitude</label><input type="range" id="rAmp" min="0" max="1.5" step="0.01" value="1"><output id="oAmp"></output></div>
   <div class="slider"><label>phase shift</label><input type="range" id="rPhase" min="-180" max="180" step="1" value="0"><output id="oPhase"></output></div>
   <div class="slider"><label>offset</label><input type="range" id="rOff" min="-0.6" max="0.6" step="0.01" value="0"><output id="oOff"></output></div>
-  <div class="row"><button id="bDraw" style="flex:1">✎ Draw <i>f</i>(<i>t</i>) on the paper</button></div>
 
   <h2>Helix</h2>
   <div class="slider"><label>rods <i>N</i></label><input type="range" id="rN" min="6" max="128" step="1" value="128"><output id="oN"></output></div>
@@ -935,6 +934,7 @@ function tickAnims(dt) {
 let current = null;
 function run(fn) {
   if (current) current.aborted = true;
+  S.drawMode = false;
   const t = { aborted: false }; current = t;
   fn(t).catch(e => { if (e !== ABORT) console.error(e); }).finally(() => {
     if (current === t) current = null;
@@ -1397,12 +1397,8 @@ function paperHit(e) {
 
 renderer.domElement.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
-  if (S.drawMode) {
-    const p = paperHit(e);
-    if (p && Math.abs(p.x) <= L / 2 && Math.abs(p.z) <= 100) {
-      startDrawing(p); grab(e); return;
-    }
-  }
+  const p = drawsAt(e);
+  if (p) { startDrawing(p); grab(e); return; }
   const hit = pickAt(e); if (!hit) return;
   const ud = hit.object.userData;
   if (!['ball', 'rod', 'rotor', 'lever'].includes(ud.kind)) return;
@@ -1482,7 +1478,7 @@ function showTip(e, html) { const t = $('tip'); t.innerHTML = html; t.style.disp
 function hover() {
   const e = hoverEvt; if (!e || drag) return; hoverEvt = null;
   let cursor = '', tip = '';
-  if (S.drawMode) { const p = paperHit(e); if (p && Math.abs(p.x) <= L / 2 && Math.abs(p.z) <= 100) cursor = 'crosshair'; }
+  if (drawsAt(e)) cursor = 'crosshair';
   if (!cursor) {
     const h = pickAt(e), ud = h?.object.userData || {};
     if (ud.kind === 'ball') { cursor = 'grab'; tip = ballTip(ud.k, ud.color); }
@@ -1506,6 +1502,14 @@ function bakeCustom() {
   custom.set(vals);
   Object.assign(S.sig, { preset: 'custom', amp: 1, phase: 0, offset: 0 });
   syncSignalUI();
+}
+// in draw mode a press on the graph draws, unless it lands on a slider or the lock lever
+function drawsAt(e) {
+  if (!S.drawMode) return null;
+  const p = paperHit(e);
+  if (!p || Math.abs(p.x) > L / 2 || Math.abs(p.z) > 100) return null;
+  const k = pickAt(e)?.object.userData.kind;
+  return k === 'ball' || k === 'lever' ? null : p;
 }
 function startDrawing(p) {
   bakeCustom(); drag = { kind: 'draw' }; drawPrev = null;
@@ -1616,7 +1620,7 @@ function updateScene(dt) {
    UI wiring
    ===================================================================== */
 function setMode(m, quiet) {
-  S.mode = m;
+  S.mode = m; S.drawMode = false;
   for (const b of document.querySelectorAll('#modeTabs [data-mode]')) b.classList.toggle('on', b.dataset.mode === m);
   $('procRecord').classList.toggle('show', m === 'record');
   $('procAnalyse').classList.toggle('show', m === 'analyse');
@@ -1647,7 +1651,6 @@ function updateUI() {
   $('bJoin').disabled = !m || m.v.some(v => !fin(v));
   $('bBalance').disabled = $('bTest').disabled = !S.circle;
   for (const b of document.querySelectorAll('#presetBtns button')) b.classList.toggle('on', b.dataset.p === S.sig.preset);
-  $('bDraw').classList.toggle('on', S.drawMode);
 }
 let liveT = 0;
 function updateLive() {
@@ -1709,15 +1712,17 @@ function bind(id, fn) { $(id).addEventListener('click', fn); }
 for (const [id, name] of PRESETS) {
   const b = document.createElement('button'); b.textContent = name; b.dataset.p = id;
   b.addEventListener('click', () => {
-    if (id === 'custom' && S.sig.preset !== 'custom') { bakeCustom(); S.drawMode = true; goView('top'); say('Draw <i>f</i>(<i>t</i>) on the paper: drag across the graph. Each stroke replaces the curve under it; the helix is ignored while drawing.'); }
+    if (id === 'custom') bakeCustom();
     S.sig.preset = id; syncSignalUI(); signalChanged();
+    // "Drawn" switches drawing on; it stays on until another signal, mode or procedure step is chosen
+    S.drawMode = id === 'custom';
+    if (S.drawMode) { goView('top'); say('Draw <i>f</i>(<i>t</i>) on the paper: drag across the graph. Each stroke replaces the curve under it, and sliders can still be dragged. Click <b>Drawn</b> again to draw more later.'); }
   });
   $('presetBtns').appendChild(b);
 }
 $('rAmp').addEventListener('input', e => { S.sig.amp = +e.target.value; syncSignalUI(); signalChanged(); });
 $('rPhase').addEventListener('input', e => { S.sig.phase = +e.target.value; syncSignalUI(); signalChanged(); });
 $('rOff').addEventListener('input', e => { S.sig.offset = +e.target.value; syncSignalUI(); signalChanged(); });
-bind('bDraw', () => { S.drawMode = !S.drawMode; updateUI(); if (S.drawMode) { goView('top'); say('Draw <i>f</i>(<i>t</i>) on the paper: drag across the graph. Each stroke replaces the curve under it; the helix is ignored while drawing.'); } else say(''); });
 $('rN').addEventListener('input', e => setN(+e.target.value));
 bind('bnm', () => run(t => twistTo(t, Math.max(0, S.n - 1))));
 bind('bnp', () => run(t => twistTo(t, Math.min(nMax(), S.n + 1))));
@@ -1770,7 +1775,7 @@ window.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const k = e.key.toLowerCase(), sh = e.shiftKey;
   const act = {
-    ' ': toggleLock, escape: () => { stopTask(); say(''); $('help').style.display = 'none'; },
+    ' ': toggleLock, escape: () => { stopTask(); S.drawMode = false; say(''); $('help').style.display = 'none'; },
     r: () => run(sh ? recordAll : recordNext), b: () => sh ? $('bBalance').click() : $('bCircle').click(), t: () => $('bTest').click(),
     s: () => sh ? $('bSynAll').click() : run(readNext), j: joinDots,
     arrowleft: () => sh ? run(t => turnTo(t, S.alpha / DEG - 1, 0.15)) : run(t => selectRod(t, (S.active < 0 ? 0 : S.active - 1))),
