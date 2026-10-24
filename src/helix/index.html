@@ -29,8 +29,8 @@
   #leftCol { position: fixed; top: 52px; left: 12px; bottom: 12px; width: 392px; display: flex; flex-direction: column; gap: 9px; pointer-events: none; z-index: 3; }
   #leftCol > .panel { pointer-events: auto; }
   #side { position: fixed; top: 52px; right: 12px; width: 330px; max-height: calc(100% - 64px); overflow-y: auto; padding: 2px 14px 12px; z-index: 3; }
-  #side::-webkit-scrollbar, #fourierBody::-webkit-scrollbar { width: 6px; }
-  #side::-webkit-scrollbar-thumb, #fourierBody::-webkit-scrollbar-thumb { background: rgba(110,85,35,.35); border-radius: 3px; }
+  #side::-webkit-scrollbar, #help::-webkit-scrollbar { width: 6px; }
+  #side::-webkit-scrollbar-thumb, #help::-webkit-scrollbar-thumb { background: rgba(110,85,35,.35); border-radius: 3px; }
 
   #title { padding: 11px 14px 11px; }
   #title h1 { margin: 0; font-weight: normal; font-variant: small-caps; letter-spacing: 2.5px; font-size: 25px; line-height: 1.1; }
@@ -52,15 +52,14 @@
 
   #topviewPanel, #polarPanel { flex: 0 0 auto; }
   #topviewBody, #polarBody { padding: 0 12px 10px; }
-  #topview { width: 100%; height: clamp(140px, 22vh, 240px); display: block; border-radius: 4px; }
-  #polar { width: min(100%, max(200px, calc(100vh - 780px))); aspect-ratio: 1 / 1; display: block; border-radius: 4px; margin: 0 auto; }
+  #topview { width: 100%; height: clamp(140px, 24vh, 260px); display: block; border-radius: 4px; }
+  #polar { width: min(100%, max(170px, calc(100vh - 590px))); aspect-ratio: 1 / 1; display: block; border-radius: 4px; margin: 0 auto; }
   .readout { font-size: 13px; color: var(--ink); line-height: 1.45; margin-top: 4px; }
   .readout .r { color: var(--red); } .readout .b { color: var(--blue); }
 
-  #fourierPanel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-  #fourierBody { overflow-y: auto; padding: 0 14px 12px; min-height: 0; }
   .fsec { font-variant: small-caps; letter-spacing: 1px; color: var(--brass); font-size: 13.5px; margin: 9px 0 0; }
-  .tex { overflow-x: auto; overflow-y: hidden; font-size: 12px; scrollbar-width: thin; }
+  .fsec i { font-variant: normal; letter-spacing: 0; color: var(--dim); }
+  .tex { overflow-x: auto; overflow-y: hidden; font-size: 13px; scrollbar-width: thin; }
   .tex .katex-display { margin: 4px 0 2px; }
   table.coef { border-collapse: collapse; width: 100%; margin: 8px 0 4px; font-size: 13.5px; }
   table.coef th { font-weight: normal; font-style: italic; color: var(--dim); font-size: 12.5px; text-align: right; padding: 2px 6px; border-bottom: 1px solid var(--rule); }
@@ -108,7 +107,11 @@
   #caption b { font-variant: small-caps; letter-spacing: .6px; font-weight: normal; color: var(--brass); }
   #caption b i { font-variant: normal; letter-spacing: 0; }
   #caption .r { color: var(--red); } #caption .b { color: var(--blue); }
-  #help { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); width: min(560px, calc(100% - 24px)); padding: 12px 18px; z-index: 6; display: none; font-size: 14px; line-height: 1.55; }
+  #help { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); width: min(900px, calc(100% - 24px)); max-height: calc(100% - 70px); overflow-y: auto;
+          padding: 4px 20px 14px; z-index: 6; display: none; font-size: 14px; line-height: 1.55; }
+  #help .intro { margin: 4px 0 2px; }
+  .hcols { display: flex; flex-wrap: wrap; gap: 6px 26px; margin-bottom: 4px; }
+  .hcols > div { flex: 1 1 360px; min-width: 0; }
   #help b { font-variant: small-caps; color: var(--brass); font-weight: normal; letter-spacing: .5px; }
   #tip { position: fixed; pointer-events: none; padding: 5px 9px; background: rgba(251,248,239,.97); color: var(--ink); font-size: 13px;
          border-radius: 5px; transform: translate(14px, 14px); display: none; max-width: 320px; line-height: 1.35; border: 1px solid var(--edge); z-index: 10; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
@@ -119,16 +122,14 @@
     #leftCol { width: 350px; }
     #side { width: 312px; }
     #title h1 { font-size: 21px; letter-spacing: 1.5px; }
-    .tex { font-size: 11px; }
   }
   @media (max-width: 1180px) {
     #leftCol { width: 330px; }
-    #fourierPanel { display: none; }
     #caption { max-width: calc(100% - 700px); }
   }
   @media (max-width: 820px) {
     #leftCol { width: auto; right: 12px; bottom: auto; }
-    #topviewPanel, #polarPanel, #fourierPanel { display: none; }
+    #topviewPanel, #polarPanel { display: none; }
     #title .sub { display: none; }
     #side { width: auto; left: 10px; right: 10px; top: auto; bottom: 10px; max-height: 40%; }
     #caption { display: none !important; }
@@ -148,7 +149,7 @@
       <button data-mode="record" class="on" title="Key 1"><span class="num">i</span> Record</button>
       <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
       <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
-      <button id="bHelp" class="mini" title="Help">?</button>
+      <button id="bHelp" class="mini" title="How it works, the formulas, and the controls">?</button>
     </div>
   </div>
   <div id="topviewPanel" class="panel">
@@ -163,34 +164,6 @@
     <div id="polarBody">
       <canvas id="polar"></canvas>
       <div class="readout" id="polarRead"></div>
-    </div>
-  </div>
-  <div id="fourierPanel" class="panel">
-    <div class="ph" data-collapse="fourierPanel"><h2>Fourier coefficients <i id="fHead"></i></h2><span class="tog">▾</span></div>
-    <div id="fourierBody">
-      <div class="fsec">the series</div>
-      <div class="tex" data-tex="series"></div>
-      <div class="fsec">recording — one rod per sample</div>
-      <div class="tex" data-tex="samples"></div>
-      <div class="fsec">the coefficients</div>
-      <div class="tex" data-tex="coef"></div>
-      <div class="fsec">gravity forms the sum</div>
-      <div class="tex" data-tex="com"></div>
-      <div class="tex" data-tex="torque"></div>
-      <div class="fsec">the blue circle balances it</div>
-      <div class="tex" data-tex="circle"></div>
-      <div class="fsec">synthesis</div>
-      <div class="tex" data-tex="synth"></div>
-      <table class="coef" id="coefTable">
-        <tr><th></th><th>exact ∫</th><th>helix Σ</th><th>device</th></tr>
-        <tr id="rowA"><td data-k="a"></td><td id="eA"></td><td id="hA"></td><td id="dA"></td></tr>
-        <tr id="rowB"><td data-k="b"></td><td id="eB"></td><td id="hB"></td><td id="dB"></td></tr>
-        <tr class="hl"><td data-k="A"></td><td id="eAmp"></td><td id="hAmp"></td><td id="dAmp"></td></tr>
-        <tr class="hl"><td data-k="th"></td><td id="eTh"></td><td id="hTh"></td><td id="dTh"></td></tr>
-      </table>
-      <div class="note" id="devNote"></div>
-      <canvas id="spec"></canvas>
-      <div class="note">Spectrum <i>A<sub>n</sub></i>: outline = exact integral, filled = sum over the <i>N</i> rods. A helix with <i>N</i> rods cannot tell harmonic <i>n</i> from <i>N</i>±<i>n</i> (aliasing).</div>
     </div>
   </div>
 </div>
@@ -256,12 +229,44 @@
 
 <div id="caption" class="panel"></div>
 <div id="help" class="panel">
-  <button id="bHelpX" style="float:right;margin:-4px -8px 0 8px;padding:1px 8px">×</button>
+  <button id="bHelpX" style="float:right;margin:-2px -8px 0 8px;padding:1px 8px">×</button>
+  <h2>How it works</h2>
+  <p class="intro">Rod <i>k</i> points at angle φ<sub><i>k</i></sub> = <i>n</i>ω<i>t<sub>k</sub></i> and carries the sample <i>f</i>(<i>t<sub>k</sub></i>) as a distance along it. The centre of mass of all sliders is therefore ½(<i>a<sub>n</sub></i>, <i>b<sub>n</sub></i>): gravity forms the Fourier sum and turns that point to the bottom. A circle of blue sliders through the axis cancels it exactly when its diameter equals the amplitude, and read back it draws the harmonic.</p>
+  <div class="hcols">
+    <div>
+      <div class="fsec">the series</div>
+      <div class="tex" data-tex="series"></div>
+      <div class="fsec">recording — one rod per sample</div>
+      <div class="tex" data-tex="samples"></div>
+      <div class="fsec">the coefficients</div>
+      <div class="tex" data-tex="coef"></div>
+      <div class="fsec">gravity forms the sum</div>
+      <div class="tex" data-tex="com"></div>
+      <div class="tex" data-tex="torque"></div>
+      <div class="fsec">the blue circle balances it</div>
+      <div class="tex" data-tex="circle"></div>
+      <div class="fsec">synthesis</div>
+      <div class="tex" data-tex="synth"></div>
+    </div>
+    <div>
+      <div class="fsec">the numbers <i id="fHead"></i></div>
+      <table class="coef" id="coefTable">
+        <tr><th></th><th>exact ∫</th><th>helix Σ</th><th>device</th></tr>
+        <tr id="rowA"><td data-k="a"></td><td id="eA"></td><td id="hA"></td><td id="dA"></td></tr>
+        <tr id="rowB"><td data-k="b"></td><td id="eB"></td><td id="hB"></td><td id="dB"></td></tr>
+        <tr class="hl"><td data-k="A"></td><td id="eAmp"></td><td id="hAmp"></td><td id="dAmp"></td></tr>
+        <tr class="hl"><td data-k="th"></td><td id="eTh"></td><td id="hTh"></td><td id="dTh"></td></tr>
+      </table>
+      <div class="note" id="devNote"></div>
+      <canvas id="spec"></canvas>
+      <div class="note">Spectrum <i>A<sub>n</sub></i>: outline = exact integral, filled = sum over the <i>N</i> rods. A helix with <i>N</i> rods cannot tell harmonic <i>n</i> from <i>N</i>±<i>n</i> (aliasing).</div>
+    </div>
+  </div>
+  <h2>Controls</h2>
   <b>Mouse</b> — drag empty space to orbit · wheel to zoom · right-drag to pan<br>
   <b>Turn</b> — drag the helix, the dial or the knurled knob · click the black lever to lock or release<br>
   <b>Sliders</b> — drag a red or blue ball along its rod · click a bare rod to put a slider on it<br>
-  <b>Keys</b> — Space lock/release · R record next (⇧R all) · B blue circle (⇧B auto-balance) · T test balance · S read next (⇧S all) · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop<br>
-  <b>How it works</b> — rod <i>k</i> points at angle φ<sub>k</sub> = <i>n</i>ω<i>t<sub>k</sub></i> and carries the sample <i>f</i>(<i>t<sub>k</sub></i>) as a distance. The centre of mass of all sliders is therefore ½(<i>a<sub>n</sub></i>, <i>b<sub>n</sub></i>): gravity computes the Fourier sum and turns that point to the bottom.
+  <b>Keys</b> — Space lock/release · R record next (⇧R all) · B blue circle (⇧B auto-balance) · T test balance · S read next (⇧S all) · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
 </div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -1768,7 +1773,7 @@ bind('bReset', () => {
   stopTask(); Object.assign(S.sig, { preset: 'square', amp: 1, phase: 0, offset: 0 }); S.drawMode = false;
   S.alpha = 0; S.omega = 0; S.locked = true; S.n = 1; S.nCur = 1; setN(128); syncSignalUI(); setMode('record'); goView('overview');
 });
-bind('bHelp', () => { const h = $('help'); h.style.display = h.style.display === 'block' ? 'none' : 'block'; });
+bind('bHelp', () => { const h = $('help'); h.style.display = h.style.display === 'block' ? 'none' : 'block'; drawSpectrum(); });   // the spectrum canvas has no size while hidden
 bind('bHelpX', () => { $('help').style.display = 'none'; });
 for (const el of document.querySelectorAll('[data-collapse]')) el.addEventListener('click', () => { $(el.dataset.collapse).classList.toggle('collapsed'); layout(); });
 $('oFric').textContent = fmt(S.friction, 3) + ' mN·m'; $('oDamp').textContent = fmt(S.damping, 2); $('oSpeed').textContent = '×1.0'; $('oD').textContent = fmt(0, 3);
