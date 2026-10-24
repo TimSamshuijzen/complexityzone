@@ -211,6 +211,7 @@
     <label class="chk"><input type="checkbox" id="cSum" checked> partial sum Σ <i>h<sub>n</sub></i> of joined harmonics</label>
     <div class="note">Analyse several harmonics (change <i>n</i>, redo ii and iii) and the paper builds up the Fourier partial sum.</div>
   </div>
+  <div class="row" style="margin-top:8px"><button id="bReset" style="flex:1">Reset everything</button></div>
 
   <h2>Bearing &amp; lock</h2>
   <div class="row grid2"><button id="bLock" class="on">Locked<span class="kbd">Space</span></button><button id="bHome">Turn to 0°</button></div>
@@ -1763,6 +1764,16 @@ $('rSpeed').addEventListener('input', e => { S.speed = +e.target.value; $('oSpee
 for (const b of document.querySelectorAll('#viewBtns [data-view]')) b.addEventListener('click', () => goView(b.dataset.view));
 bind('bDemo', () => run(demoAll));
 bind('bStop', () => { stopTask(); say('Stopped.'); });
+// back to how the page starts: signal, helix, bearing, paper and camera
+bind('bReset', () => {
+  stopTask(); S.drawMode = false;
+  Object.assign(S.sig, { preset: 'square', amp: 1, phase: 0, offset: 0 }); resetCustom();
+  for (const id of ['rFric', 'rDamp', 'rSpeed']) { const r = $(id); r.value = r.defaultValue; r.dispatchEvent(new Event('input')); }
+  for (const id of ['cExact', 'cSum']) $(id).checked = $(id).defaultChecked;
+  S.alpha = 0; S.omega = 0; S.locked = true; S.n = 1; S.nCur = 1;
+  setN(128); syncSignalUI(); setMode('record', true); goView('overview');
+  say('<b>Reset</b> — a square wave on the paper, 128 rods, <i>n</i> = 1, the helix empty, locked and turned to 0°.');
+});
 bind('bHelp', () => { const h = $('help'); h.style.display = h.style.display === 'block' ? 'none' : 'block'; drawSpectrum(); });   // the spectrum canvas has no size while hidden
 bind('bHelpX', () => { $('help').style.display = 'none'; });
 for (const el of document.querySelectorAll('[data-collapse]')) el.addEventListener('click', () => { $(el.dataset.collapse).classList.toggle('collapsed'); layout(); });
@@ -1805,7 +1816,8 @@ function frame(now) {
   if (firstFrame) { firstFrame = false; $('loading').remove(); }
 }
 
-custom.set(Array.from({ length: CUST_N }, (_, i) => Math.sin(TAU * i / CUST_N)));
+function resetCustom() { custom.set(Array.from({ length: CUST_N }, (_, i) => Math.sin(TAU * i / CUST_N))); }
+resetCustom();
 buildHelix(); computeExact(); syncSignalUI(); refreshMath(); setMode('record');
 say('This helix of brass rods on a steel axis is a Fourier analyser. Follow the three steps by hand with the panel on the right, or press <b>▶ Whole procedure</b>.');
 layout();
