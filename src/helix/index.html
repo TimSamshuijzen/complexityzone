@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Helix Harmonic Analyzer</title>
+<title>Helix Harmonic Analyser</title>
 <link rel="shortcut icon" type="image/x-png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAgCAYAAAB+ZAqzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF8SURBVFhHxZS9SgNREIXzBlZa+QCKrZWgnYWFWImFWGgjCNoIIlamNKVYCVaCnWBnYSf4AD7RumdhhsnNOXejxMmBj+xuvjs77P0ZVNLMGRkmZyLD5ExkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIjMhb5+cNZfPb83d53cHrvevhxNeye7FlY8pGb5/0TEtMmPi6f0TLQzQcOlHao0BNqZFxiV8FSuCr7S8stY9X9/Z6+43D47cnYbD25HXwzVzWmRcunn98EKrG1tx8K/BeKuFuguLS9RrkXHJCoH4/C+cP754rZ4vLePSrBrDWrQ6aJA5ARmXZtEYpgw7EDXwa+u0goxLVhDU1hj+M7c8RuKCn+aIaZFx6Xj04EXjrkQjmBIcB7iPuxfY+HLB2/MeZFzCNMSDtaSvsdoZCHDsmBuQGRPRHF4cjw40a00BvIBN5b82NgdkmJyJDJMzkWFyJjJMzkSGyZnIMDkTGSZnIsPkTGSYnIkMk5MYND+NvPUVWz/3JAAAAABJRU5ErkJggg==">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
@@ -158,13 +158,13 @@
 </style>
 </head>
 <body>
-<div class="banner"><a href="https://complexity.zone">complexity.zone</a><span class="crumb">Helix Harmonic Analyzer</span></div>
+<div class="banner"><a href="https://complexity.zone">complexity.zone</a><span class="crumb">Helix Harmonic Analyser</span></div>
 <div id="loading">building the helix…</div>
 <div id="app"></div>
 
 <div id="leftCol">
   <div id="title" class="panel">
-    <h1>Helix Harmonic Analyzer</h1>
+    <h1>Helix Harmonic Analyser</h1>
     <div class="subrow"><div class="sub">a mechanical Fourier analyser — gravity does the summing</div><button id="bHelp" class="mini" title="How it works, the formulas, and the controls">?</button></div>
     <div class="row grid4" id="viewBtns">
       <button data-view="overview" title="O">Overview</button><button data-view="top" title="V">Top</button><button data-view="end" title="E">End</button><button data-view="dial" title="D">Dial</button>
@@ -211,7 +211,7 @@
     <h2>i · Record the signal</h2>
     <div class="step"><span class="sn" id="snR">1</span><div>
       <div class="st"><b>Record</b> — lay each rod flat and slide its red slider to where the rod crosses the curve</div>
-      <div class="row tight"><button id="bPlace">Record this rod</button><button id="bRecNext" title="N">Record next</button><button id="bRecAll" title="⇧N">Record all</button></div>
+      <div class="row grid2"><button id="bRecNext" title="Record the selected rod, then select the next one (N)">Record rod → next</button><button id="bRecAll" title="⇧N">Record all</button></div>
       <div class="row grid2"><button id="bClearOne">Clear red</button><button id="bClearRed">Clear all red</button></div>
       <div class="res" id="recRes"></div>
     </div></div>
@@ -235,7 +235,7 @@
     <h2>iii · Synthesise the harmonic</h2>
     <div class="step"><span class="sn" id="snS1">1</span><div>
       <div class="st"><b>Read</b> — lay each rod flat, half a turn on, and mark the paper below its blue slider</div>
-      <div class="row tight"><button id="bSynThis">Read this rod</button><button id="bSynNext" title="N">Read next</button><button id="bSynAll" title="⇧N">Read all</button></div>
+      <div class="row grid2"><button id="bSynNext" title="Read the selected rod, then select the next one (N)">Read rod → next</button><button id="bSynAll" title="⇧N">Read all</button></div>
       <div class="row grid2"><button id="bClearMark">Clear mark</button><button id="bClearMarks">Clear all marks</button></div>
       <div class="res" id="readRes"></div>
     </div></div>
@@ -295,7 +295,7 @@
   <b>Mouse</b> — drag empty space to orbit · wheel to zoom · right-drag to pan<br>
   <b>Turn</b> — drag the helix, the dial or the knurled knob · click the black lever to lock or release<br>
   <b>Sliders</b> — drag a red or blue ball along its rod · click a bare rod to put a slider on it<br>
-  <b>Keys</b> — Space lock/release · N record or read the next rod (⇧N all) · B auto-balance · T test balance · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
+  <b>Keys</b> — Space lock/release · N record or read the selected rod and step to the next (⇧N all) · B auto-balance · T test balance · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
 </div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -540,7 +540,7 @@ function plaqueTexture() {
     g.strokeStyle = '#3b2a0c'; g.lineWidth = 5; g.strokeRect(14, 14, w - 28, h - 28);
     g.fillStyle = '#2e2008'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.font = '64px "Times New Roman", Times, serif';
-    g.fillText('H E L I X   H A R M O N I C   A N A L Y Z E R', w / 2, h / 2 + 3);
+    g.fillText('H E L I X   H A R M O N I C   A N A L Y S E R', w / 2, h / 2 + 3);
   });
 }
 
@@ -678,7 +678,7 @@ function drawPaper() {
   for (const [txt, y, col] of labels) { g.fillStyle = col; g.fillText(txt, px(L / 2 + 2.5), y); }
   // header and footer
   g.fillStyle = '#11131a'; g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-  g.font = `italic ${6.2 * k}px "Times New Roman", serif`; g.fillText('Helix Harmonic Analyzer', px(-200), pz(-124));
+  g.font = `italic ${6.2 * k}px "Times New Roman", serif`; g.fillText('Helix Harmonic Analyser', px(-200), pz(-124));
   g.font = `${3.5 * k}px "Times New Roman", serif`;
   g.fillText('record sheet · 1 unit = 60 mm', px(-200), pz(-118));
   g.textAlign = 'right'; g.font = `italic ${4.6 * k}px "Times New Roman", serif`;
@@ -1039,11 +1039,11 @@ async function recordRod(t, k, fast) {
   S.red[k] = s;
   if (!fast) await wait(t, 0.15);
 }
-async function recordNext(t) {
-  let k = -1;
-  for (let i = 0; i < S.N; i++) { const j = (S.active + i) % S.N; if (!fin(S.red[j])) { k = j; break; } }
-  if (k < 0) { say('<b>Recorded</b> — every rod carries a red slider. Go on with <b>ii · Analyse</b>.'); return; }
+// record the selected rod, then select the next one and lay it flat, ready for the next press
+async function recordAndNext(t) {
+  const k = S.active;
   await recordRod(t, k, false);
+  await selectRod(t, k + 1);
 }
 // one continuous turn of the axis: each slider slides out as its rod passes the flat position
 async function recordAll(t) {
@@ -1138,11 +1138,10 @@ async function readRod(t, k, fast) {
   await wait(t, fast ? 0.06 : 0.25);
   return true;
 }
-async function readNext(t) {
-  const m = marksFor(S.n); let k = -1;
-  for (let i = 0; i < S.N; i++) { const j = (S.active + i) % S.N; if (!fin(m.v[j])) { k = j; break; } }
-  if (k < 0) { say('Every rod has been read. <b>Join the dots</b> (J).'); return; }
-  await readRod(t, k, false);
+// read the selected rod, then select the next one and lay it flat (half a turn on), ready for the next press
+async function readAndNext(t) {
+  const k = S.active;
+  if (await readRod(t, k, false)) await selectRod(t, k + 1);
 }
 async function readAll(t) {
   const N = S.N;
@@ -1796,7 +1795,7 @@ function updateRecord() {
 function updateSynth(balanced) {
   const N = S.N, k = S.active, m = S.marks[S.n], blueAll = PH.nb === N;
   const read = m ? m.v.filter(fin).length : 0, joined = !!m && m.joined, h = `<i>h</i><sub>${S.n}</sub>`;
-  enable('bSynThis', fin(S.blue[k])); enable('bSynNext', blueAll); enable('bSynAll', blueAll);
+  enable('bSynNext', fin(S.blue[k])); enable('bSynAll', blueAll);
   enable('bClearMark', !!m && fin(m.v[k])); enable('bClearMarks', Object.keys(S.marks).length > 0);
   enable('bJoin', read === N && !joined);
   put('readRes', !PH.nb ? '<span class="hint">Set the blue sliders first (ii · Analyse).</span>'
@@ -1854,8 +1853,7 @@ for (const b of document.querySelectorAll('#modeTabs [data-mode]')) b.addEventLi
 });
 bind('bPrev', () => run(t => selectRod(t, S.active - 1)));
 bind('bNext', () => run(t => selectRod(t, S.active + 1)));
-bind('bPlace', () => { const k = S.active; run(t => recordRod(t, k, false)); });
-bind('bRecNext', () => run(recordNext));
+bind('bRecNext', () => run(recordAndNext));
 bind('bRecAll', () => run(recordAll));
 bind('bClearOne', () => {
   stopTask(); const k = S.active;
@@ -1876,10 +1874,9 @@ $('rD').addEventListener('input', e => {
   stopTask(); if (!S.circle) placeCircle(0);
   S.circle.D = D; applyCircle(); updateUI();
 });
-bind('bSynNext', () => run(readNext));
+bind('bSynNext', () => run(readAndNext));
 bind('bSynAll', () => run(async t => { if (await readAll(t)) say('Every rod has been read. <b>Join the dots</b> (J).'); }));
 bind('bJoin', joinDots);
-bind('bSynThis', () => { const k = S.active; run(t => readRod(t, k, false)); });
 bind('bClearMark', () => {
   stopTask(); const k = S.active, m = S.marks[S.n];
   if (!m || !fin(m.v[k])) { say(`Rod ${k + 1} has no mark for <i>h</i><sub>${S.n}</sub>.`); return; }
@@ -1919,8 +1916,8 @@ window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase(), sh = e.shiftKey;
   const act = {
     ' ': toggleLock, escape: () => { stopTask(); S.drawMode = false; say(''); $('help').style.display = 'none'; },
-    r: () => run(sh ? recordAll : recordNext), b: () => $('bBalance').click(), t: () => $('bTest').click(),
-    s: () => sh ? $('bSynAll').click() : run(readNext), j: joinDots,
+    r: () => run(sh ? recordAll : recordAndNext), b: () => $('bBalance').click(), t: () => $('bTest').click(),
+    s: () => $(sh ? 'bSynAll' : 'bSynNext').click(), j: joinDots,
     n: () => S.mode === 'record' ? $(sh ? 'bRecAll' : 'bRecNext').click() : S.mode === 'synth' ? $(sh ? 'bSynAll' : 'bSynNext').click() : null,
     arrowleft: () => sh ? run(t => turnTo(t, S.alpha / DEG - 1, 0.15)) : run(t => selectRod(t, S.active - 1)),
     arrowright: () => sh ? run(t => turnTo(t, S.alpha / DEG + 1, 0.15)) : run(t => selectRod(t, S.active + 1)),
