@@ -38,7 +38,10 @@
   #viewBtns { margin: 9px 0 0; }
   #title .sub { flex: 1; color: var(--dim); font-size: 13px; font-style: italic; }
   .tabs { display: flex; gap: 5px; }
-  .tabs button { flex: 1; font-size: 14px; }
+  .tabs button { flex: 1; font-size: 14px; position: relative; }
+  .tabs .tick { display: none; position: absolute; top: -7px; right: -5px; width: 16px; height: 16px; border-radius: 50%;
+                background: #3d7a4a; color: #fff; font-size: 10px; line-height: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+  .tabs button.done .tick { display: block; }
   .tabs button .num { font-variant: small-caps; color: var(--brass); margin-right: 3px; }
   .tabs button.on .num { color: #fff3cf; }
   .mini { flex: 0 0 auto; margin-left: auto; padding: 0 8px; }
@@ -196,19 +199,22 @@
 
   <h2>Procedure</h2>
   <div class="tabs" id="modeTabs">
-    <button data-mode="record" class="on" title="Key 1"><span class="num">i</span> Record</button>
-    <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
-    <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
+    <button data-mode="record" class="on" title="Key 1"><span class="num">i</span> Record<span class="tick">✓</span></button>
+    <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse<span class="tick">✓</span></button>
+    <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise<span class="tick">✓</span></button>
   </div>
   <div class="row tight" style="margin-top:6px"><button id="bDemo">▶ Whole procedure</button><button id="bStop" title="Esc" disabled>■ Stop</button><button id="bReset" title="Reset the procedure; the signal, N and n are kept">↺ Reset</button></div>
   <div class="slider"><label>speed</label><input type="range" id="rSpeed" min="0.5" max="4" step="0.1" value="1"><output id="oSpeed"></output></div>
+  <div class="row grid3" style="margin-top:6px"><button id="bPrev" title="←">◀ rod</button><output id="oRod" class="rodout"></output><button id="bNext" title="→">rod ▶</button></div>
 
   <div id="procRecord" class="proc show">
     <h2>i · Record the signal</h2>
-    <div class="row grid3"><button id="bPrev">◀ rod</button><output id="oRod" class="rodout"></output><button id="bNext">rod ▶</button></div>
-    <div class="row tight"><button id="bPlace">Place red slider</button><button id="bRecNext" title="R">Record next</button><button id="bRecAll">Record all rods</button></div>
-    <div class="row grid2"><button id="bClearOne">Clear red</button><button id="bClearRed">Clear all red</button></div>
-    <div class="note">By hand: pick a rod with ◀ ▶, then drag its red slider (or click the bare rod) until the plumb line meets the curve.</div>
+    <div class="step"><span class="sn" id="snR">1</span><div>
+      <div class="st"><b>Record</b> — lay each rod flat and slide its red slider to where the rod crosses the curve</div>
+      <div class="row tight"><button id="bPlace">Record this rod</button><button id="bRecNext" title="N">Record next</button><button id="bRecAll" title="⇧N">Record all</button></div>
+      <div class="row grid2"><button id="bClearOne">Clear red</button><button id="bClearRed">Clear all red</button></div>
+      <div class="res" id="recRes"></div>
+    </div></div>
   </div>
   <div id="procAnalyse" class="proc">
     <h2>ii · Analyse — phase and amplitude</h2>
@@ -227,11 +233,19 @@
   </div>
   <div id="procSynth" class="proc">
     <h2>iii · Synthesise the harmonic</h2>
-    <div class="row grid2"><button id="bSynNext">Read next rod<span class="kbd">S</span></button><button id="bSynAll">Read all rods</button></div>
-    <div class="row grid2"><button id="bJoin">Join the dots<span class="kbd">J</span></button><button id="bClearMarks">Clear marks</button></div>
+    <div class="step"><span class="sn" id="snS1">1</span><div>
+      <div class="st"><b>Read</b> — lay each rod flat, half a turn on, and mark the paper below its blue slider</div>
+      <div class="row tight"><button id="bSynThis">Read this rod</button><button id="bSynNext" title="N">Read next</button><button id="bSynAll" title="⇧N">Read all</button></div>
+      <div class="row grid2"><button id="bClearMark">Clear mark</button><button id="bClearMarks">Clear all marks</button></div>
+      <div class="res" id="readRes"></div>
+    </div></div>
+    <div class="step"><span class="sn" id="snS2">2</span><div>
+      <div class="st"><b>Join</b> — draw a smooth periodic curve through the marks</div>
+      <div class="row"><button id="bJoin" style="flex:1">Join the dots<span class="kbd">J</span></button></div>
+      <div class="res" id="joinRes"></div>
+    </div></div>
     <label class="chk"><input type="checkbox" id="cExact"> exact <i>h<sub>n</sub></i>(<i>t</i>) as a dashed line</label>
     <label class="chk"><input type="checkbox" id="cSum" checked> partial sum Σ <i>h<sub>n</sub></i> of joined harmonics</label>
-    <div class="note">Analyse several harmonics (change <i>n</i>, redo ii and iii) and the paper builds up the Fourier partial sum.</div>
   </div>
 
   <h2>Bearing &amp; lock</h2>
@@ -281,7 +295,7 @@
   <b>Mouse</b> — drag empty space to orbit · wheel to zoom · right-drag to pan<br>
   <b>Turn</b> — drag the helix, the dial or the knurled knob · click the black lever to lock or release<br>
   <b>Sliders</b> — drag a red or blue ball along its rod · click a bare rod to put a slider on it<br>
-  <b>Keys</b> — Space lock/release · R record next (⇧R all) · B auto-balance · T test balance · S read next (⇧S all) · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
+  <b>Keys</b> — Space lock/release · N record or read the next rod (⇧N all) · B auto-balance · T test balance · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
 </div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -995,6 +1009,7 @@ const v2 = x => fmt(x, 2);
 function rodText(k) { return `rod ${k + 1}: <i>t</i><sub>${k + 1}</sub> = ${(tK(k)).toFixed(3)}<i>T</i>, φ<sub>${k + 1}</sub> = ${fmtDeg(phiRad[k] / DEG)}`; }
 async function selectRod(t, k, how = S.mode) {
   S.active = ((k % S.N) + S.N) % S.N; k = S.active;
+  if (how === 'analyse') { updateUI(); return; }
   setLock(true); updateUI();
   const off = how === 'synth' ? 180 : 0;
   await turnTo(t, nearestDeg(phiRad[k] / DEG + off), 0.5);
@@ -1686,8 +1701,6 @@ function updateUI() {
   $('oN').textContent = S.N; $('on').textContent = S.n;
   $('rN').value = S.N;
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
-  const m = S.marks[S.n];
-  $('bJoin').disabled = !m || m.v.some(v => !fin(v));
   for (const b of document.querySelectorAll('#presetBtns button')) b.classList.toggle('on', b.dataset.p === S.sig.preset);
 }
 // live readouts touch the DOM only when their content changes
@@ -1714,7 +1727,8 @@ function updateLive() {
   }
   // weight bias: total moment of all sliders
   const N = S.N, mag = Math.hypot(PH.ry + PH.by, PH.rz + PH.bz) / N, magR = Math.hypot(PH.ry, PH.rz) / N;
-  updateAnalyse();
+  const balanced = updateAnalyse(), done = { record: updateRecord(), analyse: balanced, synth: updateSynth(balanced) };
+  for (const b of document.querySelectorAll('#modeTabs [data-mode]')) if (b.classList.contains('done') !== done[b.dataset.mode]) b.classList.toggle('done', done[b.dataset.mode]);
   const idl = helixIdeal(n);
   put('topRead', topReadout());
   put('polarRead', PH.nr
@@ -1744,9 +1758,37 @@ function updateAnalyse() {
     : !on ? '<span class="hint">Raise <i>D</i> until the marker sits in the middle, or press Auto-balance.</span>'
     : ok ? `Ã = <i>D</i> = ${fmt(c.D / UNIT)} <span class="ok">✓ balanced</span>`
     : `<i>D</i> = ${fmt(c.D / UNIT)} <span class="hint">— ${x < 0 ? 'red side heavier: increase' : 'blue side heavier: decrease'} <i>D</i></span>`);
-  const d1 = known, d2 = on && ok;
-  if ($('sn1').classList.contains('done') !== d1) { $('sn1').classList.toggle('done', d1); $('sn1').textContent = d1 ? '✓' : '1'; }
-  if ($('sn2').classList.contains('done') !== d2) { $('sn2').classList.toggle('done', d2); $('sn2').textContent = d2 ? '✓' : '2'; }
+  tick('sn1', known, '1'); tick('sn2', on && ok, '2');
+  return on && ok;
+}
+// a step number turns into a ✓ when that step is done
+function tick(id, done, label) { const el = $(id); if (el.classList.contains('done') !== done) { el.classList.toggle('done', done); el.textContent = done ? '✓' : label; } }
+function updateRecord() {
+  const N = S.N, k = S.active, d = S.red[k], nr = PH.nr;
+  enable('bClearOne', fin(d)); enable('bClearRed', nr > 0);
+  let rod = `rod ${k + 1} has no red slider`;
+  if (fin(d)) {
+    const e = (d - clampS(f(tK(k)) * UNIT)) / UNIT;
+    rod = Math.abs(e) < 0.01 ? `rod ${k + 1} is on the curve <span class="ok">✓</span>` : `rod ${k + 1} is ${fmt(Math.abs(e), 2)} ${e > 0 ? 'above' : 'below'} the curve`;
+  }
+  put('recRes', `${nr} / ${N} rods recorded · ${rod}`
+    + (nr ? '' : '<br><span class="hint">By hand: drag the red slider (or click the bare rod) until the plumb line meets the curve.</span>'));
+  tick('snR', nr === N, '1');
+  return nr === N;
+}
+function updateSynth(balanced) {
+  const N = S.N, k = S.active, m = S.marks[S.n], blueAll = PH.nb === N;
+  const read = m ? m.v.filter(fin).length : 0, joined = !!m && m.joined, h = `<i>h</i><sub>${S.n}</sub>`;
+  enable('bSynThis', fin(S.blue[k])); enable('bSynNext', blueAll); enable('bSynAll', blueAll);
+  enable('bClearMark', !!m && fin(m.v[k])); enable('bClearMarks', Object.keys(S.marks).length > 0);
+  enable('bJoin', read === N && !joined);
+  put('readRes', !PH.nb ? '<span class="hint">Set the blue sliders first (ii · Analyse).</span>'
+    : `${read} / ${N} marks for ${h}` + (m && fin(m.v[k]) ? ` · rod ${k + 1} marked at ${v2(m.v[k])}` : ` · rod ${k + 1} not read yet`)
+      + (balanced ? '' : '<br><span class="hint">The blue sliders are not balanced yet, so this is not quite the harmonic.</span>'));
+  put('joinRes', joined ? `${h} joined <span class="ok">✓</span><br><span class="hint">Change <i>n</i> and redo ii and iii to add the next harmonic.</span>`
+    : `<span class="hint">${read === N ? 'All rods read: ready to join.' : 'Read every rod first.'}</span>`);
+  tick('snS1', read === N, '1'); tick('snS2', joined, '2');
+  return joined;
 }
 // components of the red moment in the dial's (φ = 0, φ = 90°) frame
 function redA() { let s = 0; for (let k = 0; k < S.N; k++) if (fin(S.red[k])) s += S.red[k] * Math.cos(phiRad[k]); return s; }
@@ -1789,7 +1831,10 @@ $('rOff').addEventListener('input', e => { S.sig.offset = +e.target.value; syncS
 $('rN').addEventListener('input', e => setN(+e.target.value));
 bind('bnm', () => run(t => twistTo(t, Math.max(0, S.n - 1))));
 bind('bnp', () => run(t => twistTo(t, Math.min(nMax(), S.n + 1))));
-for (const b of document.querySelectorAll('#modeTabs [data-mode]')) b.addEventListener('click', () => { stopTask(); setMode(b.dataset.mode); });
+for (const b of document.querySelectorAll('#modeTabs [data-mode]')) b.addEventListener('click', () => {
+  stopTask(); setMode(b.dataset.mode);
+  if (b.dataset.mode !== 'analyse') run(t => selectRod(t, S.active));
+});
 bind('bPrev', () => run(t => selectRod(t, S.active - 1)));
 bind('bNext', () => run(t => selectRod(t, S.active + 1)));
 bind('bPlace', () => { const k = S.active; run(t => recordRod(t, k, false)); });
@@ -1817,7 +1862,13 @@ $('rD').addEventListener('input', e => {
 bind('bSynNext', () => run(readNext));
 bind('bSynAll', () => run(async t => { if (await readAll(t)) say('Every rod has been read. <b>Join the dots</b> (J).'); }));
 bind('bJoin', joinDots);
-bind('bClearMarks', () => { S.marks = {}; drawPaperSoon(); updateUI(); });
+bind('bSynThis', () => { const k = S.active; run(t => readRod(t, k, false)); });
+bind('bClearMark', () => {
+  stopTask(); const k = S.active, m = S.marks[S.n];
+  if (!m || !fin(m.v[k])) { say(`Rod ${k + 1} has no mark for <i>h</i><sub>${S.n}</sub>.`); return; }
+  m.v[k] = NaN; m.joined = false; drawPaperSoon(); updateUI(); say(`Mark of rod ${k + 1} removed.`);
+});
+bind('bClearMarks', () => { stopTask(); S.marks = {}; drawPaperSoon(); updateUI(); say('All marks removed from the paper.'); });
 $('cExact').addEventListener('change', drawPaperSoon); $('cSum').addEventListener('change', drawPaperSoon);
 bind('bLock', toggleLock);
 bind('bHome', () => run(t => turnTo(t, nearestDeg(0), 0.8)));
@@ -1844,6 +1895,7 @@ bind('bHelpX', () => { $('help').style.display = 'none'; });
 for (const el of document.querySelectorAll('[data-collapse]')) el.addEventListener('click', () => { $(el.dataset.collapse).classList.toggle('collapsed'); layout(); });
 $('oFric').textContent = fmt(S.friction, 3) + ' mN·m'; $('oDamp').textContent = fmt(S.damping, 2); $('oSpeed').textContent = '×1.0'; $('oD').textContent = fmt(0, 3);
 
+const tab = m => document.querySelector(`#modeTabs [data-mode=${m}]`);
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -1852,9 +1904,10 @@ window.addEventListener('keydown', e => {
     ' ': toggleLock, escape: () => { stopTask(); S.drawMode = false; say(''); $('help').style.display = 'none'; },
     r: () => run(sh ? recordAll : recordNext), b: () => $('bBalance').click(), t: () => $('bTest').click(),
     s: () => sh ? $('bSynAll').click() : run(readNext), j: joinDots,
+    n: () => S.mode === 'record' ? $(sh ? 'bRecAll' : 'bRecNext').click() : S.mode === 'synth' ? $(sh ? 'bSynAll' : 'bSynNext').click() : null,
     arrowleft: () => sh ? run(t => turnTo(t, S.alpha / DEG - 1, 0.15)) : run(t => selectRod(t, S.active - 1)),
     arrowright: () => sh ? run(t => turnTo(t, S.alpha / DEG + 1, 0.15)) : run(t => selectRod(t, S.active + 1)),
-    1: () => setMode('record'), 2: () => setMode('analyse'), 3: () => setMode('synth'),
+    1: () => tab('record').click(), 2: () => tab('analyse').click(), 3: () => tab('synth').click(),
     o: () => goView('overview'), v: () => goView('top'), e: () => goView('end'), f: () => goView('front'), d: () => goView('dial'),
   }[k];
   if (act) { act(); e.preventDefault(); }
