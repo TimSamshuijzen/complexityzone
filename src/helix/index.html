@@ -79,8 +79,12 @@
   .row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 5px; }
   .row.grid2 > * { flex: 1 1 45%; }
   .row.grid3 > * { flex: 1 1 30%; }
-  .row.demo { flex-wrap: nowrap; }
-  .row.demo > * { flex: 1 1 auto; min-width: 0; font-size: 12.5px; padding-left: 5px; padding-right: 5px; }
+  .row.tight { flex-wrap: nowrap; }
+  .row.tight > * { flex: 1 1 auto; min-width: 0; font-size: 12.5px; padding-left: 5px; padding-right: 5px; }
+  #bDemo { background: linear-gradient(#5aa766, #357f42); color: #f2fff3; border-color: #2c6d37; }
+  #bDemo:hover { background: linear-gradient(#66b872, #3c8c4a); }
+  #bDemo.running { background: linear-gradient(#a6ff9f, #3fe25a); color: #0b3a15; border-color: #2fd152;
+                   box-shadow: 0 0 12px rgba(70, 235, 100, .85), inset 0 1px 0 rgba(255, 255, 255, .7); }
   .row.grid4 > * { flex: 1 1 22%; padding-left: 4px; padding-right: 4px; }
   .slider { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
   .slider label { width: 84px; font-size: 13px; color: var(--dim); }
@@ -186,14 +190,14 @@
     <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
     <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
   </div>
-  <div class="row demo" style="margin-top:6px"><button id="bDemo">▶ Whole procedure</button><button id="bStop" title="Esc" disabled>■ Stop</button><button id="bReset" title="Reset the procedure; the signal, N and n are kept">↺ Reset</button></div>
+  <div class="row tight" style="margin-top:6px"><button id="bDemo">▶ Whole procedure</button><button id="bStop" title="Esc" disabled>■ Stop</button><button id="bReset" title="Reset the procedure; the signal, N and n are kept">↺ Reset</button></div>
   <div class="slider"><label>speed</label><input type="range" id="rSpeed" min="0.5" max="4" step="0.1" value="1"><output id="oSpeed"></output></div>
 
   <div id="procRecord" class="proc show">
     <h2>i · Record the signal</h2>
     <div class="row grid3"><button id="bPrev">◀ rod</button><output id="oRod" class="rodout"></output><button id="bNext">rod ▶</button></div>
-    <div class="row grid2"><button id="bPlace">Place red slider</button><button id="bRecNext">Record next<span class="kbd">R</span></button></div>
-    <div class="row grid2"><button id="bRecAll">Record all rods</button><button id="bClearRed">Remove red</button></div>
+    <div class="row tight"><button id="bPlace">Place red slider</button><button id="bRecNext" title="R">Record next</button><button id="bRecAll">Record all rods</button></div>
+    <div class="row grid2"><button id="bClearOne">Clear red</button><button id="bClearRed">Clear all red</button></div>
     <div class="note">By hand: pick a rod with ◀ ▶, then drag its red slider (or click the bare rod) until the plumb line meets the curve.</div>
   </div>
   <div id="procAnalyse" class="proc">
@@ -943,7 +947,7 @@ let current = null;
 function run(fn) {
   if (current) current.aborted = true;
   S.drawMode = false;
-  const t = { aborted: false }; current = t;
+  const t = { aborted: false, fn }; current = t;
   fn(t).catch(e => { if (e !== ABORT) console.error(e); }).finally(() => {
     if (current === t) current = null;
     if (!current) { S.hand = false; if (S.nCur !== S.n) { S.nCur = S.n; } }
@@ -1653,6 +1657,7 @@ function updateUI() {
   $('bLock').classList.toggle('on', S.locked);
   $('bRelease').textContent = S.locked ? 'Release the lock' : 'Lock it';
   $('bStop').disabled = !current;
+  $('bDemo').classList.toggle('running', current?.fn === demoAll);
   $('oN').textContent = S.N; $('on').textContent = S.n;
   $('rN').value = S.N;
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
@@ -1744,7 +1749,12 @@ bind('bNext', () => run(t => selectRod(t, S.active + 1)));
 bind('bPlace', () => { const k = S.active; run(t => recordRod(t, k, false)); });
 bind('bRecNext', () => run(recordNext));
 bind('bRecAll', () => run(recordAll));
-bind('bClearRed', () => { stopTask(); S.red.fill(NaN); updateUI(); say('Red sliders removed.'); });
+bind('bClearOne', () => {
+  stopTask(); const k = S.active;
+  if (!fin(S.red[k])) { say(`Rod ${k + 1} has no red slider.`); return; }
+  S.red[k] = NaN; updateUI(); say(`Red slider removed from rod ${k + 1}.`);
+});
+bind('bClearRed', () => { stopTask(); S.red.fill(NaN); updateUI(); say('All red sliders removed.'); });
 bind('bRelease', () => { if (S.locked) run(releaseAndSettle); else { stopTask(); setLock(true); say('Locked.'); } });
 bind('bCircle', () => {
   stopTask();
