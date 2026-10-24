@@ -662,8 +662,6 @@ function drawPaper() {
       g.stroke();
       labels.push(['h' + sub(nn), vy(splineAt(m.v, 0.999)), 'rgba(30,62,170,.95)']);
     }
-    g.fillStyle = 'rgba(30,62,160,.95)';
-    for (let i = 0; i < S.N; i++) if (fin(m.v[i])) { g.beginPath(); g.arc(tx(tK(i)), vy(m.v[i]), Math.min(1.3, 0.42 * L / S.N) * k, 0, TAU); g.fill(); }
   }
   if ($('cSum').checked && joined.length >= 2) {
     g.strokeStyle = 'rgba(91,58,140,.95)'; g.lineWidth = 0.85 * k; g.beginPath();
@@ -690,6 +688,7 @@ function drawPaper() {
   g.textAlign = 'right'; g.font = `${3.4 * k}px "Times New Roman", serif`; g.fillStyle = 'rgba(17,19,26,.8)';
   g.fillText('T. Samshuijzen, 2026', px(200), pz(132));
   paperTex.needsUpdate = true;
+  syncMarks();   // covers every change that wipes the marks, which always redraws the paper
   const tg = paperThumb.getContext('2d'); tg.imageSmoothingQuality = 'high';
   tg.drawImage(paperCanvas, 0, 0, paperThumb.width, paperThumb.height);
 }
@@ -713,6 +712,21 @@ const desk = mesh(new THREE.BoxGeometry(DESK.w, 40, DESK.d), [M.woodEdge, M.wood
 desk.position.set(0, -20, DESK.z); desk.userData.kind = 'desk';
 const paper = mesh(new THREE.PlaneGeometry(PAPER_W, PAPER_H).rotateX(-Math.PI / 2), M.paper, scene, { kind: 'paper' });
 paper.position.y = 0.25;
+// The pencil marks are small discs lying on the paper rather than ink in its texture: reading a rod then
+// only moves an instance, instead of re-uploading the whole 4096-pixel paper (and its mipmaps).
+const MARKS_MAX = 6 * 128;   // harmonics 0 … 5, up to 128 rods each
+const marksMesh = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2),
+  new THREE.MeshStandardMaterial({ color: 0x1e3ea0, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), MARKS_MAX);
+marksMesh.count = 0; marksMesh.frustumCulled = false; scene.add(marksMesh);
+const markRadius = () => Math.min(1.3, 0.42 * L / S.N);
+function syncMarks() {
+  const r = markRadius(), mtx = new THREE.Matrix4(); let i = 0;
+  for (const m of Object.values(S.marks)) for (let k = 0; k < S.N && i < MARKS_MAX; k++)
+    if (fin(m.v[k])) marksMesh.setMatrixAt(i++, mtx.makeScale(r, 1, r).setPosition(xK(k), 0.3, -m.v[k] * UNIT));
+  marksMesh.count = i; marksMesh.instanceMatrix.needsUpdate = true; redraw();
+}
+// a mark was added or removed: only a joined curve through the marks needs the paper redrawn
+function marksChanged(m) { if (m.joined) { m.joined = false; drawPaperSoon(); } syncMarks(); }
 
 function uprightGeometry() {
   const s = new THREE.Shape();
@@ -1120,7 +1134,7 @@ async function readRod(t, k, fast) {
   say(`<b>Synthesis</b> — ${rodText(k)}. The blue sliders hold −<i>h<sub>n</sub></i>, so the rod is laid flat half a turn from its recording position, pointing towards you. The paper is marked straight below the <span class="b">blue slider</span>: <i>h</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(-S.blue[k] / UNIT)}.`);
   await turnTo(t, nearestDeg(phiRad[k] / DEG + 180), fast ? 0.3 : 0.6);
   await wait(t, fast ? 0.05 : 0.25);
-  const m = marksFor(S.n); m.v[k] = -S.blue[k] / UNIT; m.joined = false; drawPaperSoon();
+  const m = marksFor(S.n); m.v[k] = -S.blue[k] / UNIT; marksChanged(m);
   await wait(t, fast ? 0.06 : 0.25);
   return true;
 }
@@ -1138,7 +1152,7 @@ async function readAll(t) {
   say('<b>Synthesis</b> — the axis is turned once more, every rod lying flat half a turn from its recording position (pointing towards you), and the paper is marked straight below each <span class="b">blue slider</span>: <i>h</i>(<i>t<sub>k</sub></i>) = −<i>d<sub>k</sub></i>.');
   await turnTo(t, a0, 0.6);
   let done = 0;
-  const mark = upto => { for (; done <= upto && done < N; done++) m.v[done] = -S.blue[done] / UNIT; m.joined = false; drawPaperSoon(); };
+  const mark = upto => { if (done > upto) return; for (; done <= upto && done < N; done++) m.v[done] = -S.blue[done] / UNIT; marksChanged(m); };
   await animate(t, 2 + N * 0.03, e => {
     const u = ease(e) * (N - 1);
     S.alpha = (a0 + d * u) * DEG; S.active = Math.round(u);
@@ -1216,6 +1230,9 @@ function drawTopView() {
   for (const x of [-UPR_X, UPR_X]) rect(x - 9, -170, x + 9, 170, brassD);
   g.imageSmoothingQuality = 'high';
   g.drawImage(paperThumb, X(-PAPER_W / 2), Z(-PAPER_H / 2), PAPER_W * sc, PAPER_H * sc);
+  g.fillStyle = 'rgba(30,62,160,.95)';
+  const rd = Math.max(0.7, markRadius() * sc);
+  for (const m of Object.values(S.marks)) for (let k = 0; k < S.N; k++) if (fin(m.v[k])) { g.beginPath(); g.arc(X(xK(k)), Z(-m.v[k] * UNIT), rd, 0, TAU); g.fill(); }
   // uprights (footprint, plate, bearing boss), knob, dial and the steel axis
   for (const x of [-UPR_X, UPR_X]) { rect(x - 13, -89, x + 13, 89, brassD); rect(x - 5, -80, x + 5, 80, brass); rect(x - 8.5, -22, x + 8.5, 22, brass); }
   rect(-280, -15, -262, 15, '#a98535');
@@ -1866,7 +1883,7 @@ bind('bSynThis', () => { const k = S.active; run(t => readRod(t, k, false)); });
 bind('bClearMark', () => {
   stopTask(); const k = S.active, m = S.marks[S.n];
   if (!m || !fin(m.v[k])) { say(`Rod ${k + 1} has no mark for <i>h</i><sub>${S.n}</sub>.`); return; }
-  m.v[k] = NaN; m.joined = false; drawPaperSoon(); updateUI(); say(`Mark of rod ${k + 1} removed.`);
+  m.v[k] = NaN; marksChanged(m); updateUI(); say(`Mark of rod ${k + 1} removed.`);
 });
 bind('bClearMarks', () => { stopTask(); S.marks = {}; drawPaperSoon(); updateUI(); say('All marks removed from the paper.'); });
 $('cExact').addEventListener('change', drawPaperSoon); $('cSum').addEventListener('change', drawPaperSoon);
