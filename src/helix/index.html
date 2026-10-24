@@ -582,7 +582,7 @@ function drawPaper() {
   for (let i = 0; i < S.N; i++) line(px(xK(i)), pz(-1.2), px(xK(i)), pz(1.2));
   g.fillStyle = 'rgba(100,70,22,.95)'; g.font = `${3 * k}px "Times New Roman", serif`; g.textAlign = 'center'; g.textBaseline = 'top';
   const step = S.N <= 24 ? 1 : S.N <= 48 ? 4 : 8;
-  for (let i = 0; i < S.N; i += step) g.fillText(String(i), px(xK(i)), pz(102));
+  for (let i = 0; i < S.N; i++) if (i === 0 || (i + 1) % step === 0) g.fillText(String(i + 1), px(xK(i)), pz(102));
   g.textAlign = 'left'; g.font = `italic ${2.8 * k}px "Times New Roman", serif`; g.fillText('k', px(L / 2 + 6), pz(102));
   // axes
   g.strokeStyle = '#11131a'; g.fillStyle = '#11131a'; g.lineWidth = 0.45 * k;
@@ -961,7 +961,7 @@ function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.opacity
 
 /* ---------- I. recording ---------- */
 const v2 = x => fmt(x, 2);
-function rodText(k) { return `rod ${k}: <i>t</i><sub>${k}</sub> = ${(tK(k)).toFixed(3)}<i>T</i>, φ<sub>${k}</sub> = ${fmtDeg(phiRad[k] / DEG)}`; }
+function rodText(k) { return `rod ${k + 1}: <i>t</i><sub>${k + 1}</sub> = ${(tK(k)).toFixed(3)}<i>T</i>, φ<sub>${k + 1}</sub> = ${fmtDeg(phiRad[k] / DEG)}`; }
 async function selectRod(t, k, how = S.mode) {
   S.active = ((k % S.N) + S.N) % S.N; k = S.active;
   setLock(true); updateUI();
@@ -971,9 +971,9 @@ async function selectRod(t, k, how = S.mode) {
 async function recordRod(t, k, fast) {
   S.active = k; setLock(true); updateUI();
   const v = f(tK(k)), s = clampS(v * UNIT);
-  say(`<b>Recording</b> — ${rodText(k)}. The axis is turned until rod ${k} lies flat over the paper; looking straight down, the curve crosses it at <i>f</i>(<i>t</i><sub>${k}</sub>) = ${v2(v)}, so the <span class="r">red slider</span> goes there.`);
+  say(`<b>Recording</b> — ${rodText(k)}. The axis is turned until rod ${k + 1} lies flat over the paper; looking straight down, the curve crosses it at <i>f</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(v)}, so the <span class="r">red slider</span> goes there.`);
   await turnTo(t, nearestDeg(phiRad[k] / DEG), fast ? 0.3 : 0.6);
-  if (Math.abs(v * UNIT) > H_.smax) toast(`f(t${sub(k)}) = ${v2(v)} is beyond the rod — clamped`);
+  if (Math.abs(v * UNIT) > H_.smax) toast(`f(t${sub(k + 1)}) = ${v2(v)} is beyond the rod — clamped`);
   const s0 = fin(S.red[k]) ? S.red[k] : 0;
   await animate(t, fast ? 0.22 : 0.55, e => { S.red[k] = lerp(s0, s, ease(e)); });
   S.red[k] = s;
@@ -1064,8 +1064,8 @@ async function testBalance(t) {
 function marksFor(n) { return S.marks[n] || (S.marks[n] = { v: new Array(S.N).fill(NaN), joined: false }); }
 async function readRod(t, k, fast) {
   S.active = k; setLock(true); updateUI();
-  if (!fin(S.blue[k])) { say(`Rod ${k} has no blue slider. Place the blue circle in <b>ii · Analyse</b> first.`); return false; }
-  say(`<b>Synthesis</b> — ${rodText(k)}. The blue sliders hold −<i>h<sub>n</sub></i>, so the rod is laid flat half a turn from its recording position, pointing towards you. The paper is marked straight below the <span class="b">blue slider</span>: <i>h</i>(<i>t</i><sub>${k}</sub>) = ${v2(-S.blue[k] / UNIT)}.`);
+  if (!fin(S.blue[k])) { say(`Rod ${k + 1} has no blue slider. Place the blue circle in <b>ii · Analyse</b> first.`); return false; }
+  say(`<b>Synthesis</b> — ${rodText(k)}. The blue sliders hold −<i>h<sub>n</sub></i>, so the rod is laid flat half a turn from its recording position, pointing towards you. The paper is marked straight below the <span class="b">blue slider</span>: <i>h</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(-S.blue[k] / UNIT)}.`);
   await turnTo(t, nearestDeg(phiRad[k] / DEG + 180), fast ? 0.3 : 0.6);
   await wait(t, fast ? 0.05 : 0.25);
   const m = marksFor(S.n); m.v[k] = -S.blue[k] / UNIT; m.joined = false; drawPaperSoon();
@@ -1211,9 +1211,9 @@ function topReadout() {
   if (k < 0 || k >= S.N) return 'Seen from straight above, a rod lying flat shows its full length, and its slider sits right over the paper value it stands for.';
   const a = S.alpha - phiRad[k], tilt = Math.asin(Math.abs(Math.sin(a))) / DEG;
   const col = S.mode === 'synth' ? 'blue' : 'red', d = S[col][k];
-  let t = `Rod ${k} ${tilt < 0.5 ? 'lies flat' : `is ${fmt(tilt, 0)}° from flat`}; `;
+  let t = `Rod ${k + 1} ${tilt < 0.5 ? 'lies flat' : `is ${fmt(tilt, 0)}° from flat`}; `;
   t += fin(d) ? `its <span class="${col === 'red' ? 'r' : 'b'}">${col} slider</span> is over ${v2(d * Math.cos(a) / UNIT)}` : `it has no ${col} slider yet`;
-  if (S.mode === 'record') t += `, the curve is at <i>f</i>(<i>t</i><sub>${k}</sub>) = ${v2(f(tK(k)))}`;
+  if (S.mode === 'record') t += `, the curve is at <i>f</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(f(tK(k)))}`;
   return t + '.';
 }
 
@@ -1308,11 +1308,11 @@ function drawPolar() {
    ===================================================================== */
 const TEX = {
   series: String.raw`f(t)\approx a_0+\sum_{n\ge1}\bigl(a_n\cos n\omega t+b_n\sin n\omega t\bigr),\qquad \omega=\tfrac{2\pi}{T}`,
-  samples: String.raw`t_k=\bigl(k+\tfrac12\bigr)\tfrac{T}{N},\qquad \varphi_k=n\,\omega\,t_k,\qquad d_k=f(t_k)`,
-  coef: String.raw`a_n=\frac{2}{N}\sum_{k=0}^{N-1}f(t_k)\cos\varphi_k,\qquad b_n=\frac{2}{N}\sum_{k=0}^{N-1}f(t_k)\sin\varphi_k`,
-  coef0: String.raw`a_0=\frac{1}{N}\sum_{k=0}^{N-1}f(t_k)\qquad(n=0:\ \text{all rods parallel})`,
-  com: String.raw`\begin{gathered}\bar{\mathbf r}=\frac1N\sum_{k=0}^{N-1}d_k\,\hat{\mathbf u}(\varphi_k)=\tfrac12\,(a_n,\,b_n)\\ A_n=2\,|\bar{\mathbf r}|,\qquad \theta_n=\arg\bar{\mathbf r}\end{gathered}`,
-  com0: String.raw`\bar{\mathbf r}=\frac1N\sum_{k=0}^{N-1}d_k\,\hat{\mathbf u}(0)=a_0\,\hat{\mathbf u}(0)`,
+  samples: String.raw`t_k=\bigl(k-\tfrac12\bigr)\tfrac{T}{N},\qquad \varphi_k=n\,\omega\,t_k,\qquad d_k=f(t_k)`,
+  coef: String.raw`a_n=\frac{2}{N}\sum_{k=1}^{N}f(t_k)\cos\varphi_k,\qquad b_n=\frac{2}{N}\sum_{k=1}^{N}f(t_k)\sin\varphi_k`,
+  coef0: String.raw`a_0=\frac{1}{N}\sum_{k=1}^{N}f(t_k)\qquad(n=0:\ \text{all rods parallel})`,
+  com: String.raw`\begin{gathered}\bar{\mathbf r}=\frac1N\sum_{k=1}^{N}d_k\,\hat{\mathbf u}(\varphi_k)=\tfrac12\,(a_n,\,b_n)\\ A_n=2\,|\bar{\mathbf r}|,\qquad \theta_n=\arg\bar{\mathbf r}\end{gathered}`,
+  com0: String.raw`\bar{\mathbf r}=\frac1N\sum_{k=1}^{N}d_k\,\hat{\mathbf u}(0)=a_0\,\hat{\mathbf u}(0)`,
   torque: String.raw`\begin{gathered}\tau(\alpha)=-Nmg\,|\bar{\mathbf r}|\,\sin\bigl(\alpha+90^\circ-\theta_n\bigr)\\ \text{at rest the bottom index reads }\theta_n\end{gathered}`,
   circle: String.raw`\begin{gathered}d^{\,\rm blue}_k=-D\cos(\varphi_k-\theta_n)\\ \bar{\mathbf r}_{\rm red}+\bar{\mathbf r}_{\rm blue}=\tfrac12\,(A_n-D)\,\hat{\mathbf u}(\theta_n)=\mathbf 0\iff D=A_n\end{gathered}`,
   synth: String.raw`\begin{gathered}h_n(t)=a_n\cos n\omega t+b_n\sin n\omega t=A_n\cos(n\omega t-\theta_n)\\ h_n(t_k)=-d^{\,\rm blue}_k\end{gathered}`,
@@ -1461,8 +1461,8 @@ renderer.domElement.addEventListener('pointerup', e => {
   if (d.kind === 'rotate' && !S.locked) { S.hand = false; S.omega = clamp(d.w, -12, 12); S.restTime = 0; }
   if (d.kind === 'ball') {
     const k = d.k, v = S[d.color][k] / UNIT;
-    if (d.color === 'red') say(`<b>By hand</b> — ${rodText(k)}: red slider at ${v2(v)}; the curve is at <i>f</i>(<i>t</i><sub>${k}</sub>) = ${v2(f(tK(k)))}${Math.abs(fin(phiRad[k]) ? Math.sin(S.alpha - phiRad[k]) : 0) > 0.05 ? ' (turn the rod flat to sight it against the curve)' : ''}.`);
-    else say(`<b>By hand</b> — blue slider on rod ${k} at ${v2(v)}. Moving single blue sliders breaks the circle; <b>Blue circle on top</b> restores it.`);
+    if (d.color === 'red') say(`<b>By hand</b> — ${rodText(k)}: red slider at ${v2(v)}; the curve is at <i>f</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(f(tK(k)))}${Math.abs(fin(phiRad[k]) ? Math.sin(S.alpha - phiRad[k]) : 0) > 0.05 ? ' (turn the rod flat to sight it against the curve)' : ''}.`);
+    else say(`<b>By hand</b> — blue slider on rod ${k + 1} at ${v2(v)}. Moving single blue sliders breaks the circle; <b>Blue circle on top</b> restores it.`);
     $('tip').style.display = 'none';
   }
   if (d.kind === 'draw') endDrawing();
@@ -1472,7 +1472,7 @@ renderer.domElement.addEventListener('pointerleave', () => { hoverEvt = null; $(
 
 function ballTip(k, color) {
   const v = S[color][k] / UNIT;
-  return `rod ${k} · φ<sub>${k}</sub> = ${fmtDeg(phiRad[k] / DEG)}<br><span class="${color === 'red' ? 'r' : 'b'}">${color} slider</span> at ${v2(v)}` + (color === 'red' ? ` (f = ${v2(f(tK(k)))})` : ` (h = ${v2(-v)})`);
+  return `rod ${k + 1} · φ<sub>${k + 1}</sub> = ${fmtDeg(phiRad[k] / DEG)}<br><span class="${color === 'red' ? 'r' : 'b'}">${color} slider</span> at ${v2(v)}` + (color === 'red' ? ` (f = ${v2(f(tK(k)))})` : ` (h = ${v2(-v)})`);
 }
 function showTip(e, html) { const t = $('tip'); t.innerHTML = html; t.style.display = 'block'; t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px'; }
 function hover() {
@@ -1646,7 +1646,7 @@ function updateUI() {
   $('oN').textContent = S.N; $('on').textContent = S.n;
   $('rN').value = S.N;
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
-  $('oRod').innerHTML = S.active >= 0 ? `rod ${S.active} <span style="color:var(--dim)">/ ${S.N}</span>` : `— <span style="color:var(--dim)">/ ${S.N}</span>`;
+  $('oRod').innerHTML = S.active >= 0 ? `rod ${S.active + 1} <span style="color:var(--dim)">/ ${S.N}</span>` : `— <span style="color:var(--dim)">/ ${S.N}</span>`;
   const m = S.marks[S.n];
   $('bJoin').disabled = !m || m.v.some(v => !fin(v));
   $('bBalance').disabled = $('bTest').disabled = !S.circle;
