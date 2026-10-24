@@ -218,11 +218,10 @@
       <div class="res" id="phaseRes"></div>
     </div></div>
     <div class="step"><span class="sn" id="sn2">2</span><div>
-      <div class="st"><b>Amplitude</b> — balance it with a circle of blue sliders on top</div>
-      <div class="row grid2"><button id="bCircle">Place blue circle<span class="kbd">B</span></button><button id="bClearBlue">Remove blue</button></div>
+      <div class="st"><b>Amplitude</b> — raise the diameter <i>D</i> of the blue sliders on top until the helix balances</div>
       <div class="slider"><label>diameter <i>D</i></label><input type="range" id="rD" min="0" max="1.6" step="0.001" value="0"><output id="oD"></output></div>
       <div class="balance"><span>red heavier</span><div class="btrack"><div id="bMark"></div></div><span>blue heavier</span></div>
-      <div class="row grid2"><button id="bBalance">Auto-balance</button><button id="bTest">Test balance<span class="kbd">T</span></button></div>
+      <div class="row grid2"><button id="bBalance">Auto-balance<span class="kbd">B</span></button><button id="bTest">Test balance<span class="kbd">T</span></button></div>
       <div class="res" id="ampRes"></div>
     </div></div>
   </div>
@@ -247,7 +246,7 @@
 <div id="help" class="panel">
   <button id="bHelpX" style="float:right;margin:-2px -8px 0 8px;padding:1px 8px">×</button>
   <h2>How it works</h2>
-  <p class="intro">Rod <i>k</i> points at angle φ<sub><i>k</i></sub> = <i>n</i>ω<i>t<sub>k</sub></i> and carries the sample <i>f</i>(<i>t<sub>k</sub></i>) as a distance along it. The centre of mass of all sliders is therefore ½(<i>a<sub>n</sub></i>, <i>b<sub>n</sub></i>): gravity forms the Fourier sum and turns that point to the bottom. A circle of blue sliders through the axis cancels it exactly when its diameter equals the amplitude, and read back it draws the harmonic.</p>
+  <p class="intro">Rod <i>k</i> points at angle φ<sub><i>k</i></sub> = <i>n</i>ω<i>t<sub>k</sub></i> and carries the sample <i>f</i>(<i>t<sub>k</sub></i>) as a distance along it. The centre of mass of all sliders is therefore ½(<i>a<sub>n</sub></i>, <i>b<sub>n</sub></i>): gravity forms the Fourier sum and turns that point to the bottom. Blue sliders on the light side, lying on a circle of diameter <i>D</i> through the axis, cancel it exactly when <i>D</i> equals the amplitude; read back, they draw the harmonic.</p>
   <div class="hcols">
     <div>
       <div class="fsec">the series</div>
@@ -259,7 +258,7 @@
       <div class="fsec">gravity forms the sum</div>
       <div class="tex" data-tex="com"></div>
       <div class="tex" data-tex="torque"></div>
-      <div class="fsec">the blue circle balances it</div>
+      <div class="fsec">the blue sliders balance it</div>
       <div class="tex" data-tex="circle"></div>
       <div class="fsec">synthesis</div>
       <div class="tex" data-tex="synth"></div>
@@ -282,7 +281,7 @@
   <b>Mouse</b> — drag empty space to orbit · wheel to zoom · right-drag to pan<br>
   <b>Turn</b> — drag the helix, the dial or the knurled knob · click the black lever to lock or release<br>
   <b>Sliders</b> — drag a red or blue ball along its rod · click a bare rod to put a slider on it<br>
-  <b>Keys</b> — Space lock/release · R record next (⇧R all) · B blue circle (⇧B auto-balance) · T test balance · S read next (⇧S all) · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
+  <b>Keys</b> — Space lock/release · R record next (⇧R all) · B auto-balance · T test balance · S read next (⇧S all) · J join · ← → rods (⇧ ±1°) · 1 2 3 modes · O V E D F views · Esc stop
 </div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -1053,20 +1052,15 @@ async function releaseAndSettle(t) {
 // the phase found in step 1 holds as long as the red sliders and the twist are unchanged
 const phaseKey = () => [S.n, PH.ry.toFixed(4), PH.rz.toFixed(4)].join();
 const phaseKnown = () => !!S.phase && S.phase.key === phaseKey();
-// step 2: hold the helix heavy side down again, then put the circle on top
-async function circleOnTop(t) {
-  setLock(true);
-  await turnTo(t, nearestDeg(S.phase.alpha / DEG), 0.6);
-  placeCircle(S.circle ? S.circle.D : 0);
-  say('<b>Blue circle</b> — blue sliders on a circle through the axis, straight above it on the light side. Move <i>D</i> until the marker sits in the middle, or press <b>Auto-balance</b>; then <b>Test balance</b>.');
-}
+// blue sliders on a circle of diameter D through the axis, on the light side: straight up when the helix
+// rests heavy side down (from step 1, else as it is now); D = 0 means no blue sliders
 function placeCircle(D) {
-  S.circle = { psi: S.alpha - Math.PI / 2, D };   // direction pointing straight up, in rod-angle terms
+  S.circle = { psi: (phaseKnown() ? S.phase.alpha : S.alpha) - Math.PI / 2, D };   // in rod-angle terms
   applyCircle();
 }
 function applyCircle() {
   const c = S.circle; if (!c) return;
-  for (let k = 0; k < S.N; k++) S.blue[k] = clampS(c.D * Math.cos(phiRad[k] - c.psi));
+  for (let k = 0; k < S.N; k++) S.blue[k] = c.D > 0 ? clampS(c.D * Math.cos(phiRad[k] - c.psi)) : NaN;
   $('rD').value = c.D / UNIT; $('oD').textContent = fmt(c.D / UNIT, 3);
 }
 function optimalD() {   // the D that cancels the red moment as well as possible, for the circle's direction
@@ -1085,7 +1079,7 @@ async function growCircle(t, D1, dur) {
   await animate(t, dur, e => { S.circle.D = lerp(D0, D1, ease(e)); applyCircle(); });
 }
 async function testBalance(t) {
-  if (!S.circle) { say('Put the blue circle on first (<b>B</b>).'); return; }
+  if (!S.circle || !(S.circle.D > 0)) { say('Raise the diameter <i>D</i> of the blue sliders first.'); return; }
   setLock(true);
   await turnTo(t, S.alpha / DEG + 90, 0.8);
   const a0 = S.alpha;
@@ -1097,8 +1091,8 @@ async function testBalance(t) {
   // residual moment split along the circle's direction (D error) and across it (direction error)
   const wy = -Math.sin(S.circle.psi), wz = -Math.cos(S.circle.psi), Ty = PH.ry + PH.by, Tz = PH.rz + PH.bz;
   const along = Math.abs(Ty * wy + Tz * wz), across = Math.abs(Ty * wz - Tz * wy);
-  if (Math.abs(moved) >= 1.5 && across > along) say(`<b>Not balanced</b> — it turned ${fmt(Math.abs(moved), 0)}°, but <i>D</i> = ${fmt(D / UNIT)} is not the problem: the circle is not exactly opposite the heavy side. Let the helix come fully to rest before locking it, then place the circle again (<b>B</b>).`);
-  else if (Math.abs(moved) < 1.5) say(`<b>Balanced</b> — the helix stays where it was put: no weight bias. The circle's diameter is the amplitude: <i>Ã</i> = <i>D</i> = ${fmt(D / UNIT)} (the rods' sum: <i>A</i><sub>${S.n}</sub> = ${fmt(helixIdeal(S.n).A)}).`);
+  if (Math.abs(moved) >= 1.5 && across > along) say(`<b>Not balanced</b> — it turned ${fmt(Math.abs(moved), 0)}°, but <i>D</i> = ${fmt(D / UNIT)} is not the problem: the blue sliders are not exactly opposite the heavy side. Find the phase again (step 1), letting the helix come fully to rest.`);
+  else if (Math.abs(moved) < 1.5) say(`<b>Balanced</b> — the helix stays where it was put: no weight bias. The diameter of the blue sliders is the amplitude: <i>Ã</i> = <i>D</i> = ${fmt(D / UNIT)} (the rods' sum: <i>A</i><sub>${S.n}</sub> = ${fmt(helixIdeal(S.n).A)}).`);
   else if (D < Dopt) say(`<b>Not balanced</b> — it swung back ${fmt(Math.abs(moved), 0)}°: the red side is still heavier, so <i>D</i> = ${fmt(D / UNIT)} is too small.`);
   else say(`<b>Not balanced</b> — it turned ${fmt(Math.abs(moved), 0)}° away: the blue side is heavier, so <i>D</i> = ${fmt(D / UNIT)} is too large.`);
 }
@@ -1107,7 +1101,7 @@ async function testBalance(t) {
 function marksFor(n) { return S.marks[n] || (S.marks[n] = { v: new Array(S.N).fill(NaN), joined: false }); }
 async function readRod(t, k, fast) {
   S.active = k; setLock(true); updateUI();
-  if (!fin(S.blue[k])) { say(`Rod ${k + 1} has no blue slider. Place the blue circle in <b>ii · Analyse</b> first.`); return false; }
+  if (!fin(S.blue[k])) { say(`Rod ${k + 1} has no blue slider. Set the blue sliders in <b>ii · Analyse</b> first.`); return false; }
   say(`<b>Synthesis</b> — ${rodText(k)}. The blue sliders hold −<i>h<sub>n</sub></i>, so the rod is laid flat half a turn from its recording position, pointing towards you. The paper is marked straight below the <span class="b">blue slider</span>: <i>h</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(-S.blue[k] / UNIT)}.`);
   await turnTo(t, nearestDeg(phiRad[k] / DEG + 180), fast ? 0.3 : 0.6);
   await wait(t, fast ? 0.05 : 0.25);
@@ -1123,7 +1117,7 @@ async function readNext(t) {
 }
 async function readAll(t) {
   const N = S.N;
-  if (S.blue.some(v => !fin(v))) { say('Some rods have no blue slider. Place the blue circle in <b>ii · Analyse</b> first.'); return false; }
+  if (S.blue.some(v => !fin(v))) { say('Some rods have no blue slider. Set the blue sliders in <b>ii · Analyse</b> first.'); return false; }
   setLock(true);
   const d = 360 * S.n / N, a0 = nearestDeg(phiRad[0] / DEG + 180), m = marksFor(S.n);
   say('<b>Synthesis</b> — the axis is turned once more, every rod lying flat half a turn from its recording position (pointing towards you), and the paper is marked straight below each <span class="b">blue slider</span>: <i>h</i>(<i>t<sub>k</sub></i>) = −<i>d<sub>k</sub></i>.');
@@ -1176,7 +1170,7 @@ async function demoAll(t) {
   await releaseAndSettle(t);
   await wait(t, 3.2);
   setLock(true);
-  say('<b>ii · Amplitude</b> — lock it again, and put blue sliders on a circle through the axis on the light (top) side. The circle grows until it balances the red sliders…');
+  say('<b>ii · Amplitude</b> — lock it again, and raise the diameter <i>D</i> of the blue sliders on the light (top) side until they balance the red sliders…');
   placeCircle(0); await wait(t, 0.8);
   await growCircle(t, optimalD(), 3.2);
   await wait(t, 0.8);
@@ -1504,7 +1498,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   if (d.kind === 'ball') {
     const k = d.k, v = S[d.color][k] / UNIT;
     if (d.color === 'red') say(`<b>By hand</b> — ${rodText(k)}: red slider at ${v2(v)}; the curve is at <i>f</i>(<i>t</i><sub>${k + 1}</sub>) = ${v2(f(tK(k)))}${Math.abs(fin(phiRad[k]) ? Math.sin(S.alpha - phiRad[k]) : 0) > 0.05 ? ' (turn the rod flat to sight it against the curve)' : ''}.`);
-    else say(`<b>By hand</b> — blue slider on rod ${k + 1} at ${v2(v)}. Moving single blue sliders breaks the circle; <b>Blue circle on top</b> restores it.`);
+    else say(`<b>By hand</b> — blue slider on rod ${k + 1} at ${v2(v)}. Moving a single blue slider takes it off diameter <i>D</i>; moving <i>D</i> puts them all back.`);
     $('tip').style.display = 'none';
   }
   if (d.kind === 'draw') endDrawing();
@@ -1674,7 +1668,7 @@ function setMode(m, quiet) {
   $('procSynth').classList.toggle('show', m === 'synth');
   if (!quiet) {
     if (m === 'record') say('<b>i · Record</b> — each rod sits above one sample time <i>t<sub>k</sub></i>. Turn the helix until rod <i>k</i> lies flat over the paper, look straight down, and slide a <span class="r">red slider</span> to where the rod crosses the curve. Press <b>Record next</b> (R), or do it by hand.');
-    if (m === 'analyse') say('<b>ii · Analyse</b> — step 1: release the lock and let gravity turn the heavy side down; the <b>bottom</b> index of the dial then reads the phase θ. Step 2: put a circle of <span class="b">blue sliders</span> on top and change its diameter <i>D</i> until the helix is balanced: then <i>D</i> is the amplitude.');
+    if (m === 'analyse') say('<b>ii · Analyse</b> — step 1: release the lock and let gravity turn the heavy side down; the <b>bottom</b> index of the dial then reads the phase θ. Step 2: raise the diameter <i>D</i> of the <span class="b">blue sliders</span> on top until the helix is balanced: then <i>D</i> is the amplitude.');
     if (m === 'synth') say('<b>iii · Synthesise</b> — the blue sliders hold −<i>h<sub>n</sub></i>(<i>t<sub>k</sub></i>). Lay each rod flat again, half a turn from its recording position, mark the paper below its blue slider, and join the dots.');
   }
   updateUI();
@@ -1712,7 +1706,7 @@ function updateLive() {
     const D = S.circle.D / UNIT, th = S.circle.psi / DEG + 180;
     put('dA', fmt(D * Math.cos(th * DEG))); put('dB', fmt(D * Math.sin(th * DEG)));
     put('dAmp', fmt(D)); put('dTh', fmtDeg(th));
-    put('devNote', 'Device: <i>Ã</i> = <i>D</i> and θ̃ from the blue circle (it sits opposite the heavy side).');
+    put('devNote', 'Device: <i>Ã</i> = <i>D</i> and θ̃ from the blue sliders (opposite the heavy side).');
   } else {
     put('dA', '—'); put('dB', '—'); put('dAmp', '—');
     put('dTh', PH.nr ? fmtDeg(dialBottom()) : '—');
@@ -1733,22 +1727,24 @@ function updateLive() {
 function enable(id, on) { if ($(id).disabled === on) $(id).disabled = !on; }
 function updateAnalyse() {
   const known = phaseKnown(), c = S.circle, R = Math.hypot(PH.ry, PH.rz);
-  enable('bPhase', PH.nr > 0); enable('bCircle', known); enable('bClearBlue', PH.nb > 0);
-  for (const id of ['rD', 'bBalance', 'bTest']) enable(id, !!c);
+  const on = !!c && c.D > 0;
+  enable('bPhase', PH.nr > 0); enable('rD', known); enable('bBalance', known); enable('bTest', on);
   // step 1
   put('phaseRes', !PH.nr ? '<span class="hint">Record the signal first.</span>'
     : known ? `θ̃ = ${fmtDeg(S.phase.theta)} <span class="ok">✓ at rest, read at the bottom index</span>`
     : !S.locked && !S.settled ? `<span class="hint">settling… the bottom index passes θ̃ = ${fmtDeg(dialBottom())}</span>`
     : '<span class="hint">Not measured yet.</span>');
-  // step 2: the moment left over, along the circle's direction, as a fraction of the red moment: (D − A)/A
-  const x = c && R > 0 ? clamp(((PH.ry + PH.by) * -Math.sin(c.psi) + (PH.rz + PH.bz) * -Math.cos(c.psi)) / R, -1, 1) : NaN;
+  // step 2: the moment left over, towards the light side, as a fraction of the red moment: (D − A)/A
+  const psi = c ? c.psi : known ? S.phase.alpha - Math.PI / 2 : NaN;
+  const x = fin(psi) && R > 0 ? clamp(((PH.ry + PH.by) * -Math.sin(psi) + (PH.rz + PH.bz) * -Math.cos(psi)) / R, -1, 1) : NaN;
   const ok = Math.abs(x) < 0.01, mk = $('bMark'), left = fin(x) ? (50 + 50 * x).toFixed(1) + '%' : '';
   if (mk._left !== left) { mk._left = left; mk.style.left = left; mk.style.display = left ? 'block' : 'none'; }
   if (mk.classList.contains('ok') !== ok) mk.classList.toggle('ok', ok);
-  put('ampRes', !c ? `<span class="hint">${known ? 'Place the circle, then move D until the marker sits in the middle.' : 'Find the phase first (step 1).'}</span>`
+  put('ampRes', !known && !on ? '<span class="hint">Find the phase first (step 1).</span>'
+    : !on ? '<span class="hint">Raise <i>D</i> until the marker sits in the middle, or press Auto-balance.</span>'
     : ok ? `Ã = <i>D</i> = ${fmt(c.D / UNIT)} <span class="ok">✓ balanced</span>`
     : `<i>D</i> = ${fmt(c.D / UNIT)} <span class="hint">— ${x < 0 ? 'red side heavier: increase' : 'blue side heavier: decrease'} <i>D</i></span>`);
-  const d1 = known, d2 = !!c && ok;
+  const d1 = known, d2 = on && ok;
   if ($('sn1').classList.contains('done') !== d1) { $('sn1').classList.toggle('done', d1); $('sn1').textContent = d1 ? '✓' : '1'; }
   if ($('sn2').classList.contains('done') !== d2) { $('sn2').classList.toggle('done', d2); $('sn2').textContent = d2 ? '✓' : '2'; }
 }
@@ -1810,13 +1806,13 @@ bind('bPhase', () => {
   if (PH.nb) clearBlue();   // the phase comes from the red sliders alone
   run(releaseAndSettle);
 });
-bind('bCircle', () => { if (phaseKnown()) run(circleOnTop); });
-bind('bBalance', () => { if (S.circle) run(t => growCircle(t, optimalD(), 1.2)); });
+bind('bBalance', () => { if (!phaseKnown()) return; if (!S.circle) placeCircle(0); run(t => growCircle(t, optimalD(), 1.2)); });
 bind('bTest', () => run(testBalance));
-bind('bClearBlue', () => { stopTask(); clearBlue(); updateUI(); });
 $('rD').addEventListener('input', e => {
-  if (!S.circle) return;
-  S.circle.D = +e.target.value * UNIT; applyCircle(); updateUI();
+  if (!phaseKnown()) return;
+  const D = +e.target.value * UNIT;   // read first: placing the sliders writes D back to this slider
+  stopTask(); if (!S.circle) placeCircle(0);
+  S.circle.D = D; applyCircle(); updateUI();
 });
 bind('bSynNext', () => run(readNext));
 bind('bSynAll', () => run(async t => { if (await readAll(t)) say('Every rod has been read. <b>Join the dots</b> (J).'); }));
@@ -1854,7 +1850,7 @@ window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase(), sh = e.shiftKey;
   const act = {
     ' ': toggleLock, escape: () => { stopTask(); S.drawMode = false; say(''); $('help').style.display = 'none'; },
-    r: () => run(sh ? recordAll : recordNext), b: () => sh ? $('bBalance').click() : $('bCircle').click(), t: () => $('bTest').click(),
+    r: () => run(sh ? recordAll : recordNext), b: () => $('bBalance').click(), t: () => $('bTest').click(),
     s: () => sh ? $('bSynAll').click() : run(readNext), j: joinDots,
     arrowleft: () => sh ? run(t => turnTo(t, S.alpha / DEG - 1, 0.15)) : run(t => selectRod(t, S.active - 1)),
     arrowright: () => sh ? run(t => turnTo(t, S.alpha / DEG + 1, 0.15)) : run(t => selectRod(t, S.active + 1)),
