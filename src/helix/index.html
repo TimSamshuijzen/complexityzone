@@ -79,6 +79,8 @@
   .row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 5px; }
   .row.grid2 > * { flex: 1 1 45%; }
   .row.grid3 > * { flex: 1 1 30%; }
+  .row.demo { flex-wrap: nowrap; }
+  .row.demo > * { flex: 1 1 auto; min-width: 0; font-size: 12.5px; padding-left: 5px; padding-right: 5px; }
   .row.grid4 > * { flex: 1 1 22%; padding-left: 4px; padding-right: 4px; }
   .slider { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
   .slider label { width: 84px; font-size: 13px; color: var(--dim); }
@@ -184,7 +186,7 @@
     <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
     <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
   </div>
-  <div class="row grid2" style="margin-top:6px"><button id="bDemo">▶ Whole procedure</button><button id="bStop" disabled>■ Stop<span class="kbd">Esc</span></button></div>
+  <div class="row demo" style="margin-top:6px"><button id="bDemo">▶ Whole procedure</button><button id="bStop" title="Esc" disabled>■ Stop</button><button id="bReset" title="Reset the procedure; the signal, N and n are kept">↺ Reset</button></div>
   <div class="slider"><label>speed</label><input type="range" id="rSpeed" min="0.5" max="4" step="0.1" value="1"><output id="oSpeed"></output></div>
 
   <div id="procRecord" class="proc show">
@@ -211,7 +213,6 @@
     <label class="chk"><input type="checkbox" id="cSum" checked> partial sum Σ <i>h<sub>n</sub></i> of joined harmonics</label>
     <div class="note">Analyse several harmonics (change <i>n</i>, redo ii and iii) and the paper builds up the Fourier partial sum.</div>
   </div>
-  <div class="row" style="margin-top:8px"><button id="bReset" style="flex:1">Reset procedure</button></div>
 
   <h2>Bearing &amp; lock</h2>
   <div class="row grid2"><button id="bLock" class="on">Locked<span class="kbd">Space</span></button><button id="bHome">Turn to 0°</button></div>
