@@ -367,7 +367,9 @@ function helixIdeal(n) {
    Renderer, scene, lights
    ===================================================================== */
 const app = $('app');
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+let needDraw = true;   // the 3-D scene and the 2-D views are drawn only when something visible changed
+const redraw = () => { needDraw = true; };
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(app.clientWidth, app.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -856,7 +858,11 @@ function fillDish() {
     scene.add(m); return m;
   });
 }
-function updatePhis() { phiRad.length = S.N; for (let k = 0; k < S.N; k++) phiRad[k] = TAU * S.nCur * tK(k); }
+let phisFor = '';
+function updatePhis() {
+  const key = S.N + ':' + S.nCur; if (key === phisFor) return; phisFor = key;
+  phiRad.length = S.N; for (let k = 0; k < S.N; k++) phiRad[k] = TAU * S.nCur * tK(k);
+}
 const clampS = s => clamp(s, -H_.smax, H_.smax);
 
 // plumb line and target marks on the paper
@@ -880,7 +886,7 @@ function moments() {
     if (fin(r)) { ry += r * uy; rz += r * uz; sq += r * r; nr++; }
     if (fin(b)) { by += b * uy; bz += b * uz; sq += b * b; nb++; }
   }
-  Object.assign(PH, { ry, rz, by, bz, nr, nb });
+  Object.assign(PH, { ry, rz, by, bz, sq, nr, nb });
   const m = H_.mBall;
   PH.Sy = m * (ry + by); PH.Sz = m * (rz + bz);   // kg·mm, body frame
   PH.I = H_.Ifix + m * (sq + (nr + nb) * 0.4 * H_.rb ** 2) * 1e-6;
@@ -1568,11 +1574,15 @@ function updateCamera(dt) {
   }
   controls.update();
   if (camera.position.y < 8) camera.position.y = 8;
+}
+// parts at the dial end fade out when looking along the axis from that side
+function applyFade() {
   camera.getWorldDirection(tmpV2);
   const op = 1 - 0.86 * smoothstep(0.86, 0.97, -tmpV2.x);
   for (const m of fadeMats) { m.opacity = op; m.depthWrite = op > 0.97; }
 }
 function layout() {
+  redraw();   // resizing clears the canvas
   const W = app.clientWidth, Hh = app.clientHeight;
   renderer.setSize(W, Hh); camera.aspect = W / Hh;
   let l = 0, r = 0, t = 0, b = 0;   // centre the scene in the space the panels leave free
@@ -1651,39 +1661,41 @@ function updateUI() {
   $('bBalance').disabled = $('bTest').disabled = !S.circle;
   for (const b of document.querySelectorAll('#presetBtns button')) b.classList.toggle('on', b.dataset.p === S.sig.preset);
 }
-let liveT = 0;
+// live readouts touch the DOM only when their content changes
+function put(id, html) { const el = $(id); if (el._shown !== html) { el._shown = html; el.innerHTML = html; } }
 function updateLive() {
-  $('oRod').innerHTML = `rod ${S.active + 1} <span style="color:var(--dim)">/ ${S.N}</span>`;
-  $('sLock').textContent = S.locked ? 'locked' : S.hand ? 'held by hand' : S.settled ? 'free · at rest' : 'free · swinging';
-  $('sLock').className = 'pill ' + (S.locked ? '' : S.settled ? 'ok' : 'hot');
-  $('sRec').textContent = 'rec ' + fmtDeg(S.alpha / DEG);
-  $('sDial').textContent = 'θ̃ ' + fmtDeg(dialBottom());
+  put('oRod', `rod ${S.active + 1} <span style="color:var(--dim)">/ ${S.N}</span>`);
+  put('sLock', S.locked ? 'locked' : S.hand ? 'held by hand' : S.settled ? 'free · at rest' : 'free · swinging');
+  const cls = 'pill ' + (S.locked ? '' : S.settled ? 'ok' : 'hot'); if ($('sLock').className !== cls) $('sLock').className = cls;
+  put('sRec', 'rec ' + fmtDeg(S.alpha / DEG));
+  put('sDial', 'θ̃ ' + fmtDeg(dialBottom()));
   const tau = torqueAt(S.alpha) * 1e3;
-  $('sTau').textContent = `τ = ${fmt(tau, 2)} mN·m`;
+  put('sTau', `τ = ${fmt(tau, 2)} mN·m`);
   // device column: from the circle once it is placed, otherwise only the dial
   const n = S.n;
   if (S.circle) {
     const D = S.circle.D / UNIT, th = S.circle.psi / DEG + 180;
-    $('dA').textContent = fmt(D * Math.cos(th * DEG)); $('dB').textContent = fmt(D * Math.sin(th * DEG));
-    $('dAmp').textContent = fmt(D); $('dTh').textContent = fmtDeg(th);
-    $('devNote').innerHTML = 'Device: <i>Ã</i> = <i>D</i> and θ̃ from the blue circle (it sits opposite the heavy side).';
+    put('dA', fmt(D * Math.cos(th * DEG))); put('dB', fmt(D * Math.sin(th * DEG)));
+    put('dAmp', fmt(D)); put('dTh', fmtDeg(th));
+    put('devNote', 'Device: <i>Ã</i> = <i>D</i> and θ̃ from the blue circle (it sits opposite the heavy side).');
   } else {
-    $('dA').textContent = $('dB').textContent = $('dAmp').textContent = '—';
-    $('dTh').textContent = PH.nr ? fmtDeg(dialBottom()) : '—';
-    $('devNote').innerHTML = PH.nr ? `Device: θ̃ is the bottom index of the dial${S.settled ? ' (at rest)' : S.locked ? ' — release the lock to let gravity set it' : ' (still moving)'}.` : 'Device: record the signal first.';
+    put('dA', '—'); put('dB', '—'); put('dAmp', '—');
+    put('dTh', PH.nr ? fmtDeg(dialBottom()) : '—');
+    put('devNote', PH.nr ? `Device: θ̃ is the bottom index of the dial${S.settled ? ' (at rest)' : S.locked ? ' — release the lock to let gravity set it' : ' (still moving)'}.` : 'Device: record the signal first.');
   }
   // weight bias: total moment of all sliders
   const N = S.N, mag = Math.hypot(PH.ry + PH.by, PH.rz + PH.bz) / N, magR = Math.hypot(PH.ry, PH.rz) / N;
-  $('gFill').style.width = (magR > 0 ? clamp(Math.sqrt(mag / magR), 0, 1) * 100 : 0) + '%';
-  $('oBias').textContent = `|r̄| ${fmt(mag, 2)} mm`;
+  const w = (magR > 0 ? clamp(Math.sqrt(mag / magR), 0, 1) * 100 : 0).toFixed(1) + '%';
+  if ($('gFill')._w !== w) { $('gFill')._w = w; $('gFill').style.width = w; }
+  put('oBias', `|r̄| ${fmt(mag, 2)} mm`);
   const idl = helixIdeal(n);
-  $('topRead').innerHTML = topReadout();
-  $('polarRead').innerHTML = PH.nr
+  put('topRead', topReadout());
+  put('polarRead', PH.nr
     ? `<span class="r">red</span> |r̄| = ${fmt(magR, 1)} mm → ${n === 0 ? '|<i>a</i><sub>0</sub>| = |r̄|' : '<i>A</i> = 2|r̄|'} = ${fmt((n === 0 ? 1 : 2) * magR / UNIT)}` + (magR > 0.05 ? `, arg r̄ = ${fmtDeg(Math.atan2(redB(), redA()) / DEG)}` : '') +
       (PH.nb ? `<br><span class="b">blue</span> |r̄| = ${fmt(Math.hypot(PH.by, PH.bz) / N, 1)} mm · black: total ${fmt(mag, 2)} mm`
         : n === 0 ? '<br>all rods parallel: the sliders plot the samples, their mean is <i>a</i><sub>0</sub> = ' + fmt(idl.a)
         : '<br>dashed: circle <i>r</i> = <i>A</i> cos(φ − θ) of the rods\' sum, <i>A</i> = ' + fmt(idl.A))
-    : 'Record the signal: the red sliders appear here in polar form, <i>r</i> = <i>f</i>(<i>t<sub>k</sub></i>) at angle φ<sub><i>k</i></sub>.';
+    : 'Record the signal: the red sliders appear here in polar form, <i>r</i> = <i>f</i>(<i>t<sub>k</sub></i>) at angle φ<sub><i>k</i></sub>.');
 }
 // components of the red moment in the dial's (φ = 0, φ = 90°) frame
 function redA() { let s = 0; for (let k = 0; k < S.N; k++) if (fin(S.red[k])) s += S.red[k] * Math.cos(phiRad[k]); return s; }
@@ -1799,21 +1811,30 @@ window.addEventListener('keydown', e => {
 /* =====================================================================
    Main loop
    ===================================================================== */
-let last = performance.now(), firstFrame = true;
+// the simulation steps every frame; drawing happens only when the paper or this key changed. The camera
+// counts to 0.01 mm, so the long, invisible tail of the orbit damping does not keep redrawing
+const camKey = () => [...camera.position.toArray(), ...controls.target.toArray()].map(v => Math.round(v * 100));
+const viewKey = () => [S.alpha, S.nCur, S.N, S.n, S.active, S.mode, S.drawMode, S.locked, S.hand, S.settled,
+  PH.ry, PH.rz, PH.by, PH.bz, PH.sq, PH.nr, PH.nb, S.circle?.D, S.circle?.psi, drag?.kind, drag?.k, drag?.color, ...camKey()].join();
+let last = performance.now(), firstFrame = true, drawnKey = '', liveDue = false, liveLast = 0;
+function draw(dt) {
+  updateScene(dt); applyFade();
+  renderer.render(scene, camera);
+  drawTopView(); drawPolar();
+}
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   tickAnims(dt);
   updatePhis();
   physics(dt);
-  updateScene(dt);
   updateCamera(dt);
-  if (paperDirty && now - paperLast > 60) { paperDirty = false; paperLast = now; drawPaper(); }
-  renderer.render(scene, camera);
-  drawTopView();
-  drawPolar();
+  if (paperDirty && now - paperLast > 60) { paperDirty = false; paperLast = now; drawPaper(); redraw(); }
   hover();
-  liveT += dt; if (liveT > 0.1) { liveT = 0; updateLive(); }
+  const key = viewKey();
+  if (key !== drawnKey || Math.abs((S.locked ? 0 : 1) - S.leverT) > 1e-3) redraw();   // the lock lever eases into place
+  if (needDraw) { needDraw = false; drawnKey = key; draw(dt); liveDue = true; }
+  if (liveDue && now - liveLast > 100) { liveDue = false; liveLast = now; updateLive(); }   // at most 10 Hz, and once after the last change
   if (firstFrame) { firstFrame = false; $('loading').remove(); }
 }
 
@@ -1824,7 +1845,7 @@ layout();
 { const { pos, tgt } = viewPose('overview'); camera.position.copy(pos); controls.target.copy(tgt); controls.update(); }
 requestAnimationFrame(frame);
 window.__helix = { S, PH, run, goView, setMode, setN, helixIdeal, exact: () => exact, optimalD, camera, controls, renderer, scene, paperCanvas,
-  pick: (x, y) => { const h = pickAt({ clientX: x, clientY: y }); return h && { ...h.object.userData, d: h.distance }; }, frameNow: (dt = 1 / 60) => { tickAnims(dt); updatePhis(); physics(dt); updateScene(dt); updateCamera(dt); if (paperDirty) { paperDirty = false; drawPaper(); } renderer.render(scene, camera); drawPolar(); updateLive(); } };
+  pick: (x, y) => { const h = pickAt({ clientX: x, clientY: y }); return h && { ...h.object.userData, d: h.distance }; }, frameNow: (dt = 1 / 60) => { tickAnims(dt); updatePhis(); physics(dt); updateCamera(dt); if (paperDirty) { paperDirty = false; drawPaper(); } draw(dt); updateLive(); } };
 </script>
 </body>
 </html>
