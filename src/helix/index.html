@@ -104,11 +104,21 @@
   .pill.ok { background: #3d7a4a; color: #fff; }
   .proc { display: none; }
   .proc.show { display: block; }
-  .gauge { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; font-size: 13px; }
-  .gauge .gl { width: 84px; color: var(--dim); }
-  .gbar { flex: 1; height: 9px; border-radius: 5px; background: rgba(80,62,25,.12); overflow: hidden; }
-  #gFill { height: 100%; width: 0; background: linear-gradient(90deg, #3d7a4a, #c9a13b 40%, var(--red)); border-radius: 5px; }
-  .gauge output { width: 70px; text-align: right; font-variant-numeric: tabular-nums; }
+  .step { display: flex; gap: 8px; margin: 2px 0 10px; }
+  .step > div { flex: 1; min-width: 0; }
+  .sn { flex: 0 0 19px; height: 19px; margin-top: 1px; border-radius: 50%; background: var(--brass); color: #fff8e4; font-size: 12px; line-height: 19px; text-align: center; }
+  .sn.done { background: #3d7a4a; }
+  .st { font-size: 13.5px; line-height: 1.35; margin-bottom: 5px; }
+  .st b { font-weight: normal; font-variant: small-caps; letter-spacing: .5px; color: var(--brass); }
+  .res { font-size: 13px; line-height: 1.4; margin-top: 3px; min-height: 18px; font-variant-numeric: tabular-nums; }
+  .res .ok { color: #2f7a3e; }
+  .res .hint { color: var(--dim); font-style: italic; }
+  .balance { display: flex; align-items: center; gap: 7px; margin: 5px 0 6px; font-size: 11.5px; color: var(--dim); font-style: italic; }
+  .btrack { flex: 1; position: relative; height: 10px; border-radius: 5px;
+            background: linear-gradient(90deg, rgba(176,34,43,.45), rgba(61,122,74,.3) 47%, rgba(61,122,74,.3) 53%, rgba(36,70,164,.45)); }
+  .btrack::after { content: ''; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: rgba(30,30,30,.45); }
+  #bMark { position: absolute; left: 50%; top: -4px; width: 6px; height: 18px; margin-left: -3px; border-radius: 3px; background: #24211c; display: none; }
+  #bMark.ok { background: #2f7a3e; }
 
   #caption { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); max-width: min(660px, calc(100% - 780px)); min-width: 300px;
              padding: 9px 15px; font-size: 15px; line-height: 1.45; z-index: 3; display: none; }
@@ -202,12 +212,19 @@
   </div>
   <div id="procAnalyse" class="proc">
     <h2>ii · Analyse — phase and amplitude</h2>
-    <div class="row grid2"><button id="bRelease">Release the lock</button><button id="bTest">Test balance<span class="kbd">T</span></button></div>
-    <div class="row grid2"><button id="bCircle">Blue circle on top<span class="kbd">B</span></button><button id="bBalance">Auto-balance</button></div>
-    <div class="slider"><label>diameter <i>D</i></label><input type="range" id="rD" min="0" max="1.6" step="0.001" value="0"><output id="oD"></output></div>
-    <div class="row"><button id="bClearBlue" style="flex:1">Remove blue sliders</button></div>
-    <div class="gauge"><span class="gl">weight bias</span><div class="gbar"><div id="gFill"></div></div><output id="oBias"></output></div>
-    <div class="note">Phase: let it settle, then read the <b>bottom</b> index of the dial. Amplitude: grow <i>D</i> until the helix stays wherever you turn it.</div>
+    <div class="step"><span class="sn" id="sn1">1</span><div>
+      <div class="st"><b>Phase</b> — release the lock; gravity turns the heavy side down</div>
+      <div class="row"><button id="bPhase" style="flex:1">▼ Release and let it settle</button></div>
+      <div class="res" id="phaseRes"></div>
+    </div></div>
+    <div class="step"><span class="sn" id="sn2">2</span><div>
+      <div class="st"><b>Amplitude</b> — balance it with a circle of blue sliders on top</div>
+      <div class="row grid2"><button id="bCircle">Place blue circle<span class="kbd">B</span></button><button id="bClearBlue">Remove blue</button></div>
+      <div class="slider"><label>diameter <i>D</i></label><input type="range" id="rD" min="0" max="1.6" step="0.001" value="0"><output id="oD"></output></div>
+      <div class="balance"><span>red heavier</span><div class="btrack"><div id="bMark"></div></div><span>blue heavier</span></div>
+      <div class="row grid2"><button id="bBalance">Auto-balance</button><button id="bTest">Test balance<span class="kbd">T</span></button></div>
+      <div class="res" id="ampRes"></div>
+    </div></div>
   </div>
   <div id="procSynth" class="proc">
     <h2>iii · Synthesise the harmonic</h2>
@@ -320,7 +337,7 @@ const S = {
   alpha: 0, omega: 0, locked: true, hand: false, leverT: 0,
   red: [], blue: [], circle: null, active: 0, mode: 'record',   // active: the selected rod, always one
   sig: { preset: 'square', amp: 1, phase: 0, offset: 0 },
-  marks: {}, friction: 0.01, damping: 0.5, speed: 1,
+  marks: {}, friction: 0.01, damping: 0.5, speed: 1, phase: null,
   restTime: 0, settled: false, drawMode: false,
 };
 const H_ = { rb: 6, rod: 0.9, collar: 6, smax: 90, mBall: 0, Ifix: 1e-3 };
@@ -1028,9 +1045,20 @@ async function releaseAndSettle(t) {
   setLock(false);
   say('<b>Phase</b> — lock released. Gravity pulls the centre of mass of the sliders, ½(<i>a<sub>n</sub></i>, <i>b<sub>n</sub></i>), to the bottom…');
   const ok = await until(t, () => S.settled, 40);
+  if (ok && !PH.nb) S.phase = { alpha: S.alpha, theta: dialBottom(), key: phaseKey() };
   const id = helixIdeal(S.n);
   if (ok) say(`<b>Phase</b> — at rest. The <b>bottom</b> index of the dial reads θ̃ = ${fmtDeg(dialBottom())}; the sum over the rods gives θ<sub>${S.n}</sub> = ${fmtDeg(id.th)}. In sine form <i>h</i> = <i>A</i> sin(<i>n</i>ω<i>t</i> ${sinePhase()}).`);
   return ok;
+}
+// the phase found in step 1 holds as long as the red sliders and the twist are unchanged
+const phaseKey = () => [S.n, PH.ry.toFixed(4), PH.rz.toFixed(4)].join();
+const phaseKnown = () => !!S.phase && S.phase.key === phaseKey();
+// step 2: hold the helix heavy side down again, then put the circle on top
+async function circleOnTop(t) {
+  setLock(true);
+  await turnTo(t, nearestDeg(S.phase.alpha / DEG), 0.6);
+  placeCircle(S.circle ? S.circle.D : 0);
+  say('<b>Blue circle</b> — blue sliders on a circle through the axis, straight above it on the light side. Move <i>D</i> until the marker sits in the middle, or press <b>Auto-balance</b>; then <b>Test balance</b>.');
 }
 function placeCircle(D) {
   S.circle = { psi: S.alpha - Math.PI / 2, D };   // direction pointing straight up, in rod-angle terms
@@ -1646,7 +1674,7 @@ function setMode(m, quiet) {
   $('procSynth').classList.toggle('show', m === 'synth');
   if (!quiet) {
     if (m === 'record') say('<b>i · Record</b> — each rod sits above one sample time <i>t<sub>k</sub></i>. Turn the helix until rod <i>k</i> lies flat over the paper, look straight down, and slide a <span class="r">red slider</span> to where the rod crosses the curve. Press <b>Record next</b> (R), or do it by hand.');
-    if (m === 'analyse') say('<b>ii · Analyse</b> — release the lock: gravity turns the heavy side down and the <b>bottom</b> index of the dial reads the phase θ. Then lock it, put <span class="b">blue sliders</span> on a circle through the axis on the light (top) side, and grow it until the helix has no weight bias. Its diameter <i>D</i> is the amplitude.');
+    if (m === 'analyse') say('<b>ii · Analyse</b> — step 1: release the lock and let gravity turn the heavy side down; the <b>bottom</b> index of the dial then reads the phase θ. Step 2: put a circle of <span class="b">blue sliders</span> on top and change its diameter <i>D</i> until the helix is balanced: then <i>D</i> is the amplitude.');
     if (m === 'synth') say('<b>iii · Synthesise</b> — the blue sliders hold −<i>h<sub>n</sub></i>(<i>t<sub>k</sub></i>). Lay each rod flat again, half a turn from its recording position, mark the paper below its blue slider, and join the dots.');
   }
   updateUI();
@@ -1659,7 +1687,6 @@ function toggleLock() {
 function updateUI() {
   $('bLock').innerHTML = (S.locked ? 'Locked' : 'Free') + '<span class="kbd">Space</span>';
   $('bLock').classList.toggle('on', S.locked);
-  $('bRelease').textContent = S.locked ? 'Release the lock' : 'Lock it';
   $('bStop').disabled = !current;
   $('bDemo').classList.toggle('running', current?.fn === demoAll);
   $('oN').textContent = S.N; $('on').textContent = S.n;
@@ -1667,7 +1694,6 @@ function updateUI() {
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
   const m = S.marks[S.n];
   $('bJoin').disabled = !m || m.v.some(v => !fin(v));
-  $('bBalance').disabled = $('bTest').disabled = !S.circle;
   for (const b of document.querySelectorAll('#presetBtns button')) b.classList.toggle('on', b.dataset.p === S.sig.preset);
 }
 // live readouts touch the DOM only when their content changes
@@ -1694,9 +1720,7 @@ function updateLive() {
   }
   // weight bias: total moment of all sliders
   const N = S.N, mag = Math.hypot(PH.ry + PH.by, PH.rz + PH.bz) / N, magR = Math.hypot(PH.ry, PH.rz) / N;
-  const w = (magR > 0 ? clamp(Math.sqrt(mag / magR), 0, 1) * 100 : 0).toFixed(1) + '%';
-  if ($('gFill')._w !== w) { $('gFill')._w = w; $('gFill').style.width = w; }
-  put('oBias', `|r̄| ${fmt(mag, 2)} mm`);
+  updateAnalyse();
   const idl = helixIdeal(n);
   put('topRead', topReadout());
   put('polarRead', PH.nr
@@ -1705,6 +1729,28 @@ function updateLive() {
         : n === 0 ? '<br>all rods parallel: the sliders plot the samples, their mean is <i>a</i><sub>0</sub> = ' + fmt(idl.a)
         : '<br>dashed: circle <i>r</i> = <i>A</i> cos(φ − θ) of the rods\' sum, <i>A</i> = ' + fmt(idl.A))
     : 'Record the signal: the red sliders appear here in polar form, <i>r</i> = <i>f</i>(<i>t<sub>k</sub></i>) at angle φ<sub><i>k</i></sub>.');
+}
+function enable(id, on) { if ($(id).disabled === on) $(id).disabled = !on; }
+function updateAnalyse() {
+  const known = phaseKnown(), c = S.circle, R = Math.hypot(PH.ry, PH.rz);
+  enable('bPhase', PH.nr > 0); enable('bCircle', known); enable('bClearBlue', PH.nb > 0);
+  for (const id of ['rD', 'bBalance', 'bTest']) enable(id, !!c);
+  // step 1
+  put('phaseRes', !PH.nr ? '<span class="hint">Record the signal first.</span>'
+    : known ? `θ̃ = ${fmtDeg(S.phase.theta)} <span class="ok">✓ at rest, read at the bottom index</span>`
+    : !S.locked && !S.settled ? `<span class="hint">settling… the bottom index passes θ̃ = ${fmtDeg(dialBottom())}</span>`
+    : '<span class="hint">Not measured yet.</span>');
+  // step 2: the moment left over, along the circle's direction, as a fraction of the red moment: (D − A)/A
+  const x = c && R > 0 ? clamp(((PH.ry + PH.by) * -Math.sin(c.psi) + (PH.rz + PH.bz) * -Math.cos(c.psi)) / R, -1, 1) : NaN;
+  const ok = Math.abs(x) < 0.01, mk = $('bMark'), left = fin(x) ? (50 + 50 * x).toFixed(1) + '%' : '';
+  if (mk._left !== left) { mk._left = left; mk.style.left = left; mk.style.display = left ? 'block' : 'none'; }
+  if (mk.classList.contains('ok') !== ok) mk.classList.toggle('ok', ok);
+  put('ampRes', !c ? `<span class="hint">${known ? 'Place the circle, then move D until the marker sits in the middle.' : 'Find the phase first (step 1).'}</span>`
+    : ok ? `Ã = <i>D</i> = ${fmt(c.D / UNIT)} <span class="ok">✓ balanced</span>`
+    : `<i>D</i> = ${fmt(c.D / UNIT)} <span class="hint">— ${x < 0 ? 'red side heavier: increase' : 'blue side heavier: decrease'} <i>D</i></span>`);
+  const d1 = known, d2 = !!c && ok;
+  if ($('sn1').classList.contains('done') !== d1) { $('sn1').classList.toggle('done', d1); $('sn1').textContent = d1 ? '✓' : '1'; }
+  if ($('sn2').classList.contains('done') !== d2) { $('sn2').classList.toggle('done', d2); $('sn2').textContent = d2 ? '✓' : '2'; }
 }
 // components of the red moment in the dial's (φ = 0, φ = 90°) frame
 function redA() { let s = 0; for (let k = 0; k < S.N; k++) if (fin(S.red[k])) s += S.red[k] * Math.cos(phiRad[k]); return s; }
@@ -1759,22 +1805,18 @@ bind('bClearOne', () => {
   S.red[k] = NaN; updateUI(); say(`Red slider removed from rod ${k + 1}.`);
 });
 bind('bClearRed', () => { stopTask(); S.red.fill(NaN); updateUI(); say('All red sliders removed.'); });
-bind('bRelease', () => { if (S.locked) run(releaseAndSettle); else { stopTask(); setLock(true); say('Locked.'); } });
-bind('bCircle', () => {
-  stopTask();
-  if (!PH.nr) { say('Record the signal first — the blue circle balances the red sliders.'); return; }
-  const D = S.circle ? S.circle.D : +$('rD').value * UNIT;
-  setLock(true); placeCircle(D); updateUI();
-  say(`<b>Blue circle</b> — blue sliders on a circle through the axis, centred straight above it (in polar form <i>r</i> = <i>D</i> cos(φ − ψ), ψ = ${fmtDeg(S.circle.psi / DEG)}). Adjust <i>D</i> until the weight bias is gone, then <b>Test balance</b>.`);
+bind('bPhase', () => {
+  if (!PH.nr) { say('Record the signal first (<b>i · Record</b>).'); return; }
+  if (PH.nb) clearBlue();   // the phase comes from the red sliders alone
+  run(releaseAndSettle);
 });
+bind('bCircle', () => { if (phaseKnown()) run(circleOnTop); });
 bind('bBalance', () => { if (S.circle) run(t => growCircle(t, optimalD(), 1.2)); });
 bind('bTest', () => run(testBalance));
 bind('bClearBlue', () => { stopTask(); clearBlue(); updateUI(); });
 $('rD').addEventListener('input', e => {
-  $('oD').textContent = fmt(+e.target.value, 3);
-  if (!PH.nr) return;
-  if (!S.circle) { setLock(true); placeCircle(+e.target.value * UNIT); } else { S.circle.D = +e.target.value * UNIT; applyCircle(); }
-  updateUI();
+  if (!S.circle) return;
+  S.circle.D = +e.target.value * UNIT; applyCircle(); updateUI();
 });
 bind('bSynNext', () => run(readNext));
 bind('bSynAll', () => run(async t => { if (await readAll(t)) say('Every rod has been read. <b>Join the dots</b> (J).'); }));
@@ -1796,7 +1838,7 @@ bind('bReset', () => {
   stopTask(); S.drawMode = false;
   for (const id of ['rFric', 'rDamp', 'rSpeed']) { const r = $(id); r.value = r.defaultValue; r.dispatchEvent(new Event('input')); }
   for (const id of ['cExact', 'cSum']) $(id).checked = $(id).defaultChecked;
-  S.red.fill(NaN); clearBlue(); S.marks = {}; S.active = 0;
+  S.red.fill(NaN); clearBlue(); S.marks = {}; S.active = 0; S.phase = null;
   S.alpha = 0; S.omega = 0; S.locked = true; S.nCur = S.n;
   drawPaperSoon(); setMode('record', true); goView('overview');
   say(`<b>Reset</b> — the helix is empty, locked and turned to 0°. The signal, <i>N</i> = ${S.N} and <i>n</i> = ${S.n} are kept.`);
@@ -1829,7 +1871,7 @@ window.addEventListener('keydown', e => {
 // counts to 0.01 mm, so the long, invisible tail of the orbit damping does not keep redrawing
 const camKey = () => [...camera.position.toArray(), ...controls.target.toArray()].map(v => Math.round(v * 100));
 const viewKey = () => [S.alpha, S.nCur, S.N, S.n, S.active, S.mode, S.drawMode, S.locked, S.hand, S.settled,
-  PH.ry, PH.rz, PH.by, PH.bz, PH.sq, PH.nr, PH.nb, S.circle?.D, S.circle?.psi, drag?.kind, drag?.k, drag?.color, ...camKey()].join();
+  PH.ry, PH.rz, PH.by, PH.bz, PH.sq, PH.nr, PH.nb, S.circle?.D, S.circle?.psi, S.phase?.alpha, drag?.kind, drag?.k, drag?.color, ...camKey()].join();
 let last = performance.now(), firstFrame = true, drawnKey = '', liveDue = false, liveLast = 0;
 function draw(dt) {
   updateScene(dt); applyFade();
