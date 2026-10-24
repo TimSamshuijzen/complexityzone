@@ -187,6 +187,8 @@
     <button data-mode="analyse" title="Key 2"><span class="num">ii</span> Analyse</button>
     <button data-mode="synth" title="Key 3"><span class="num">iii</span> Synthesise</button>
   </div>
+  <div class="row grid2" style="margin-top:6px"><button id="bDemo">▶ Whole procedure</button><button id="bStop" disabled>■ Stop<span class="kbd">Esc</span></button></div>
+  <div class="slider"><label>speed</label><input type="range" id="rSpeed" min="0.5" max="4" step="0.1" value="1"><output id="oSpeed"></output></div>
 
   <div id="procRecord" class="proc show">
     <h2>i · Record the signal</h2>
@@ -219,12 +221,6 @@
   <div class="slider"><label>friction</label><input type="range" id="rFric" min="0" max="1" step="0.005" value="0.01"><output id="oFric"></output></div>
   <div class="slider"><label>damping ζ</label><input type="range" id="rDamp" min="0" max="1.5" step="0.01" value="0.5"><output id="oDamp"></output></div>
   <div class="status"><span class="pill" id="sLock"></span><span class="pill" id="sRec"></span><span class="pill" id="sDial"></span><span class="pill" id="sTau"></span></div>
-
-  <h2>Demonstration</h2>
-  <div class="row grid2"><button id="bDemo">▶ Whole procedure</button><button id="bStop" disabled>■ Stop<span class="kbd">Esc</span></button></div>
-  <div class="slider"><label>speed</label><input type="range" id="rSpeed" min="0.5" max="4" step="0.1" value="1"><output id="oSpeed"></output></div>
-  <div class="row"><button id="bReset" style="flex:1">Reset everything</button></div>
-  <div class="note" style="margin-top:8px">After the 2006 device described on <a href="https://complexity.zone/helix_harmonic_analyzer/" style="color:var(--brass)">the Helix Harmonic Analyzer page</a>.</div>
 </div>
 
 <div id="caption" class="panel"></div>
@@ -1769,10 +1765,6 @@ $('rSpeed').addEventListener('input', e => { S.speed = +e.target.value; $('oSpee
 for (const b of document.querySelectorAll('#viewBtns [data-view]')) b.addEventListener('click', () => goView(b.dataset.view));
 bind('bDemo', () => run(demoAll));
 bind('bStop', () => { stopTask(); say('Stopped.'); });
-bind('bReset', () => {
-  stopTask(); Object.assign(S.sig, { preset: 'square', amp: 1, phase: 0, offset: 0 }); S.drawMode = false;
-  S.alpha = 0; S.omega = 0; S.locked = true; S.n = 1; S.nCur = 1; setN(128); syncSignalUI(); setMode('record'); goView('overview');
-});
 bind('bHelp', () => { const h = $('help'); h.style.display = h.style.display === 'block' ? 'none' : 'block'; drawSpectrum(); });   // the spectrum canvas has no size while hidden
 bind('bHelpX', () => { $('help').style.display = 'none'; });
 for (const el of document.querySelectorAll('[data-collapse]')) el.addEventListener('click', () => { $(el.dataset.collapse).classList.toggle('collapsed'); layout(); });
