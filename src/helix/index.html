@@ -35,6 +35,7 @@
   #title { padding: 11px 14px 11px; }
   #title h1 { margin: 0; font-weight: normal; font-variant: small-caps; letter-spacing: 2.5px; font-size: 25px; line-height: 1.1; }
   #title .subrow { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  #viewBtns { margin: 9px 0 0; }
   #title .sub { flex: 1; color: var(--dim); font-size: 13px; font-style: italic; }
   .tabs { display: flex; gap: 5px; }
   .tabs button { flex: 1; font-size: 14px; }
@@ -54,7 +55,7 @@
   #topviewPanel, #polarPanel { flex: 0 0 auto; }
   #topviewBody, #polarBody { padding: 0 12px 10px; }
   #topview { width: 100%; height: clamp(140px, 24vh, 260px); display: block; border-radius: 4px; }
-  #polar { width: min(100%, max(170px, calc(100vh - 590px))); aspect-ratio: 1 / 1; display: block; border-radius: 4px; margin: 0 auto; }
+  #polar { width: min(100%, max(150px, calc(100vh - 600px))); aspect-ratio: 1 / 1; display: block; border-radius: 4px; margin: 0 auto; }
   .readout { font-size: 13px; color: var(--ink); line-height: 1.45; margin-top: 4px; }
   .readout .r { color: var(--red); } .readout .b { color: var(--blue); }
 
@@ -146,6 +147,9 @@
   <div id="title" class="panel">
     <h1>Helix Harmonic Analyzer</h1>
     <div class="subrow"><div class="sub">a mechanical Fourier analyser — gravity does the summing</div><button id="bHelp" class="mini" title="How it works, the formulas, and the controls">?</button></div>
+    <div class="row grid4" id="viewBtns">
+      <button data-view="overview" title="O">Overview</button><button data-view="top" title="V">Top</button><button data-view="end" title="E">End</button><button data-view="dial" title="D">Dial</button>
+    </div>
   </div>
   <div id="topviewPanel" class="panel">
     <div class="ph" data-collapse="topviewPanel"><h2>Top view <i>looking down on the paper</i></h2><span class="tog">▾</span></div>
@@ -215,12 +219,6 @@
   <div class="slider"><label>friction</label><input type="range" id="rFric" min="0" max="1" step="0.005" value="0.01"><output id="oFric"></output></div>
   <div class="slider"><label>damping ζ</label><input type="range" id="rDamp" min="0" max="1.5" step="0.01" value="0.5"><output id="oDamp"></output></div>
   <div class="status"><span class="pill" id="sLock"></span><span class="pill" id="sRec"></span><span class="pill" id="sDial"></span><span class="pill" id="sTau"></span></div>
-
-  <h2>View</h2>
-  <div class="row grid4" id="viewBtns">
-    <button data-view="overview" title="O">Overview</button><button data-view="top" title="V">Top</button><button data-view="end" title="E">End</button><button data-view="dial" title="D">Dial</button>
-  </div>
-  <label class="chk"><input type="checkbox" id="cPlumb" checked> plumb line from the slider to the paper</label>
 
   <h2>Demonstration</h2>
   <div class="row grid2"><button id="bDemo">▶ Whole procedure</button><button id="bStop" disabled>■ Stop<span class="kbd">Esc</span></button></div>
@@ -1609,7 +1607,7 @@ function updateScene(dt) {
   if (k >= 0 && k < S.N && S.mode === 'record' && !S.drawMode) {
     targetRing.visible = true; targetRing.position.set(xK(k), 0.45, -clampV(f(tK(k))) * UNIT);
   }
-  if (col && k >= 0 && k < S.N && fin(S[col][k]) && $('cPlumb').checked) {
+  if (col && k >= 0 && k < S.N && fin(S[col][k])) {
     const a = S.alpha - phiRad[k], d = S[col][k], y = H + d * Math.sin(a), z = -d * Math.cos(a);
     const top = y - H_.rb;
     if (top > 1) {
