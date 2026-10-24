@@ -189,7 +189,7 @@
 
   <div id="procRecord" class="proc show">
     <h2>i · Record the signal</h2>
-    <div class="row grid3"><button id="bPrev">◀ rod</button><output id="oRod" class="rodout">—</output><button id="bNext">rod ▶</button></div>
+    <div class="row grid3"><button id="bPrev">◀ rod</button><output id="oRod" class="rodout"></output><button id="bNext">rod ▶</button></div>
     <div class="row grid2"><button id="bPlace">Place red slider</button><button id="bRecNext">Record next<span class="kbd">R</span></button></div>
     <div class="row grid2"><button id="bRecAll">Record all rods</button><button id="bClearRed">Remove red</button></div>
     <div class="note">By hand: pick a rod with ◀ ▶, then drag its red slider (or click the bare rod) until the plumb line meets the curve.</div>
@@ -311,7 +311,7 @@ const G = 9.81, RHO_STEEL = 7.85e-6, RHO_BRASS = 8.5e-6;   // kg / mm^3
 const S = {
   N: 128, n: 1, nCur: 1,
   alpha: 0, omega: 0, locked: true, hand: false, leverT: 0,
-  red: [], blue: [], circle: null, active: -1, mode: 'record',
+  red: [], blue: [], circle: null, active: 0, mode: 'record',   // active: the selected rod, always one
   sig: { preset: 'square', amp: 1, phase: 0, offset: 0 },
   marks: {}, friction: 0.01, damping: 0.5, speed: 1,
   restTime: 0, settled: false, drawMode: false,
@@ -833,7 +833,7 @@ function buildHelix() {
     pickables.push(rod, col, red, blue, proxy);
   }
   S.red = new Array(N).fill(NaN); S.blue = new Array(N).fill(NaN);
-  S.circle = null; S.marks = {}; S.active = -1;
+  S.circle = null; S.marks = {}; S.active = 0;
   updatePhis(); fillDish();
 }
 // spare sliders lying in one hexagonal layer on the dish's flat bottom, the same size as those on the rods
@@ -981,7 +981,7 @@ async function recordRod(t, k, fast) {
 }
 async function recordNext(t) {
   let k = -1;
-  for (let i = 1; i <= S.N; i++) { const j = ((S.active < 0 ? -1 : S.active) + i) % S.N; if (!fin(S.red[j])) { k = j; break; } }
+  for (let i = 0; i < S.N; i++) { const j = (S.active + i) % S.N; if (!fin(S.red[j])) { k = j; break; } }
   if (k < 0) { say('<b>Recorded</b> — every rod carries a red slider. Go on with <b>ii · Analyse</b>.'); return; }
   await recordRod(t, k, false);
 }
@@ -1000,7 +1000,7 @@ async function recordAll(t) {
     for (let k = 0; k <= S.active; k++) S.red[k] = lerp(s0[k], s1[k], ease(clamp((u - k) / lag, 0, 1)));
   });
   for (let k = 0; k < N; k++) S.red[k] = s1[k];
-  S.active = -1;
+  S.active = N - 1;
   say(`<b>Recorded</b> — the helix now carries the signal: slider <i>k</i> sits at distance <i>f</i>(<i>t<sub>k</sub></i>) along a rod that points at φ<sub><i>k</i></sub> = <i>n</i>ω<i>t<sub>k</sub></i>. Seen along the axis the sliders draw <i>f</i> in polar form. Next: <b>ii · Analyse</b>.`);
 }
 
@@ -1074,7 +1074,7 @@ async function readRod(t, k, fast) {
 }
 async function readNext(t) {
   const m = marksFor(S.n); let k = -1;
-  for (let i = 1; i <= S.N; i++) { const j = ((S.active < 0 ? -1 : S.active) + i) % S.N; if (!fin(m.v[j])) { k = j; break; } }
+  for (let i = 0; i < S.N; i++) { const j = (S.active + i) % S.N; if (!fin(m.v[j])) { k = j; break; } }
   if (k < 0) { say('Every rod has been read. <b>Join the dots</b> (J).'); return; }
   await readRod(t, k, false);
 }
@@ -1092,7 +1092,7 @@ async function readAll(t) {
     S.alpha = (a0 + d * u) * DEG; S.active = Math.round(u);
     mark(Math.floor(u + 1e-9));
   });
-  mark(N - 1); S.active = -1; updateUI(); return true;
+  mark(N - 1); S.active = N - 1; updateUI(); return true;
 }
 function joinDots() {
   const m = S.marks[S.n];
@@ -1108,7 +1108,7 @@ function clearBlue() { S.blue.fill(NaN); S.circle = null; $('rD').value = 0; $('
 async function twistTo(t, n) {
   setLock(true);
   if (S.circle || S.blue.some(fin)) clearBlue();
-  S.n = n; S.active = -1; refreshMath(); drawPaperSoon(); updateUI();
+  S.n = n; refreshMath(); drawPaperSoon(); updateUI();
   say(n === 0
     ? '<b><i>n</i> = 0</b> — all rods turned parallel, like an abacus. The centre of mass is now simply the mean of the samples: the constant term <i>a</i><sub>0</sub>.'
     : `<b><i>n</i> = ${n}</b> — the rods turn on their collars until they make ${n} full turn${n > 1 ? 's' : ''} along the axis (φ<sub><i>k</i></sub> = ${n}·360°·<i>t<sub>k</sub></i>/<i>T</i>). The red sliders stay where they are, so the same recording now yields harmonic ${n}.`);
@@ -1196,7 +1196,7 @@ function drawTopView() {
     g.beginPath(); g.arc(X(x), Z(z), rp, 0, TAU); g.fill();
   }
   // where the active rod has to put its slider while recording
-  if (S.mode === 'record' && S.active >= 0 && S.active < S.N) {
+  if (S.mode === 'record') {
     g.strokeStyle = '#11131a'; g.lineWidth = 1.2;
     g.beginPath(); g.arc(X(xK(S.active)), Z(-clampV(f(tK(S.active))) * UNIT), Math.max(3.2, 4 * sc), 0, TAU); g.stroke();
   }
@@ -1208,7 +1208,6 @@ function drawTopView() {
 }
 function topReadout() {
   const k = S.active;
-  if (k < 0 || k >= S.N) return 'Seen from straight above, a rod lying flat shows its full length, and its slider sits right over the paper value it stands for.';
   const a = S.alpha - phiRad[k], tilt = Math.asin(Math.abs(Math.sin(a))) / DEG;
   const col = S.mode === 'synth' ? 'blue' : 'red', d = S[col][k];
   let t = `Rod ${k + 1} ${tilt < 0.5 ? 'lies flat' : `is ${fmt(tilt, 0)}° from flat`}; `;
@@ -1626,7 +1625,6 @@ function setMode(m, quiet) {
   $('procAnalyse').classList.toggle('show', m === 'analyse');
   $('procSynth').classList.toggle('show', m === 'synth');
   if (!quiet) {
-    S.active = -1;
     if (m === 'record') say('<b>i · Record</b> — each rod sits above one sample time <i>t<sub>k</sub></i>. Turn the helix until rod <i>k</i> lies flat over the paper, look straight down, and slide a <span class="r">red slider</span> to where the rod crosses the curve. Press <b>Record next</b> (R), or do it by hand.');
     if (m === 'analyse') say('<b>ii · Analyse</b> — release the lock: gravity turns the heavy side down and the <b>bottom</b> index of the dial reads the phase θ. Then lock it, put <span class="b">blue sliders</span> on a circle through the axis on the light (top) side, and grow it until the helix has no weight bias. Its diameter <i>D</i> is the amplitude.');
     if (m === 'synth') say('<b>iii · Synthesise</b> — the blue sliders hold −<i>h<sub>n</sub></i>(<i>t<sub>k</sub></i>). Lay each rod flat again, half a turn from its recording position, mark the paper below its blue slider, and join the dots.');
@@ -1646,7 +1644,6 @@ function updateUI() {
   $('oN').textContent = S.N; $('on').textContent = S.n;
   $('rN').value = S.N;
   $('bnm').disabled = S.n <= 0; $('bnp').disabled = S.n >= nMax();
-  $('oRod').innerHTML = S.active >= 0 ? `rod ${S.active + 1} <span style="color:var(--dim)">/ ${S.N}</span>` : `— <span style="color:var(--dim)">/ ${S.N}</span>`;
   const m = S.marks[S.n];
   $('bJoin').disabled = !m || m.v.some(v => !fin(v));
   $('bBalance').disabled = $('bTest').disabled = !S.circle;
@@ -1654,6 +1651,7 @@ function updateUI() {
 }
 let liveT = 0;
 function updateLive() {
+  $('oRod').innerHTML = `rod ${S.active + 1} <span style="color:var(--dim)">/ ${S.N}</span>`;
   $('sLock').textContent = S.locked ? 'locked' : S.hand ? 'held by hand' : S.settled ? 'free · at rest' : 'free · swinging';
   $('sLock').className = 'pill ' + (S.locked ? '' : S.settled ? 'ok' : 'hot');
   $('sRec').textContent = 'rec ' + fmtDeg(S.alpha / DEG);
@@ -1698,7 +1696,7 @@ function syncSignalUI() {
 function signalChanged() {
   stopTask();
   const had = S.red.some(fin);
-  S.red.fill(NaN); clearBlue(); S.marks = {}; S.active = -1;
+  S.red.fill(NaN); clearBlue(); S.marks = {};
   computeExact(); refreshMath(); drawPaperSoon(); updateUI();
   if (had) say('The signal changed, so the sliders came off. Record it again (<b>R</b>, or <b>Record all rods</b>).');
 }
@@ -1727,9 +1725,9 @@ $('rN').addEventListener('input', e => setN(+e.target.value));
 bind('bnm', () => run(t => twistTo(t, Math.max(0, S.n - 1))));
 bind('bnp', () => run(t => twistTo(t, Math.min(nMax(), S.n + 1))));
 for (const b of document.querySelectorAll('#modeTabs [data-mode]')) b.addEventListener('click', () => { stopTask(); setMode(b.dataset.mode); });
-bind('bPrev', () => run(t => selectRod(t, (S.active < 0 ? 0 : S.active - 1))));
+bind('bPrev', () => run(t => selectRod(t, S.active - 1)));
 bind('bNext', () => run(t => selectRod(t, S.active + 1)));
-bind('bPlace', () => { const k = S.active < 0 ? 0 : S.active; run(t => recordRod(t, k, false)); });
+bind('bPlace', () => { const k = S.active; run(t => recordRod(t, k, false)); });
 bind('bRecNext', () => run(recordNext));
 bind('bRecAll', () => run(recordAll));
 bind('bClearRed', () => { stopTask(); S.red.fill(NaN); updateUI(); say('Red sliders removed.'); });
@@ -1778,7 +1776,7 @@ window.addEventListener('keydown', e => {
     ' ': toggleLock, escape: () => { stopTask(); S.drawMode = false; say(''); $('help').style.display = 'none'; },
     r: () => run(sh ? recordAll : recordNext), b: () => sh ? $('bBalance').click() : $('bCircle').click(), t: () => $('bTest').click(),
     s: () => sh ? $('bSynAll').click() : run(readNext), j: joinDots,
-    arrowleft: () => sh ? run(t => turnTo(t, S.alpha / DEG - 1, 0.15)) : run(t => selectRod(t, (S.active < 0 ? 0 : S.active - 1))),
+    arrowleft: () => sh ? run(t => turnTo(t, S.alpha / DEG - 1, 0.15)) : run(t => selectRod(t, S.active - 1)),
     arrowright: () => sh ? run(t => turnTo(t, S.alpha / DEG + 1, 0.15)) : run(t => selectRod(t, S.active + 1)),
     1: () => setMode('record'), 2: () => setMode('analyse'), 3: () => setMode('synth'),
     o: () => goView('overview'), v: () => goView('top'), e: () => goView('end'), f: () => goView('front'), d: () => goView('dial'),
