@@ -652,13 +652,13 @@ function drawPaper() {
   g.fillStyle = '#11131a'; g.textBaseline = 'alphabetic'; g.textAlign = 'left';
   g.font = `italic ${6.2 * k}px "Times New Roman", serif`; g.fillText('Helix Harmonic Analyzer', px(-200), pz(-124));
   g.font = `${3.5 * k}px "Times New Roman", serif`;
-  g.fillText('record sheet — one period T spans the helix · 1 unit = 60 mm', px(-200), pz(-118));
+  g.fillText('record sheet · 1 unit = 60 mm', px(-200), pz(-118));
   g.textAlign = 'right'; g.font = `italic ${4.6 * k}px "Times New Roman", serif`;
   g.fillText(`N = ${S.N} rods,   n = ${S.n}`, px(200), pz(-124));
   g.textAlign = 'left'; g.font = `italic ${4.6 * k}px "Times New Roman", serif`;
   g.fillText('f (t) ≈ a₀ + Σ ( aₙ cos nωt + bₙ sin nωt ),     aₙ = (2/N) Σ f (tₖ) cos nωtₖ ,   bₙ = (2/N) Σ f (tₖ) sin nωtₖ', px(-200), pz(124));
   g.textAlign = 'right'; g.font = `${3.4 * k}px "Times New Roman", serif`; g.fillStyle = 'rgba(17,19,26,.8)';
-  g.fillText('T. Samshuijzen, 2006', px(200), pz(132));
+  g.fillText('T. Samshuijzen, 2026', px(200), pz(132));
   paperTex.needsUpdate = true;
   const tg = paperThumb.getContext('2d'); tg.imageSmoothingQuality = 'high';
   tg.drawImage(paperCanvas, 0, 0, paperThumb.width, paperThumb.height);
